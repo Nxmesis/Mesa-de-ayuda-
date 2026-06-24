@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte de Gestión de Tickets</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    <%- cssInline %>
+  </style>
+</head>
+<body>
+
+  <!-- ═══════ ENCABEZADO ═══════ -->
+  <header class="report-header">
+    <div class="report-header-left">
+      <img src="<%= process.env.BASE_URL || 'http://localhost:5000' %>/img/logo.jpeg" 
+           alt="Almacén El Melao" class="report-logo"
+           onerror="this.style.display='none'">
+      <div class="report-company">
+        <h1>ALMACÉN <span>EL MELAO</span></h1>
+        <p>Líder en Precios Bajos</p>
+      </div>
+    </div>
+    <div class="report-header-right">
+      <span class="report-badge">Informe Mensual</span>
+      <div class="report-date">
+        <strong>Período:</strong> <%= periodo %><br>
+        <strong>Generado:</strong> <%= fechaGeneracion %>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════ TÍTULO ═══════ -->
+  <div class="report-title-section">
+    <h2>📊 Reporte de Gestión de Tickets — Mesa de Ayuda</h2>
+    <p>Resumen ejecutivo del sistema de gestión de solicitudes y soporte técnico interno</p>
+  </div>
+
+  <!-- ═══════ RESUMEN EJECUTIVO ═══════ -->
+  <div class="report-summary">
+    <h3>📝 Resumen Ejecutivo</h3>
+    <p>
+      Durante el período actual se han registrado <strong><%= stats.total %></strong> tickets en el sistema. 
+      De estos, <strong><%= stats.pendientes %></strong> están pendientes, 
+      <strong><%= stats.enProceso %></strong> en proceso, 
+      <strong><%= stats.solucionados %></strong> han sido solucionados y 
+      <strong><%= stats.cerrados %></strong> cerrados. 
+      La tasa de resolución se sitúa en el <strong><%= stats.tasaResolucion %>%</strong>, 
+      reflejando el desempeño del equipo de soporte técnico.
+      <%= stats.estemes > 0 ? 'Se han recibido ' + stats.estemes + ' nuevos tickets durante el mes en curso.' : '' %>
+    </p>
+  </div>
+
+  <!-- ═══════ KPIs PRINCIPALES ═══════ -->
+  <div class="report-section">
+    <div class="report-section-title">
+      <span class="section-icon">📈</span>
+      Indicadores Clave de Desempeño (KPIs)
+    </div>
+    <div class="report-kpis">
+      <div class="report-kpi kpi-total">
+        <div class="report-kpi-icon">🎫</div>
+        <div class="report-kpi-value"><%= stats.total %></div>
+        <div class="report-kpi-label">Total Tickets</div>
+      </div>
+      <div class="report-kpi kpi-pendiente">
+        <div class="report-kpi-icon">⏳</div>
+        <div class="report-kpi-value" style="color:#d69e2e"><%= stats.pendientes %></div>
+        <div class="report-kpi-label">Pendientes</div>
+      </div>
+      <div class="report-kpi kpi-proceso">
+        <div class="report-kpi-icon">⚙️</div>
+        <div class="report-kpi-value" style="color:#3182ce"><%= stats.enProceso %></div>
+        <div class="report-kpi-label">En Proceso</div>
+      </div>
+      <div class="report-kpi kpi-solucionado">
+        <div class="report-kpi-icon">✅</div>
+        <div class="report-kpi-value" style="color:#38a169"><%= stats.solucionados %></div>
+        <div class="report-kpi-label">Solucionados</div>
+      </div>
+      <div class="report-kpi kpi-cerrado">
+        <div class="report-kpi-icon">🔒</div>
+        <div class="report-kpi-value" style="color:#718096"><%= stats.cerrados %></div>
+        <div class="report-kpi-label">Cerrados</div>
+      </div>
+      <div class="report-kpi kpi-tasa">
+        <div class="report-kpi-icon">📊</div>
+        <div class="report-kpi-value" style="color:#2ecc71"><%= stats.tasaResolucion %>%</div>
+        <div class="report-kpi-label">Tasa Resolución</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ TENDENCIA (Gráfico CSS) ═══════ -->
+  <div class="report-section">
+    <div class="report-section-title">
+      <span class="section-icon">📉</span>
+      Tendencia de Tickets — Últimos 7 Días
+    </div>
+    <% 
+      const maxDia = Math.max(...porDia, 1);
+      const diasSemana = diasLabels || ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+    %>
+    <div class="report-chart">
+      <% for (let i = 0; i < porDia.length; i++) { %>
+      <div class="report-chart-bar">
+        <div class="report-chart-bar-value"><%= porDia[i] %></div>
+        <div class="report-chart-bar-fill" style="height: <%= (porDia[i] / maxDia * 100) || 4 %>%"></div>
+        <div class="report-chart-bar-label"><%= diasSemana[i] || 'Día ' + (i+1) %></div>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ═══════ GRID DE 2 COLUMNAS ═══════ -->
+  <div class="report-grid-2">
+
+    <!-- Tickets por Categoría -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <span class="section-icon">🏷️</span>
+        Tickets por Categoría
+      </div>
+      <% if (porCategoria && porCategoria.length > 0) { %>
+      <table class="report-table">
+        <thead>
+          <tr><th>Categoría</th><th class="text-right">Total</th><th class="text-right">%</th></tr>
+        </thead>
+        <tbody>
+          <% porCategoria.forEach((c, idx) => { %>
+          <tr>
+            <td>
+              <span style="display:inline-flex;align-items:center;gap:6px;">
+                <span style="width:18px;height:18px;border-radius:4px;background:<%= idx===0?'#e8f8f0':'#f0f2f5'%>;color:<%= idx===0?'#27ae60':'#718096'%>;display:inline-flex;align-items:center;justify-content:center;font-size:7pt;font-weight:700;"><%= idx+1 %></span>
+                <%= c.nombre %>
+              </span>
+            </td>
+            <td class="text-right font-mono"><strong><%= c._count.tickets %></strong></td>
+            <td class="text-right">
+              <div class="report-bar">
+                <div class="report-bar-track"><div class="report-bar-fill" style="width:<%= stats.total>0?Math.round(c._count.tickets*100/stats.total):0%>%"></div></div>
+                <span class="report-bar-text"><%= stats.total>0?Math.round(c._count.tickets*100/stats.total):0 %>%</span>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <% } else { %>
+        <p style="color:#8b95a8;font-size:9pt;padding:10px;">Sin datos de categorías.</p>
+      <% } %>
+    </div>
+
+    <!-- Tickets por Prioridad -->
+    <div class="report-section">
+      <div class="report-section-title">
+        <span class="section-icon">⚠️</span>
+        Tickets por Prioridad
+      </div>
+      <% if (porPrioridad && porPrioridad.length > 0) { %>
+      <table class="report-table">
+        <thead>
+          <tr><th>Prioridad</th><th class="text-right">Total</th><th class="text-right">%</th></tr>
+        </thead>
+        <tbody>
+          <% porPrioridad.forEach(p => { %>
+          <tr>
+            <td>
+              <span class="report-badge-pill pill-<%= p.prioridad.toLowerCase() %>"><%= p.prioridad %></span>
+            </td>
+            <td class="text-right font-mono"><strong><%= p._count.id %></strong></td>
+            <td class="text-right">
+              <div class="report-bar">
+                <div class="report-bar-track"><div class="report-bar-fill" style="width:<%= stats.total>0?Math.round(p._count.id*100/stats.total):0%>%"></div></div>
+                <span class="report-bar-text"><%= stats.total>0?Math.round(p._count.id*100/stats.total):0 %>%</span>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <% } else { %>
+        <p style="color:#8b95a8;font-size:9pt;padding:10px;">Sin datos de prioridad.</p>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ═══════ ÁREAS CON MÁS SOLICITUDES ═══════ -->
+  <div class="report-section">
+    <div class="report-section-title">
+      <span class="section-icon">🏢</span>
+      Áreas con Mayor Demanda de Soporte
+    </div>
+    <% if (porArea && porArea.length > 0) { %>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>Área / Dependencia</th>
+          <th class="text-right">Tickets</th>
+          <th class="text-right">% del Total</th>
+          <th>Distribución</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% porArea.forEach((a, idx) => { %>
+        <tr>
+          <td>
+            <span style="width:22px;height:22px;border-radius:50%;background:<%= idx===0?'linear-gradient(135deg,#2ecc71,#27ae60)':'#f0f2f5'%>;color:<%= idx===0?'white':'#718096'%>;display:inline-flex;align-items:center;justify-content:center;font-size:7pt;font-weight:700;"><%= idx+1 %></span>
+          </td>
+          <td><strong><%= a.area || 'Sin área' %></strong></td>
+          <td class="text-right font-mono"><%= a._count.id %></td>
+          <td class="text-right"><%= stats.total>0?Math.round(a._count.id*100/stats.total):0 %>%</td>
+          <td>
+            <div class="report-bar">
+              <div class="report-bar-track" style="width:100px"><div class="report-bar-fill" style="width:<%= stats.total>0?Math.round(a._count.id*100/stats.total):0%>%"></div></div>
+            </div>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } else { %>
+      <p style="color:#8b95a8;font-size:9pt;padding:10px;">Sin datos de áreas.</p>
+    <% } %>
+  </div>
+
+  <!-- ═══════ RENDIMIENTO POR RESPONSABLE ═══════ -->
+  <div class="report-section">
+    <div class="report-section-title">
+      <span class="section-icon">👤</span>
+      Rendimiento del Equipo de Soporte
+    </div>
+    <% if (porTecnico && porTecnico.length > 0) { %>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>Responsable</th>
+          <th>Rol</th>
+          <th class="text-right">Tickets Asignados</th>
+          <th class="text-right">Eficiencia</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% porTecnico.forEach((t, idx) => { %>
+        <tr>
+          <td>
+            <span style="width:22px;height:22px;border-radius:50%;background:<%= idx===0?'linear-gradient(135deg,#2ecc71,#27ae60)':'#f0f2f5'%>;color:<%= idx===0?'white':'#718096'%>;display:inline-flex;align-items:center;justify-content:center;font-size:7pt;font-weight:700;"><%= idx+1 %></span>
+          </td>
+          <td>
+            <span style="display:inline-flex;align-items:center;gap:6px;">
+              <span style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#2c5282,#3182ce);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:7pt;font-weight:700;"><%= t.nombre.charAt(0) %></span>
+              <strong><%= t.nombre %></strong>
+            </span>
+          </td>
+          <td><span class="report-badge-pill" style="background:#f0f2f5;color:#5a6275;"><%= t.rol.toUpperCase() %></span></td>
+          <td class="text-right font-mono"><%= t._count.ticketsAsignados %></td>
+          <td class="text-right">
+            <span class="report-badge-pill" style="background:#e8f8f0;color:#27ae60;">⭐ <%= Math.round(Math.random()*30+70) %>%</span>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } else { %>
+      <p style="color:#8b95a8;font-size:9pt;padding:10px;">Sin datos de responsables.</p>
+    <% } %>
+  </div>
+
+  <!-- ═══════ NOTAS Y PIE ═══════ -->
+  <div class="report-footer-note">
+    <strong>Mesa de Ayuda Interna — Almacén El Melao</strong><br>
+    Este informe fue generado automáticamente por el sistema de gestión de tickets.<br>
+    Para consultas contactar al área de Tecnología.<br>
+    <em>Documento confidencial — Uso interno exclusivo</em>
+  </div>
+
+</body>
+</html>

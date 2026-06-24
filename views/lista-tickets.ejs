@@ -1,0 +1,62 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+    <%- include('partials/navbar') %>
+
+    <div class="container">
+        <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
+            <div class="alert alert-success"><%= success[0] %></div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+            <div class="alert alert-danger"><%= error[0] %></div>
+        <% } %>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h1 style="color:#2d3748;">Lista de Tickets</h1>
+            <a href="/tickets/nuevo" class="btn btn-success">+ Nuevo Ticket</a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Todos los Tickets</div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>N° Ticket</th>
+                            <th>Título</th>
+                            <th>Solicitante</th>
+                            <th>Categoría</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                            <th>Técnico</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (typeof tickets !== 'undefined' && tickets && tickets.length > 0) { %>
+                        <% tickets.forEach(ticket => { %>
+                        <tr>
+                            <td><strong><%= ticket.numeroTicket %></strong></td>
+                            <td><%= ticket.titulo && ticket.titulo.length > 40 ? ticket.titulo.substring(0,40)+'...' : ticket.titulo %></td>
+                            <td><%= ticket.usuario && ticket.usuario.nombre || 'N/A' %></td>
+                            <td><%= ticket.categoria && ticket.categoria.nombre || '—' %></td>
+                            <td><span class="badge <%= helpers.getPrioridadClass(ticket.prioridad) %>"><%= ticket.prioridad %></span></td>
+                            <td><span class="badge <%= helpers.getEstadoClass(ticket.estado) %>"><%= helpers.textoEstado(ticket.estado) %></span></td>
+                            <td><%= ticket.tecnico && ticket.tecnico.nombre || '—' %></td>
+                            <td><%= helpers.formatearFecha(ticket.fechaCreacion) %></td>
+                            <td><a href="/tickets/<%= ticket.id %>" class="btn btn-primary btn-sm">Ver</a></td>
+                        </tr>
+                        <% }) %>
+                        <% } else { %>
+                        <tr><td colspan="9" style="text-align:center;padding:20px;">No hay tickets registrados</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+</div>

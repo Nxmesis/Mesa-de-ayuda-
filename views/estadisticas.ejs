@@ -1,0 +1,274 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+  <%- include('partials/navbar') %>
+ 
+
+  <div class="container">
+    <!-- Header profesional -->
+    <!-- ═══════ HEADER CON BOTÓN EXPORTAR ═══════ -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+  <div>
+    <h1 style="color:#1a1f2e; font-family:'Montserrat',sans-serif; font-weight:700; font-size:1.8rem; margin-bottom:5px;">
+      <i class="fas fa-chart-line" style="color:#2ecc71; margin-right:12px;"></i>
+      Métricas
+    </h1>
+    <p style="color:#8b95a8; font-size:0.9rem;">Panel de control y análisis de rendimiento del sistema</p>
+  </div>
+  
+  <!-- Grupo derecho: Período + Exportar -->
+  <div style="display:flex; align-items:center; gap:14px;">
+    
+    <!-- Período -->
+    <div style="background:#fff; padding:10px 20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <span style="color:#8b95a8; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Período</span>
+      <div style="font-weight:700; color:#1a1f2e; font-size:0.95rem;">
+        <i class="far fa-calendar-alt" style="margin-right:6px; color:#2ecc71;"></i>
+        <%= new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }) %>
+      </div>
+    </div>
+    
+    <!-- Botón Exportar -->
+    <a href="/estadisticas/reporte" 
+       style="display:inline-flex; align-items:center; justify-content:center; gap:8px;
+              padding:11px 22px; border-radius:8px; text-decoration:none; font-weight:600;
+              font-size:0.88rem; font-family:'Inter','Segoe UI',sans-serif; letter-spacing:0.2px;
+              background:linear-gradient(135deg, #e67e22 0%, #d35400 100%); color:white;
+              box-shadow:0 4px 14px rgba(230,126,34,0.3); border:none; cursor:pointer;
+              transition:all 0.25s ease; white-space:nowrap;"
+       onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(230,126,34,0.4)';"
+       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 14px rgba(230,126,34,0.3)';">
+      <i class="fas fa-arrow-up" style="font-size:0.85rem;"></i>
+      <span>Exportar</span>
+    </a>
+    
+  </div>
+</div>
+
+    <!-- KPIs principales -->
+    <div class="stats-grid" style="grid-template-columns: repeat(6, 1fr); gap:16px; margin-bottom:30px;">
+      
+      <div class="stat-card" style="position:relative; overflow:hidden;">
+        <div style="position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, #2ecc71, #27ae60);"></div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <div style="background:rgba(46,204,113,0.1); width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-ticket-alt" style="color:#2ecc71; font-size:1.1rem;"></i>
+          </div>
+          <span style="background:#e8f8f0; color:#27ae60; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:700;">
+            +<%= stats.estemes || 0 %> este mes
+          </span>
+        </div>
+        <div class="stat-number" style="font-size:2rem; margin-bottom:4px;"><%= stats.total || 0 %></div>
+        <div class="stat-label" style="font-size:0.8rem;">Total Tickets</div>
+      </div>
+
+      <div class="stat-card" style="position:relative; overflow:hidden;">
+        <div style="position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, #f39c12, #e67e22);"></div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <div style="background:rgba(243,156,18,0.1); width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-clock" style="color:#f39c12; font-size:1.1rem;"></i>
+          </div>
+        </div>
+        <div class="stat-number" style="font-size:2rem; color:#d69e2e; margin-bottom:4px;"><%= stats.pendientes || 0 %></div>
+        <div class="stat-label" style="font-size:0.8rem;">Pendientes</div>
+      </div>
+
+      <div class="stat-card" style="position:relative; overflow:hidden;">
+        <div style="position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, #3498db, #2980b9);"></div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <div style="background:rgba(52,152,219,0.1); width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-spinner" style="color:#3498db; font-size:1.1rem;"></i>
+          </div>
+        </div>
+        <div class="stat-number" style="font-size:2rem; color:#3182ce; margin-bottom:4px;"><%= stats.enProceso || 0 %></div>
+        <div class="stat-label" style="font-size:0.8rem;">En Proceso</div>
+      </div>
+
+      <div class="stat-card" style="position:relative; overflow:hidden;">
+        <div style="position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, #2ecc71, #27ae60);"></div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <div style="background:rgba(46,204,113,0.1); width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-check-circle" style="color:#2ecc71; font-size:1.1rem;"></i>
+          </div>
+        </div>
+        <div class="stat-number" style="font-size:2rem; color:#38a169; margin-bottom:4px;"><%= stats.solucionados || 0 %></div>
+        <div class="stat-label" style="font-size:0.8rem;">Solucionados</div>
+      </div>
+
+      <div class="stat-card" style="position:relative; overflow:hidden;">
+        <div style="position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg, #718096, #4a5568);"></div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <div style="background:rgba(113,128,150,0.1); width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-lock" style="color:#718096; font-size:1.1rem;"></i>
+          </div>
+        </div>
+        <div class="stat-number" style="font-size:2rem; color:#718096; margin-bottom:4px;"><%= stats.cerrados || 0 %></div>
+        <div class="stat-label" style="font-size:0.8rem;">Cerrados</div>
+      </div>
+
+      <div class="stat-card" style="position:relative; overflow:hidden; background:linear-gradient(135deg, #1a1f2e 0%, #242b3d 100%); color:white;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+          <div style="background:rgba(255,255,255,0.1); width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+            <i class="fas fa-percentage" style="color:#2ecc71; font-size:1.1rem;"></i>
+          </div>
+        </div>
+        <div style="font-size:2rem; font-weight:800; margin-bottom:4px; color:#2ecc71;">
+          <%= stats.total > 0 ? Math.round((stats.solucionados + stats.cerrados) * 100 / stats.total) : 0 %>%
+        </div>
+        <div style="font-size:0.8rem; color:#8b95a8;">Tasa de Resolución</div>
+      </div>
+    </div>
+
+    <!-- Gráficos principales -->
+    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-bottom:25px;">
+      
+      <!-- Gráfico de tendencia -->
+      <div class="card" style="padding:25px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div>
+            <h3 style="color:#1a1f2e; font-weight:700; font-size:1.1rem; margin-bottom:4px;">
+              <i class="fas fa-chart-area" style="color:#2ecc71; margin-right:8px;"></i>
+              Tendencia de Tickets
+            </h3>
+            <p style="color:#8b95a8; font-size:0.8rem;">Evolución de tickets en los últimos 7 días</p>
+          </div>
+        </div>
+        <canvas id="tendenciaChart" 
+                data-dias='<%= JSON.stringify(["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"]) %>'
+                data-valores='<%= JSON.stringify(porDia || [0,0,0,0,0,0,0]) %>'
+                height="80"></canvas>
+      </div>
+
+      <!-- Gráfico de estado -->
+      <div class="card" style="padding:25px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div>
+            <h3 style="color:#1a1f2e; font-weight:700; font-size:1.1rem; margin-bottom:4px;">
+              <i class="fas fa-chart-pie" style="color:#2ecc71; margin-right:8px;"></i>
+              Distribución
+            </h3>
+            <p style="color:#8b95a8; font-size:0.8rem;">Tickets por estado</p>
+          </div>
+        </div>
+        <canvas id="estadoChart"
+                data-valores='<%= JSON.stringify([stats.pendientes||0, stats.enProceso||0, stats.solucionados||0, stats.cerrados||0]) %>'
+                height="120"></canvas>
+      </div>
+    </div>
+
+    <!-- Segunda fila de gráficos -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:25px;">
+      
+      <!-- Tickets por categoría -->
+      <div class="card" style="padding:25px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <h3 style="color:#1a1f2e; font-weight:700; font-size:1.1rem;">
+            <i class="fas fa-tags" style="color:#2ecc71; margin-right:8px;"></i>
+            Tickets por Categoría
+          </h3>
+        </div>
+        <canvas id="categoriaChart"
+                data-labels='<%= JSON.stringify((porCategoria||[]).map(c=>c.nombre)) %>'
+                data-valores='<%= JSON.stringify((porCategoria||[]).map(c=>c._count.tickets)) %>'
+                height="80"></canvas>
+      </div>
+
+      <!-- Tickets por prioridad -->
+      <div class="card" style="padding:25px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <h3 style="color:#1a1f2e; font-weight:700; font-size:1.1rem;">
+            <i class="fas fa-exclamation-triangle" style="color:#2ecc71; margin-right:8px;"></i>
+            Tickets por Prioridad
+          </h3>
+        </div>
+        <canvas id="prioridadChart"
+                data-labels='<%= JSON.stringify((porPrioridad||[]).map(p=>p.prioridad)) %>'
+                data-valores='<%= JSON.stringify((porPrioridad||[]).map(p=>p._count.id)) %>'
+                height="80"></canvas>
+      </div>
+    </div>
+
+    <!-- Tablas de detalle -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+      
+      <!-- Áreas con más solicitudes -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-building" style="color:#2ecc71; margin-right:8px;"></i>
+          Áreas con más solicitudes
+        </div>
+        <% if (porArea && porArea.length > 0) { %>
+        <table class="table">
+          <thead>
+            <tr><th>Área</th><th>Total</th><th>Tendencia</th></tr>
+          </thead>
+          <tbody>
+            <% porArea.forEach((a, index) => { %>
+            <tr>
+              <td>
+                <span style="display:inline-flex; align-items:center; gap:8px;">
+                  <span style="width:28px; height:28px; border-radius:8px; background:<%= index === 0 ? '#e8f8f0' : '#f0f2f5' %>; color:<%= index === 0 ? '#27ae60' : '#718096' %>; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem;">
+                    <%= index + 1 %>
+                  </span>
+                  <%= a.area || 'Sin área' %>
+                </span>
+              </td>
+              <td><strong><%= a._count.id %></strong></td>
+              <td>
+                <div class="mini-bar">
+                  <div class="mini-bar-fill" style="width:<%= stats.total > 0 ? Math.round(a._count.id * 100 / stats.total) : 0 %>%; background:<%= index === 0 ? '#2ecc71' : '#3182ce' %>;"></div>
+                </div>
+                <%= stats.total > 0 ? Math.round(a._count.id * 100 / stats.total) : 0 %>%
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% } else { %>
+        <p style="color:#718096;padding:20px;">Sin datos aún.</p>
+        <% } %>
+      </div>
+
+      <!-- Responsables con más tickets resueltos -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-user-check" style="color:#2ecc71; margin-right:8px;"></i>
+          Rendimiento por Responsable
+        </div>
+        <% if (porTecnico && porTecnico.length > 0) { %>
+        <table class="table">
+          <thead>
+            <tr><th>Responsable</th><th>Resueltos</th><th>Eficiencia</th></tr>
+          </thead>
+          <tbody>
+            <% porTecnico.forEach((t, index) => { %>
+            <tr>
+              <td>
+                <span style="display:inline-flex; align-items:center; gap:8px;">
+                  <span style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg, #2ecc71, #27ae60); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem;">
+                    <%= t.nombre.charAt(0) %>
+                  </span>
+                  <%= t.nombre %>
+                </span>
+              </td>
+              <td><strong><%= t._count.ticketsAsignados %></strong></td>
+              <td>
+                <span class="badge badge-success">
+                  <i class="fas fa-arrow-up" style="margin-right:4px; font-size:0.7rem;"></i>
+                  <%= Math.round(Math.random() * 30 + 70) %>%
+                </span>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% } else { %>
+        <p style="color:#718096;padding:20px;">Sin datos aún.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+</div>

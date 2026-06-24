@@ -1,0 +1,16 @@
+<% if (typeof user !== 'undefined' && user && user.id) { %>
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <a href="/dashboard">
+                <img src="/img/logo.jpeg" alt="Almacén El Melao" class="nav-logo">
+                <span class="nav-brand-text">Mesa de Ayuda</span>
+            </a>
+        </div>
+        <div class="nav-user">
+            <span class="nav-user-name"><%= user.nombre %></span>
+            <span class="nav-user-badge"><%= helpers.nombreRol(user.rol) %></span>
+        </div>
+    </div>
+</nav>
+<% } %>

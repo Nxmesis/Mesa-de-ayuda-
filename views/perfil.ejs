@@ -1,0 +1,142 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+  <%- include('partials/navbar') %>
+
+  <div class="container">
+    <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
+      <div class="alert alert-success"><%= success[0] %></div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+      <div class="alert alert-danger"><%= error[0] %></div>
+    <% } %>
+
+    <h1 style="color:#2d3748; margin-bottom:25px;">Mi Perfil</h1>
+
+    <div class="perfil-grid">
+
+      <!-- Columna izquierda: foto -->
+      <div class="perfil-foto-col">
+        <div class="card" style="text-align:center;">
+          <div class="card-header">Foto de Perfil</div>
+
+          <div class="perfil-foto-container">
+            <% if (user.fotoPerfil) { %>
+              <img src="/uploads/perfiles/<%= user.fotoPerfil %>"
+                   alt="Foto de perfil" class="perfil-foto-grande" id="fotoPreview">
+            <% } else { %>
+              <div class="perfil-avatar-grande" id="avatarLetra">
+                <%= user.nombre.charAt(0).toUpperCase() %>
+              </div>
+              <img src="" alt="" class="perfil-foto-grande" id="fotoPreview" style="display:none;">
+            <% } %>
+          </div>
+
+          <form method="POST" action="/perfil/foto" enctype="multipart/form-data">
+            <div class="form-group" style="margin-top:15px;">
+              <input type="file" name="fotoPerfil" id="inputFoto"
+                     class="form-control" accept=".png,.jpg,.jpeg,.webp"
+                     onchange="previewFoto(this)">
+              <div class="form-hint">PNG, JPG o WEBP. Máx 5MB</div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">
+              Guardar Foto
+            </button>
+          </form>
+
+          <% if (user.fotoPerfil) { %>
+          <form method="POST" action="/perfil/foto/eliminar" style="margin-top:8px;">
+            <button type="submit" class="btn btn-danger btn-sm" style="width:100%;"
+                    onclick="return confirm('¿Eliminar foto de perfil?')">
+              Eliminar Foto
+            </button>
+          </form>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Columna derecha: datos y contraseña -->
+      <div class="perfil-datos-col">
+
+        <!-- Información personal -->
+        <div class="card">
+          <div class="card-header">Información Personal</div>
+
+          <form method="POST" action="/perfil/datos">
+            <div class="form-group">
+              <label class="form-label">Nombre completo</label>
+              <input type="text" name="nombre" class="form-control"
+                     value="<%= user.nombre %>" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Usuario</label>
+              <input type="text" class="form-control"
+                     value="<%= user.username %>" disabled>
+              <div class="form-hint">El nombre de usuario no se puede cambiar.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Área / Dependencia</label>
+              <input type="text" name="area" class="form-control"
+                     value="<%= user.area || '' %>"
+                     placeholder="Ej: Contabilidad, Ventas...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Rol</label>
+              <input type="text" class="form-control"
+                     value="<%= user.rol %>" disabled>
+            </div>
+            <button type="submit" class="btn btn-success">
+              Guardar Cambios
+            </button>
+          </form>
+        </div>
+
+        <!-- Cambiar contraseña -->
+        <div class="card">
+          <div class="card-header">🔒 Cambiar Contraseña</div>
+
+          <form method="POST" action="/perfil/password">
+            <div class="form-group">
+              <label class="form-label">Contraseña actual</label>
+              <input type="password" name="passwordActual" class="form-control"
+                     placeholder="Tu contraseña actual" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nueva contraseña</label>
+              <input type="password" name="passwordNueva" class="form-control"
+                     placeholder="Mínimo 6 caracteres" required minlength="6">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirmar nueva contraseña</label>
+              <input type="password" name="passwordConfirm" class="form-control"
+                     placeholder="Repite la nueva contraseña" required minlength="6">
+            </div>
+            <button type="submit" class="btn btn-warning">
+              Cambiar Contraseña
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+</div>
+
+<script>
+function previewFoto(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader()
+    reader.onload = function(e) {
+      const preview = document.getElementById('fotoPreview')
+      const avatar  = document.getElementById('avatarLetra')
+      preview.src = e.target.result
+      preview.style.display = 'block'
+      if (avatar) avatar.style.display = 'none'
+    }
+    reader.readAsDataURL(input.files[0])
+  }
+}
+</script>

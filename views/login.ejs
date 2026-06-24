@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesion - Mesa de Ayuda</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="login-page">
+    <div class="login-box">
+        <div class="login-title">
+            Mesa de Ayuda Interna
+            <div style="font-size: 0.9rem; font-weight: 400; color: #718096; margin-top: 8px;">
+                Sistema de Gestion de Tickets
+            </div>
+        </div>
+        
+        <% if (error && error.length > 0) { %>
+            <div class="alert alert-danger"><%= error[0] %></div>
+        <% } %>
+        <% if (success && success.length > 0) { %>
+            <div class="alert alert-success"><%= success[0] %></div>
+        <% } %>
+        
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label class="form-label">Usuario</label>
+                <input type="text" name="username" class="form-control" placeholder="Tu usuario" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <input type="password" name="password" class="form-control" placeholder="Tu contraseña" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                Iniciar Sesion
+            </button>
+        </form>
+        
+        <div style="margin-top: 20px; text-align: center; font-size: 0.85rem; color: #a0aec0;">
+            
+        </div>
+    </div>
+</body>
+</html>
+'''
+

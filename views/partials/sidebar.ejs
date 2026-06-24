@@ -1,0 +1,61 @@
+<% if (typeof user !== 'undefined' && user && user.id) { %>
+<aside class="sidebar" id="sidebar">
+
+  <div class="sidebar-header">
+    <a href="/perfil" class="sidebar-profile-link">
+      <% if (user.fotoPerfil) { %>
+        <img src="/uploads/perfiles/<%= user.fotoPerfil %>" alt="Foto de perfil" class="sidebar-foto">
+      <% } else { %>
+        <div class="sidebar-avatar-grande">
+          <%= user.nombre.charAt(0).toUpperCase() %>
+        </div>
+      <% } %>
+      <div class="sidebar-profile-info">
+        <div class="sidebar-user-name"><%= user.nombre %></div>
+        <div class="sidebar-user-role"><%= user.rol %></div>
+      </div>
+    </a>
+  </div>
+
+  <nav class="sidebar-nav">
+
+    <a href="/dashboard" class="sidebar-link <%= title === 'Dashboard' ? 'active' : '' %>">
+      Dashboard
+    </a>
+
+    <a href="/tickets/nuevo" class="sidebar-link <%= title === 'Crear Ticket' ? 'active' : '' %>">
+      Nueva Solicitud
+    </a>
+
+    <a href="/tickets" class="sidebar-link <%= title === 'Tickets' ? 'active' : '' %>">
+      Mis Solicitudes
+    </a>
+
+    <% if (user.rol === 'admin' || user.rol === 'tecnico') { %>
+    <div class="sidebar-section">Administración</div>
+
+    <a href="/usuarios" class="sidebar-link <%= title === 'Gestion de Usuarios' ? 'active' : '' %>">
+      Usuarios
+    </a>
+
+    <a href="/estadisticas" class="sidebar-link <%= title === 'Estadísticas' ? 'active' : '' %>">
+      Estadísticas
+    </a>
+    <% } %>
+
+    <div class="sidebar-section">Cuenta</div>
+
+    <a href="/perfil" class="sidebar-link <%= title === 'Mi Perfil' ? 'active' : '' %>">
+      Mi Perfil
+    </a>
+
+    <form action="/logout" method="POST" class="sidebar-logout-form">
+      <button type="submit" class="sidebar-link sidebar-logout-btn">
+        Cerrar Sesión
+      </button>
+    </form>
+
+  </nav>
+
+</aside>
+<% } %>

@@ -1,0 +1,314 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+  <%- include('partials/navbar') %>
+
+  <div class="container">
+    <!-- Alertas -->
+    <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
+      <div class="alert alert-success" id="alertSuccess">
+        <i class="fas fa-check-circle"></i>
+        <span><%= success[0] %></span>
+        <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+      </div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+      <div class="alert alert-danger" id="alertError">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span><%= error[0] %></span>
+        <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+      </div>
+    <% } %>
+
+    <!-- Encabezado industrial -->
+    <header class="ind-header">
+      <div class="ind-header-left">
+        <div class="ind-header-icon">
+          <i class="fas fa-users-cog"></i>
+        </div>
+        <div class="ind-header-text">
+          <h1>Gestión de Usuarios</h1>
+          <p class="ind-header-meta">
+            <span class="ind-badge-count"><%= usuarios.length %></span> usuarios registrados
+            <span class="ind-sep">|</span>
+            <span class="ind-timestamp"><i class="far fa-clock"></i> <%= new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+          </p>
+        </div>
+      </div>
+      <a href="/usuarios/nuevo" class="ind-btn ind-btn-primary">
+        <i class="fas fa-plus"></i>
+        <span>Nuevo Usuario</span>
+      </a>
+    </header>
+
+    <!-- Barra de herramientas -->
+    <div class="ind-toolbar">
+      <div class="ind-search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="buscarUsuario" placeholder="Buscar por nombre, usuario o área..." autocomplete="off">
+      </div>
+      <div class="ind-filter-group">
+        <button class="ind-filter-btn active" data-filter="todos">
+          <i class="fas fa-layer-group"></i> Todos
+        </button>
+        <button class="ind-filter-btn" data-filter="activo">
+          <span class="ind-dot ind-dot-green"></span> Activos
+        </button>
+        <button class="ind-filter-btn" data-filter="inactivo">
+          <span class="ind-dot ind-dot-red"></span> Inactivos
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla industrial -->
+    <div class="ind-table-wrap">
+      <table class="ind-table" id="tablaUsuarios">
+        <thead>
+          <tr>
+            <th class="col-id">ID</th>
+            <th class="col-user">Usuario</th>
+            <th class="col-access">Acceso</th>
+            <th class="col-area">Área</th>
+            <th class="col-rol">Rol</th>
+            <th class="col-status">Estado</th>
+            <th class="col-date">Registro</th>
+            <th class="col-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (usuarios && usuarios.length > 0) { %>
+            <% usuarios.forEach(u => { %>
+            <tr class="ind-row <%= !u.activo ? 'ind-row-inactive' : '' %>" data-estado="<%= u.activo ? 'activo' : 'inactivo' %>">
+              <td class="col-id">
+                <span class="ind-id-tag">#<%= u.id %></span>
+              </td>
+              <td class="col-user">
+                <div class="ind-user-cell">
+                  <div class="ind-avatar" style="background: linear-gradient(135deg, #2c5282, #3182ce)">
+                    <%= u.nombre.charAt(0).toUpperCase() %>
+                  </div>
+                  <div class="ind-user-info">
+                    <div class="ind-user-name"><%= u.nombre %></div>
+                    <% if (u.id === user.id) { %>
+                      <span class="ind-you-badge">Tú</span>
+                    <% } %>
+                  </div>
+                </div>
+              </td>
+              <td class="col-access">
+                <code class="ind-code"><%= u.username %></code>
+              </td>
+              <td class="col-area">
+                <%= u.area || '<span class="ind-empty">Sin área</span>' %>
+              </td>
+              <td class="col-rol">
+                <span class="ind-rol-badge ind-rol-<%= u.rol %>">
+                  <i class="fas <%= u.rol === 'admin' ? 'fa-shield-alt' : u.rol === 'tecnico' ? 'fa-wrench' : u.rol === 'gerencia' ? 'fa-crown' : 'fa-user' %>"></i>
+                  <%= helpers.nombreRol ? helpers.nombreRol(u.rol) : u.rol.toUpperCase() %>
+                </span>
+              </td>
+              <td class="col-status">
+                <span class="ind-status <%= u.activo ? 'ind-status-on' : 'ind-status-off' %>">
+                  <span class="ind-status-pulse"></span>
+                  <%= u.activo ? 'Activo' : 'Inactivo' %>
+                </span>
+              </td>
+              <td class="col-date">
+                <div class="ind-date">
+                  <i class="far fa-calendar-alt"></i>
+                  <%= u.fechaRegistro ? new Date(u.fechaRegistro).toLocaleDateString('es-CO') : '—' %>
+                </div>
+              </td>
+              <td class="col-actions">
+                <div class="ind-actions">
+                  <button class="ind-action-btn ind-action-edit" title="Editar"
+                          onclick="abrirModal('editar', <%= u.id %>, '<%= u.nombre.replace(/'/g, "\\'") %>', '<%= u.username %>', '<%= (u.area || '').replace(/'/g, "\\'") %>', '<%= u.rol %>')">
+                    <i class="fas fa-pen"></i>
+                  </button>
+                  <button class="ind-action-btn ind-action-key" title="Cambiar contraseña"
+                          onclick="abrirModal('password', <%= u.id %>, '<%= u.nombre.replace(/'/g, "\\'") %>')">
+                    <i class="fas fa-key"></i>
+                  </button>
+                  <form method="POST" action="/usuarios/<%= u.id %>/desactivar" style="display:inline">
+                    <button type="submit" class="ind-action-btn <%= u.activo ? 'ind-action-pause' : 'ind-action-play' %>"
+                            title="<%= u.activo ? 'Desactivar' : 'Activar' %>"
+                            onclick="return confirm('<%= u.activo ? 'Desactivar' : 'Activar' %> a <%= u.nombre %>?')">
+                      <i class="fas <%= u.activo ? 'fa-pause' : 'fa-play' %>"></i>
+                    </button>
+                  </form>
+                  <% if (u.rol !== 'gerencia' && u.id !== user.id) { %>
+                  <form method="POST" action="/usuarios/<%= u.id %>/eliminar" style="display:inline">
+                    <button type="submit" class="ind-action-btn ind-action-trash"
+                            title="Eliminar"
+                            onclick="return confirm('¿Eliminar permanentemente a <%= u.nombre %>? Esta acción no se puede deshacer.')">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </form>
+                  <% } else { %>
+                    <button class="ind-action-btn ind-action-disabled" title="No eliminable" disabled>
+                      <i class="fas fa-lock"></i>
+                    </button>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="8">
+                <div class="ind-empty-state">
+                  <div class="ind-empty-icon">
+                    <i class="fas fa-user-slash"></i>
+                  </div>
+                  <h3>Sin usuarios registrados</h3>
+                  <p>No hay usuarios en el sistema. Crea el primero para comenzar.</p>
+                  <a href="/usuarios/nuevo" class="ind-btn ind-btn-primary">
+                    <i class="fas fa-plus"></i> Crear Usuario
+                  </a>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer info -->
+    <div class="ind-footer-bar">
+      <span class="ind-footer-text">
+        Mostrando <strong id="contadorVisible"><%= usuarios.length %></strong> de <strong><%= usuarios.length %></strong> usuarios
+      </span>
+      <div class="ind-footer-legend">
+        <span class="ind-legend-item"><span class="ind-dot ind-dot-green"></span> Activo</span>
+        <span class="ind-legend-item"><span class="ind-dot ind-dot-red"></span> Inactivo</span>
+        <span class="ind-legend-item"><span class="ind-dot ind-dot-blue"></span> Gerencia</span>
+      </div>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+</div>
+
+<!-- ===== MODAL EDITAR ===== -->
+<div class="ind-modal-overlay" id="modalEditar">
+  <div class="ind-modal">
+    <div class="ind-modal-header">
+      <div class="ind-modal-title">
+        <div class="ind-modal-icon ind-modal-icon-edit">
+          <i class="fas fa-pen"></i>
+        </div>
+        <div>
+          <h3>Editar Usuario</h3>
+          <p>Modifica los datos del usuario seleccionado</p>
+        </div>
+      </div>
+      <button class="ind-modal-close" onclick="cerrarModal('modalEditar')">&times;</button>
+    </div>
+    <form method="POST" id="formEditar" action="">
+      <div class="ind-modal-body">
+        <div class="ind-form-row">
+          <div class="ind-form-group">
+            <label class="ind-form-label">Nombre completo</label>
+            <div class="ind-input-wrap">
+              <i class="fas fa-user"></i>
+              <input type="text" name="nombre" id="editNombre" class="ind-input" required placeholder="Ej: Juan Pérez">
+            </div>
+          </div>
+          <div class="ind-form-group">
+            <label class="ind-form-label">Nombre de usuario</label>
+            <div class="ind-input-wrap">
+              <i class="fas fa-at"></i>
+              <input type="text" name="username" id="editUsername" class="ind-input" required placeholder="Ej: jperez">
+            </div>
+          </div>
+        </div>
+        <div class="ind-form-row">
+          <div class="ind-form-group">
+            <label class="ind-form-label">Área / Dependencia</label>
+            <div class="ind-input-wrap">
+              <i class="fas fa-building"></i>
+              <input type="text" name="area" id="editArea" class="ind-input" placeholder="Ej: Tecnología">
+            </div>
+          </div>
+          <div class="ind-form-group" id="grupoRol">
+            <label class="ind-form-label">Rol del sistema</label>
+            <div class="ind-input-wrap">
+              <i class="fas fa-id-badge"></i>
+              <select name="rol" id="editRol" class="ind-input">
+                <option value="usuario">Usuario</option>
+                <option value="tecnico">Técnico</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+            <span class="ind-form-hint" id="hintRol">
+              <i class="fas fa-info-circle"></i> Las cuentas con rol Gerencia no permiten cambio de rol.
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="ind-modal-footer">
+        <button type="button" class="ind-btn ind-btn-ghost" onclick="cerrarModal('modalEditar')">Cancelar</button>
+        <button type="submit" class="ind-btn ind-btn-primary">
+          <i class="fas fa-save"></i> Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== MODAL CONTRASEÑA ===== -->
+<div class="ind-modal-overlay" id="modalPassword">
+  <div class="ind-modal ind-modal-sm">
+    <div class="ind-modal-header">
+      <div class="ind-modal-title">
+        <div class="ind-modal-icon ind-modal-icon-key">
+          <i class="fas fa-key"></i>
+        </div>
+        <div>
+          <h3>Cambiar Contraseña</h3>
+          <p>Usuario: <strong id="pwdNombre"></strong></p>
+        </div>
+      </div>
+      <button class="ind-modal-close" onclick="cerrarModal('modalPassword')">&times;</button>
+    </div>
+    <form method="POST" id="formPassword" action="">
+      <div class="ind-modal-body">
+        <div class="ind-form-group">
+          <label class="ind-form-label">Nueva contraseña</label>
+          <div class="ind-input-wrap">
+            <i class="fas fa-lock"></i>
+            <input type="password" name="passwordNueva" id="pwdNueva" class="ind-input" required minlength="6" placeholder="Mínimo 6 caracteres">
+            <button type="button" class="ind-toggle-pwd" onclick="togglePwd('pwdNueva', this)">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="ind-form-group">
+          <label class="ind-form-label">Confirmar contraseña</label>
+          <div class="ind-input-wrap">
+            <i class="fas fa-lock"></i>
+            <input type="password" name="passwordConfirm" id="pwdConfirm" class="ind-input" required minlength="6" placeholder="Repite la contraseña">
+            <button type="button" class="ind-toggle-pwd" onclick="togglePwd('pwdConfirm', this)">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="ind-strength-bar" id="pwdStrength">
+          <div class="ind-strength-fill"></div>
+        </div>
+        <span class="ind-form-hint"><i class="fas fa-shield-alt"></i> Mínimo 6 caracteres. Usa letras, números y símbolos.</span>
+      </div>
+      <div class="ind-modal-footer">
+        <button type="button" class="ind-btn ind-btn-ghost" onclick="cerrarModal('modalPassword')">Cancelar</button>
+        <button type="submit" class="ind-btn ind-btn-warning">
+          <i class="fas fa-sync-alt"></i> Cambiar Contraseña
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Script específico de usuarios -->
+<script src="/js/usuarios.js"></script>
+

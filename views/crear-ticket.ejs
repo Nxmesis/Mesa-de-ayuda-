@@ -1,0 +1,83 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+  <%- include('partials/navbar') %>
+
+  <div class="container">
+    <div style="max-width:800px; margin:0 auto;">
+      <h1 style="color:#2d3748; margin-bottom:25px;">Nueva Solicitud</h1>
+
+      <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+        <div class="alert alert-danger"><%= error[0] %></div>
+      <% } %>
+
+      <div class="card">
+        <div class="card-header">Información</div>
+
+        <form method="POST" action="/tickets" enctype="multipart/form-data">
+
+          <div class="form-group">
+            <label class="form-label">Título de la novedad *</label>
+            <input type="text" name="titulo" class="form-control"
+                   placeholder="Describe brevemente el problema" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tipo de Incidente</label>
+              <select name="categoriaId" class="form-control">
+                <option value="">Selecciona un tipo...</option>
+                <% if (typeof categorias !== 'undefined' && categorias && categorias.length > 0) { %>
+                  <% categorias.forEach(cat => { %>
+                  <option value="<%= cat.id %>"><%= cat.nombre %></option>
+                  <% }) %>
+                <% } %>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Prioridad *</label>
+              <select name="prioridad" class="form-control" required>
+                <option value="" disabled selected>Selecciona la prioridad...</option>
+                <option value="Baja">Baja — Puedo trabajar con normalidad</option>
+                <option value="Media">Media — Tengo alguna alternativa</option>
+                <option value="Alta">Alta — Afecta mi trabajo significativamente</option>
+                <option value="Critica">Crítica — No puedo trabajar</option>
+              </select>
+              <div class="form-hint">Selecciona la que mejor describa el impacto del problema.</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Equipo afectado</label>
+            <input type="text" name="equipo" class="form-control"
+                   placeholder="Ej: PC-CONTABILIDAD-01, Caja1, etc.">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Descripción detallada *</label>
+            <textarea name="descripcion" class="form-control"
+                      placeholder="Describe el problema con el mayor detalle posible: ¿cuándo comenzó?, ¿qué mensaje de error aparece?, ¿qué estabas haciendo cuando ocurrió?"
+                      required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Adjuntar imagen (opcional)</label>
+            <input type="file" name="imagen" class="form-control"
+                   accept=".png,.jpg,.jpeg,.gif,.webp">
+            <div class="form-hint">Puedes adjuntar una captura de pantalla del error. Máx 16MB.</div>
+          </div>
+
+          <div class="page-actions">
+            <button type="submit" class="btn btn-success">Enviar Solicitud</button>
+            <a href="/dashboard" class="btn btn-secondary">Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+</div>

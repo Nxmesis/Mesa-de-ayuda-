@@ -1,0 +1,286 @@
+/* ═══════════════════════════════════════════
+   REPORTE PDF — ALMACÉN EL MELAO
+   Este archivo se puede editar libremente.
+   Se lee automáticamente y se embebe en el PDF.
+   ═══════════════════════════════════════════ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+@page { size: A4; margin: 15mm; }
+
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-size: 10pt;
+  line-height: 1.5;
+  color: #2c3e50;
+  background: white;
+}
+
+/* ── Encabezado corporativo ── */
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 16px;
+  border-bottom: 3px solid #2ecc71;
+  margin-bottom: 20px;
+}
+.report-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.report-logo {
+  width: 80px;        /* ← AJUSTA EL ANCHO DEL LOGO AQUÍ */
+  height: auto;
+  border-radius: 8px;
+  object-fit: contain;
+  border: 2px solid #e8ecf1;
+}
+.report-company h1 {
+  font-size: 16pt; font-weight: 800;
+  color: #1a1f2e; letter-spacing: -0.5px;
+}
+.report-company h1 span {
+  color: #2ecc71;
+}
+.report-company p {
+  font-size: 8pt; color: #8b95a8;
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-top: 2px;
+}
+.report-header-right {
+  text-align: right;
+}
+.report-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 8pt; font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.report-date {
+  font-size: 8pt; color: #8b95a8;
+  margin-top: 6px;
+}
+
+/* ── Título del informe ── */
+.report-title-section {
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 12px 0;
+  background: linear-gradient(90deg, #f8fafc 0%, #e8f8f0 50%, #f8fafc 100%);
+  border-radius: 8px;
+  border-left: 4px solid #2ecc71;
+  border-right: 4px solid #2ecc71;
+}
+.report-title-section h2 {
+  font-size: 14pt; font-weight: 700;
+  color: #1a1f2e; margin-bottom: 4px;
+}
+.report-title-section p {
+  font-size: 9pt; color: #5a6275;
+}
+
+/* ── Resumen ejecutivo ── */
+.report-summary {
+  background: linear-gradient(135deg, #1a1f2e 0%, #242b3d 100%);
+  color: white;
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+}
+.report-summary h3 {
+  font-size: 10pt; font-weight: 700;
+  margin-bottom: 6px; color: #2ecc71;
+}
+.report-summary p {
+  font-size: 9pt; color: #c5cbd3;
+  line-height: 1.6;
+}
+.report-summary strong { color: white; }
+
+/* ── KPIs Grid ── */
+.report-kpis {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.report-kpi {
+  background: white;
+  border: 1px solid #e8ecf1;
+  border-radius: 8px;
+  padding: 12px 10px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.report-kpi::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.report-kpi.kpi-total::before { background: #2ecc71; }
+.report-kpi.kpi-pendiente::before { background: #f39c12; }
+.report-kpi.kpi-proceso::before { background: #3498db; }
+.report-kpi.kpi-solucionado::before { background: #27ae60; }
+.report-kpi.kpi-cerrado::before { background: #718096; }
+.report-kpi.kpi-tasa::before { background: linear-gradient(90deg, #2ecc71, #27ae60); }
+.report-kpi-icon {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-bottom: 6px; font-size: 11px;
+}
+.kpi-total .report-kpi-icon { background: rgba(46,204,113,0.1); color: #2ecc71; }
+.kpi-pendiente .report-kpi-icon { background: rgba(243,156,18,0.1); color: #f39c12; }
+.kpi-proceso .report-kpi-icon { background: rgba(52,152,219,0.1); color: #3498db; }
+.kpi-solucionado .report-kpi-icon { background: rgba(39,174,96,0.1); color: #27ae60; }
+.kpi-cerrado .report-kpi-icon { background: rgba(113,128,150,0.1); color: #718096; }
+.kpi-tasa .report-kpi-icon { background: rgba(46,204,113,0.1); color: #2ecc71; }
+.report-kpi-value {
+  font-size: 16pt; font-weight: 800;
+  color: #1a1f2e; line-height: 1.2;
+}
+.report-kpi-label {
+  font-size: 7pt; color: #8b95a8;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+/* ── Secciones ── */
+.report-section {
+  margin-bottom: 18px;
+}
+.report-section-title {
+  font-size: 11pt; font-weight: 700;
+  color: #1a1f2e;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #e8ecf1;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.report-section-title .section-icon {
+  width: 24px; height: 24px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 9px;
+}
+
+/* ── Tablas ── */
+.report-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 9pt; margin-bottom: 10px;
+}
+.report-table thead {
+  background: #f8fafc;
+}
+.report-table th {
+  padding: 8px 10px; text-align: left;
+  font-weight: 700; color: #5a6275;
+  font-size: 7.5pt; text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e8ecf1;
+}
+.report-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f2f5;
+  color: #4a5568;
+}
+.report-table tr:nth-child(even) { background: #fafbfc; }
+.report-table tr:hover { background: #f8fafc; }
+
+/* Badges en tabla */
+.report-badge-pill {
+  display: inline-block;
+  padding: 2px 8px; border-radius: 10px;
+  font-size: 7.5pt; font-weight: 600;
+}
+.pill-pendiente { background: #fef3c7; color: #b45309; }
+.pill-proceso { background: #dbeafe; color: #1d4ed8; }
+.pill-solucionado { background: #dcfce7; color: #166534; }
+.pill-cerrado { background: #f3f4f6; color: #4b5563; }
+.pill-alta { background: #fee2e2; color: #991b1b; }
+.pill-media { background: #fef3c7; color: #b45309; }
+.pill-baja { background: #dcfce7; color: #166534; }
+
+/* Barra de progreso */
+.report-bar {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.report-bar-track {
+  width: 60px; height: 6px;
+  background: #e8ecf1; border-radius: 3px;
+  overflow: hidden;
+}
+.report-bar-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #2ecc71, #27ae60);
+}
+.report-bar-text {
+  font-size: 7.5pt; color: #5a6275; font-weight: 600;
+}
+
+/* ── Gráfico de barras simple (CSS) ── */
+.report-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 120px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e8ecf1;
+  margin-bottom: 8px;
+}
+.report-chart-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.report-chart-bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%);
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+}
+.report-chart-bar-label {
+  font-size: 7pt; color: #8b95a8;
+  text-align: center;
+  white-space: nowrap;
+}
+.report-chart-bar-value {
+  font-size: 7.5pt; font-weight: 700;
+  color: #1a1f2e;
+}
+
+/* ── Grid de 2 columnas ── */
+.report-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Pie de página ── */
+.report-footer-note {
+  text-align: center;
+  font-size: 7.5pt; color: #8b95a8;
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #e8ecf1;
+}
+
+/* ── Utilidades ── */
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.font-mono { font-family: 'Courier New', monospace; }
+
+/* Evitar salto de página en medio de elementos */
+.report-kpi, .report-section { page-break-inside: avoid; }
+.report-table tr { page-break-inside: avoid; }

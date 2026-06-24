@@ -1,0 +1,212 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+  <%- include('partials/navbar') %>
+
+  <div class="container">
+    <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
+      <div class="alert alert-success"><%= success[0] %></div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+      <div class="alert alert-danger"><%= error[0] %></div>
+    <% } %>
+
+    <div style="margin-bottom:20px;">
+      <a href="/tickets" class="btn btn-secondary btn-sm">← Volver a Tickets</a>
+    </div>
+
+    <div class="ticket-detail-grid">
+
+      <!-- Columna izquierda: info + comentarios -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <span>Información del Ticket</span>
+            <span class="badge <%= helpers.getEstadoClass(ticket.estado) %>">
+              <%= helpers.textoEstado(ticket.estado) %>
+            </span>
+          </div>
+
+          <h2 style="color:#2d3748; margin-bottom:15px;"><%= ticket.titulo %></h2>
+
+          <div class="ticket-meta">
+            <div class="meta-item">
+              <div class="meta-label">Solicitante</div>
+              <div class="meta-value"><%= ticket.usuario && ticket.usuario.nombre || 'N/A' %></div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Área</div>
+              <div class="meta-value"><%= ticket.usuario && ticket.usuario.area || 'N/A' %></div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Categoría</div>
+              <div class="meta-value"><%= ticket.categoria && ticket.categoria.nombre || 'Sin categoría' %></div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Prioridad</div>
+              <div class="meta-value">
+                <span class="badge <%= helpers.getPrioridadClass(ticket.prioridad) %>"><%= ticket.prioridad %></span>
+              </div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Equipo</div>
+              <div class="meta-value"><%= ticket.equipo || 'No especificado' %></div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">N° Ticket</div>
+              <div class="meta-value"><strong><%= ticket.numeroTicket %></strong></div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Fecha creación</div>
+              <div class="meta-value"><%= helpers.formatearFecha(ticket.fechaCreacion) %></div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Asignación</div>
+              <div class="meta-value"><%= ticket.tecnico && ticket.tecnico.nombre || 'Sin asignar' %></div>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <div class="meta-label" style="margin-bottom:8px;">DESCRIPCIÓN DEL PROBLEMA</div>
+            <div style="background:#f7fafc; padding:15px; border-radius:6px; line-height:1.6;">
+              <%= ticket.descripcion %>
+            </div>
+          </div>
+
+          <% if (ticket.imagenAdjunta) { %>
+          <div class="mt-3">
+            <div class="meta-label" style="margin-bottom:8px;">IMAGEN ADJUNTA</div>
+            <img src="/uploads/<%= ticket.imagenAdjunta %>" alt="Adjunto"
+                 style="max-width:100%; border-radius:6px; border:1px solid #e2e8f0;">
+          </div>
+          <% } %>
+
+          <% if (ticket.solucion) { %>
+          <div class="mt-3">
+            <div class="meta-label" style="margin-bottom:8px;">SOLUCIÓN APLICADA</div>
+            <div style="background:#f0fff4; padding:15px; border-radius:6px; border-left:4px solid #48bb78; line-height:1.6;">
+              <%= ticket.solucion %>
+            </div>
+          </div>
+          <% } %>
+        </div>
+
+        <!-- Comentarios -->
+        <div class="card">
+          <div class="card-header">Comentarios y Seguimiento</div>
+
+          <% if (ticket.comentarios && ticket.comentarios.length > 0) { %>
+            <% ticket.comentarios.forEach(com => { %>
+              <% if (!com.esInterno || user.rol === 'admin' || user.rol === 'tecnico') { %>
+              <div class="comentario <%= com.esInterno ? 'comentario-interno' : '' %>">
+                <div class="comentario-header">
+                  <span class="comentario-autor">
+                    <%= com.usuario && com.usuario.nombre %>
+                    <% if (com.esInterno) { %><span style="font-size:0.75rem;color:#d69e2e;">[Nota interna]</span><% } %>
+                  </span>
+                  <span class="comentario-fecha"><%= helpers.formatearFecha(com.fechaCreacion) %></span>
+                </div>
+                <div class="comentario-texto"><%= com.contenido %></div>
+              </div>
+              <% } %>
+            <% }) %>
+          <% } else { %>
+            <p style="color:#718096; padding:10px 0;">No hay comentarios aún.</p>
+          <% } %>
+
+          <form method="POST" action="/tickets/<%= ticket.id %>/comentario" style="margin-top:20px;">
+            <div class="form-group">
+              <textarea name="contenido" class="form-control"
+                        placeholder="Escribe un comentario o actualización..." required></textarea>
+            </div>
+            <% if (user.rol === 'admin' || user.rol === 'tecnico') { %>
+            <div style="margin-bottom:10px;">
+              <label style="font-size:0.85rem; color:#718096; cursor:pointer;">
+                <input type="checkbox" name="esInterno">
+                Nota interna (solo visible para técnicos y admin)
+              </label>
+            </div>
+            <% } %>
+            <button type="submit" class="btn btn-primary btn-sm">Agregar Comentario</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Columna derecha: panel técnico (solo admin/tecnico) -->
+      <% if (user.rol === 'admin' || user.rol === 'tecnico') { %>
+      <div>
+        <div class="card panel-tecnico">
+          <div class="card-header">⚙️ Acciones Técnicas</div>
+
+          <form method="POST" action="/tickets/<%= ticket.id %>/estado">
+            <div class="form-group">
+              <label class="form-label">Estado</label>
+              <select name="estado" class="form-control">
+                <option value="Pendiente"     <%= ticket.estado === 'Pendiente'     ? 'selected' : '' %>>Pendiente</option>
+                <option value="EnProceso"     <%= ticket.estado === 'EnProceso'     ? 'selected' : '' %>>En proceso</option>
+                <option value="EsperandoInfo" <%= ticket.estado === 'EsperandoInfo' ? 'selected' : '' %>>Esperando información</option>
+                <option value="Solucionado"   <%= ticket.estado === 'Solucionado'   ? 'selected' : '' %>>Solucionado</option>
+                <option value="Cerrado"       <%= ticket.estado === 'Cerrado'       ? 'selected' : '' %>>Cerrado</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Prioridad</label>
+              <select name="prioridad" class="form-control">
+                <option value="Baja"    <%= ticket.prioridad === 'Baja'    ? 'selected' : '' %>>Baja</option>
+                <option value="Media"   <%= ticket.prioridad === 'Media'   ? 'selected' : '' %>>Media</option>
+                <option value="Alta"    <%= ticket.prioridad === 'Alta'    ? 'selected' : '' %>>Alta</option>
+                <option value="Critica" <%= ticket.prioridad === 'Critica' ? 'selected' : '' %>>Crítica</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Asignación</label>
+              <select name="tecnicoId" class="form-control">
+                <option value="">Sin asignar</option>
+                <% if (tecnicos && tecnicos.length > 0) { %>
+                  <% tecnicos.forEach(t => { %>
+                  <option value="<%= t.id %>" <%= ticket.tecnicoId === t.id ? 'selected' : '' %>><%= t.nombre %></option>
+                  <% }) %>
+                <% } %>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Solución aplicada</label>
+              <textarea name="solucion" class="form-control"
+                        placeholder="Describe la solución..."><%= ticket.solucion || '' %></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-success" style="width:100%;">
+              Guardar Cambios
+            </button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Información Técnica</div>
+          <div class="meta-item" style="margin-bottom:10px;">
+            <div class="meta-label">ID Interno</div>
+            <div class="meta-value">#<%= ticket.id %></div>
+          </div>
+          <div class="meta-item" style="margin-bottom:10px;">
+            <div class="meta-label">Última actualización</div>
+            <div class="meta-value"><%= helpers.formatearFecha(ticket.fechaActualizacion) %></div>
+          </div>
+          <% if (ticket.fechaCierre) { %>
+          <div class="meta-item">
+            <div class="meta-label">Fecha de cierre</div>
+            <div class="meta-value"><%= helpers.formatearFecha(ticket.fechaCierre) %></div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+      <% } %>
+
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+</div>

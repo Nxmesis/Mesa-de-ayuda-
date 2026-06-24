@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : 'Mesa de Ayuda' %></title>
+
+    <!-- Fuentes locales -->
+    <link rel="stylesheet" href="/css/fonts.css">
+    <script src="/js/main.js" defer></script>
+    <script src="/js/charts.js" defer></script>
+    <script src="/js/notificaciones.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : 'Mesa de Ayuda' %></title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    
+    <!-- Font Awesome local -->
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="/css/main.css">
+    <% if (typeof title !== 'undefined' && title === 'Gestion de Usuarios') { %>
+    <link rel="stylesheet" href="/css/usuarios.css">
+    <% } %>
+    
+    <!-- Chart.js local (solo estadísticas) -->
+    <% if (typeof title !== 'undefined' && title === 'Estadísticas') { %>
+    <script src="/js/chart.umd.min.js"></script>
+    <script src="/js/charts.js" defer></script>
+    <% } %>
+
+    <!-- Scripts propios -->
+    <script src="/js/main.js" defer></script>
+    <script src="/js/notificaciones.js" defer></script>
+    
+</head>
+<body>

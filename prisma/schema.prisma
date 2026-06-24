@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id              Int       @id @default(autoincrement())
+  nombre          String    @db.VarChar(100)
+  username        String    @unique @db.VarChar(50)
+  password        String    @db.VarChar(255)
+  area            String?   @db.VarChar(100)
+  fotoPerfil      String?   @db.VarChar(255) @map("foto_perfil")
+  rol             String    @default("usuario") @db.VarChar(50)
+  activo          Boolean   @default(true)
+  fechaRegistro   DateTime  @default(now()) @map("fecha_registro")
+
+  ticketsCreados    Ticket[]    @relation("TicketsCreados")
+  ticketsAsignados  Ticket[]    @relation("TicketsAsignados")
+  comentarios       Comentario[]
+
+  @@map("usuarios")
+}
+
+model Ticket {
+  id                 Int        @id @default(autoincrement())
+  numeroTicket       String     @unique @db.VarChar(20) @map("numero_ticket")
+  titulo             String     @db.VarChar(200)
+  descripcion        String     @db.Text
+  equipo             String?    @db.VarChar(100)
+  prioridad          String     @default("Media") @db.VarChar(20)
+  estado             String     @default("Pendiente") @db.VarChar(30)
+  solucion           String?    @db.Text
+  imagenAdjunta      String?    @db.VarChar(255) @map("imagen_adjunta")
+  fechaCreacion      DateTime   @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime   @updatedAt @map("fecha_actualizacion")
+  fechaCierre        DateTime?  @map("fecha_cierre")
+
+  usuarioId   Int       @map("usuario_id")
+  usuario     Usuario   @relation("TicketsCreados", fields: [usuarioId], references: [id])
+  tecnicoId   Int?      @map("tecnico_id")
+  tecnico     Usuario?  @relation("TicketsAsignados", fields: [tecnicoId], references: [id])
+  categoriaId Int?      @map("categoria_id")
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
+  comentarios Comentario[]
+
+  @@map("tickets")
+}
+
+model Categoria {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique @db.VarChar(100)
+  descripcion String?  @db.VarChar(255)
+  activo      Boolean  @default(true)
+  tickets     Ticket[]
+
+  @@map("categorias")
+}
+
+model Comentario {
+  id            Int      @id @default(autoincrement())
+  contenido     String   @db.Text
+  esInterno     Boolean  @default(false) @map("es_interno")
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+  ticketId      Int      @map("ticket_id")
+  ticket        Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  usuarioId     Int      @map("usuario_id")
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("comentarios")
+}
