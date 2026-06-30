@@ -3,41 +3,42 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model Usuario {
-  id              Int       @id @default(autoincrement())
-  nombre          String    @db.VarChar(100)
-  username        String    @unique @db.VarChar(50)
-  password        String    @db.VarChar(255)
-  area            String?   @db.VarChar(100)
-  fotoPerfil      String?   @db.VarChar(255) @map("foto_perfil")
-  rol             String    @default("usuario") @db.VarChar(50)
-  activo          Boolean   @default(true)
-  fechaRegistro   DateTime  @default(now()) @map("fecha_registro")
+  id            Int      @id @default(autoincrement())
+  nombre        String   @db.VarChar(100)
+  username      String   @unique @db.VarChar(50)
+  password      String   @db.VarChar(255)
+  area          String?  @db.VarChar(100)
+  fotoPerfil    String?  @map("foto_perfil") @db.VarChar(255)
+  activo        Boolean  @default(true)
+  fechaRegistro DateTime @default(now()) @map("fecha_registro")
+  rol           String   @default("usuario") @db.VarChar(50)
 
-  ticketsCreados    Ticket[]    @relation("TicketsCreados")
-  ticketsAsignados  Ticket[]    @relation("TicketsAsignados")
+  ticketsCreados    Ticket[]     @relation("TicketsCreados")
+  ticketsAsignados  Ticket[]     @relation("TicketsAsignados")
   comentarios       Comentario[]
 
   @@map("usuarios")
 }
 
 model Ticket {
-  id                 Int        @id @default(autoincrement())
-  numeroTicket       String     @unique @db.VarChar(20) @map("numero_ticket")
-  titulo             String     @db.VarChar(200)
-  descripcion        String     @db.Text
-  equipo             String?    @db.VarChar(100)
-  prioridad          String     @default("Media") @db.VarChar(20)
-  estado             String     @default("Pendiente") @db.VarChar(30)
-  solucion           String?    @db.Text
-  imagenAdjunta      String?    @db.VarChar(255) @map("imagen_adjunta")
-  fechaCreacion      DateTime   @default(now()) @map("fecha_creacion")
-  fechaActualizacion DateTime   @updatedAt @map("fecha_actualizacion")
-  fechaCierre        DateTime?  @map("fecha_cierre")
+  id                 Int               @id @default(autoincrement())
+  numeroTicket       String            @unique @map("numero_ticket") @db.VarChar(20)
+  titulo             String            @db.VarChar(200)
+  descripcion        String            @db.Text
+  equipo             String?           @db.VarChar(100)
+  prioridad          String            @default("Media") @db.VarChar(20)
+  estado             String            @default("Pendiente") @db.VarChar(30)
+  solucion           String?           @db.Text
+  imagenAdjunta      String?           @map("imagen_adjunta") @db.VarChar(255)
+  fechaCreacion      DateTime          @default(now()) @map("fecha_creacion")
+  fechaActualizacion DateTime          @updatedAt @map("fecha_actualizacion")
+  fechaCierre        DateTime?         @map("fecha_cierre")
 
   usuarioId   Int       @map("usuario_id")
   usuario     Usuario   @relation("TicketsCreados", fields: [usuarioId], references: [id])
@@ -47,14 +48,17 @@ model Ticket {
   categoria   Categoria? @relation(fields: [categoriaId], references: [id])
   comentarios Comentario[]
 
+  @@index([categoriaId], map: "tickets_categoria_id_fkey")
+  @@index([tecnicoId], map: "tickets_tecnico_id_fkey")
+  @@index([usuarioId], map: "tickets_usuario_id_fkey")
   @@map("tickets")
 }
 
 model Categoria {
-  id          Int      @id @default(autoincrement())
-  nombre      String   @unique @db.VarChar(100)
-  descripcion String?  @db.VarChar(255)
-  activo      Boolean  @default(true)
+  id          Int     @id @default(autoincrement())
+  nombre      String  @unique @db.VarChar(100)
+  descripcion String? @db.VarChar(255)
+  activo      Boolean @default(true)
   tickets     Ticket[]
 
   @@map("categorias")
@@ -70,5 +74,62 @@ model Comentario {
   usuarioId     Int      @map("usuario_id")
   usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
+  @@index([ticketId], map: "comentarios_ticket_id_fkey")
+  @@index([usuarioId], map: "comentarios_usuario_id_fkey")
   @@map("comentarios")
+}
+
+model HistorialCambio {
+  id              Int       @id @default(autoincrement())
+  tablaAfectada   String    @map("tabla_afectada") @db.VarChar(50)
+  idRegistro      Int?      @map("id_registro")
+  tipoCambio      String    @map("tipo_cambio") @db.VarChar(10)
+  campoModificado String?   @map("campo_modificado") @db.VarChar(100)
+  valorAnterior   String?   @map("valor_anterior") @db.Text
+  valorNuevo      String?   @map("valor_nuevo") @db.Text
+  fechaCambio     DateTime? @default(now()) @map("fecha_cambio") @db.DateTime(0)
+  usuario         String?   @default("Sistema") @db.VarChar(100)
+
+  @@map("historial_cambios")
+}
+
+model Computadora {
+  id            Int      @id @default(autoincrement())
+  nombre        String   @unique @db.VarChar(100)
+  fabricante    String?  @db.VarChar(100)
+  modelo        String?  @db.VarChar(100)
+  numeroSerie   String?  @map("numero_serie") @db.VarChar(100)
+  procesador    String?  @db.VarChar(100)
+  ramGb         Int?     @map("ram_gb")
+  discoSsdGb    Int?     @map("disco_ssd_gb")
+  estado        String   @default("Operativo") @db.VarChar(30)
+  observaciones String?  @db.Text
+  fechaRegistro DateTime @default(now()) @map("fecha_registro") @db.Date
+
+  perifericos Periferico[]
+
+  @@map("computadoras")
+}
+
+model Periferico {
+  id                  Int         @id @default(autoincrement())
+  codigo              String      @unique @db.VarChar(20)
+  categoria           String      @db.VarChar(50)
+  descripcion         String      @db.VarChar(200)
+  estado              String      @default("Operativo") @db.VarChar(30)
+  observaciones       String?     @db.Text
+  computadoraAsignada String?     @map("computadora_asignada") @db.VarChar(100)
+  ubicacion           String?     @db.VarChar(100)
+  fechaRegistro       DateTime    @default(now()) @map("fecha_registro") @db.Date
+
+  computadora Computadora? @relation(fields: [computadoraAsignada], references: [nombre])
+
+  @@map("perifericos")
+}
+
+enum tickets_prioridad {
+  Baja
+  Media
+  Alta
+  Critica
 }

@@ -13,10 +13,24 @@
         <% } %>
 
         <% if (user.rol === 'admin' || user.rol === 'tecnico') { %>
+
+        <%# ===== MODO HISTORIAL: Banner indicador ===== %>
+        <% if (typeof modoHistorial !== 'undefined' && modoHistorial) { %>
+        <div class="historial-banner">
+            <div class="historial-info">
+                <i class="fas fa-history"></i>
+                <span>Viendo historial: <strong><%= tituloFecha %></strong></span>
+            </div>
+            <a href="/dashboard" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+        <% } %>
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-number"><%= stats && stats.totalTickets || 0 %></div>
-                <div class="stat-label">Total Tickets</div>
+                <div class="stat-label"><%= (typeof modoHistorial !== 'undefined' && modoHistorial) ? 'Tickets en período' : 'Total Tickets' %></div>
             </div>
             <div class="stat-card">
                 <div class="stat-number"><%= stats && stats.porEstado && stats.porEstado.PENDIENTE || 0 %></div>
@@ -32,14 +46,28 @@
             </div>
             <div class="stat-card">
                 <div class="stat-number"><%= stats && stats.ticketsMes || 0 %></div>
-                <div class="stat-label">Este Mes</div>
+                <div class="stat-label"><%= (typeof modoHistorial !== 'undefined' && modoHistorial) ? 'En período' : 'Este Mes' %></div>
             </div>
         </div>
 
         <div class="card">
             <div class="card-header">
-                <span>Tickets Recientes</span>
-                <a href="/tickets/nuevo" class="btn btn-success btn-sm">Nuevo Ticket</a>
+                <span>
+                    <% if (typeof modoHistorial !== 'undefined' && modoHistorial) { %>
+                        Tickets - <%= tituloFecha %>
+                    <% } else { %>
+                        Tickets Recientes
+                    <% } %>
+                </span>
+                <div class="card-header-actions">
+                    <%# ===== BOTÓN HISTORIAL (solo si NO estamos en modo historial) ===== %>
+                    <% if (typeof modoHistorial === 'undefined' || !modoHistorial) { %>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-historial" onclick="abrirModalHistorial()">
+                        <i class="fas fa-calendar-alt"></i> Historial
+                    </button>
+                    <% } %>
+                    <a href="/tickets/nuevo" class="btn btn-success btn-sm">Nuevo Ticket</a>
+                </div>
             </div>
             <div class="table-container">
                 <table class="table">
@@ -47,7 +75,7 @@
                         <tr>
                             <th>N° Ticket</th><th>Título</th><th>Solicitante</th>
                             <th>Área</th><th>Categoría</th><th>Prioridad</th>
-                            <th>Estado</th><th>Técnico</th><th>Fecha</th><th>Acciones</th>
+                            <th>Estado</th><th>Asignación</th><th>Fecha</th><th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -67,7 +95,9 @@
                         </tr>
                         <% }) %>
                         <% } else { %>
-                        <tr><td colspan="10" style="text-align:center;padding:20px">No hay tickets registrados</td></tr>
+                        <tr><td colspan="10" style="text-align:center;padding:20px">
+                            <%= (typeof modoHistorial !== 'undefined' && modoHistorial) ? 'No hay tickets en este período' : 'No hay tickets registrados este mes' %>
+                        </td></tr>
                         <% } %>
                     </tbody>
                 </table>
@@ -75,6 +105,7 @@
         </div>
 
         <% } else { %>
+        <%# ===== VISTA DE USUARIO NORMAL (sin cambios) ===== %>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
             <h1>Mis Solicitudes</h1>
             <a href="/tickets/nuevo" class="btn btn-success">Crear Nueva Solicitud</a>
@@ -112,5 +143,38 @@
         <% } %>
     </div>
 
+    
     <%- include('partials/footer') %>
+    
+
+    <%# ===== MODAL DE HISTORIAL - FUERA DEL FLUJO NORMAL ===== %>
+<div id="modal-historial" class="modal-historial">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-calendar-alt"></i> Consultar Historial</h3>
+            <button type="button" class="btn-close" onclick="cerrarModalHistorial()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="filtro-mes">
+                <label for="select-mes">Seleccionar mes:</label>
+                <input type="month" id="select-mes" class="form-control">
+            </div>
+            <div class="filtro-dia">
+                <label for="select-dia">Filtrar por día específico (opcional):</label>
+                <input type="date" id="select-dia" class="form-control">
+                <small class="text-muted">Dejar vacío para ver todo el mes</small>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalHistorial()">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="consultarHistorial()">
+                <i class="fas fa-search"></i> Consultar
+            </button>
+        </div>
+    </div>
 </div>
+
+</div>
+
+
+<script src="/js/dashboard.js?v=2" defer></script>

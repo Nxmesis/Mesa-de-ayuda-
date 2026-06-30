@@ -3,8 +3,9 @@
 const express = require('express')
 const router  = express.Router()
 const { mostrarDashboard } = require('../controllers/dashboardController')
-const { requireAuth }      = require('../middleware/auth')
+const { requireAuth, requireAdmin } = require('../middleware/auth')
 
-router.get('/dashboard', requireAuth, mostrarDashboard)
+// Dashboard SOLO para admin/técnico
+router.get('/dashboard', requireAuth, requireAdmin, mostrarDashboard)
 
 module.exports = router

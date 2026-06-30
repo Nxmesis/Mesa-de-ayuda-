@@ -52,8 +52,8 @@ function textoEstado(estado) {
 // ── Roles ─────────────────────────────────────────────────────────────────────
 
 const ROL_NOMBRES = {
-  admin:   'Gerencia',
-  tecnico: 'Admin',
+  admin:   'Admin',
+  tecnico: 'Suprvisor',
   usuario: 'Usuario',
 }
 
@@ -79,8 +79,20 @@ function esPrioridadValida(prioridad) {
   return PRIORIDADES_VALIDAS.includes(prioridad)
 }
 
+// Agregar al final de src/utils/helpers.js:
+
+function nombreMes(numero) {
+  const meses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ]
+  return meses[numero - 1] || ''
+}
+
+
 module.exports = {
   formatearFecha,
+  nombreMes,
   getPrioridadClass,
   getEstadoClass,
   textoEstado,

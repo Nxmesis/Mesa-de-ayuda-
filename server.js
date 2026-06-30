@@ -3,6 +3,7 @@
 require("dotenv").config()
 
 const express = require("express")
+const https   = require("https")
 const session = require("express-session")
 const flash   = require("connect-flash")
 const path    = require("path")
@@ -35,9 +36,9 @@ app.use(
     resave:            false,
     saveUninitialized: false,
     cookie: {
-      secure:   process.env.NODE_ENV === "production",
+      secure:   true,  // HTTPS activo
       httpOnly: true,
-      maxAge:   1000 * 60 * 60 * 8, // 8 horas
+      maxAge:   1000 * 60 * 60 * 8,
     },
   })
 )
@@ -63,7 +64,8 @@ app.use("/", require("./src/routes/ticketRoutes"))
 app.use("/", require("./src/routes/userRoutes"))
 app.use("/", require("./src/routes/perfilRoutes"))
 app.use("/", require("./src/routes/estadisticasRoutes"))
-app.use("/", require("./src/routes/notificacionesRoutes")) // ← NUEVO: SSE
+app.use("/", require("./src/routes/notificacionesRoutes"))
+app.use('/', require('./src/routes/inventarioRoutes'))
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => {
@@ -86,8 +88,13 @@ app.use((err, req, res, next) => {
   })
 })
 
-// ── Arranque ─────────────────────────────────────────────────────────────────
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅  Servidor corriendo en http://localhost:${PORT}`)
+// ── Arranque HTTPS ───────────────────────────────────────────────────────────
+const certOptions = {
+  key:  fs.readFileSync(path.join(__dirname, "certificados", "helpdesk.local+4-key.pem")),
+  cert: fs.readFileSync(path.join(__dirname, "certificados", "helpdesk.local+4.pem")),
+}
+
+https.createServer(certOptions, app).listen(443, "0.0.0.0", () => {
+  console.log(`✅  Servidor HTTPS en https://helpdesk.local`)
   console.log(`    Entorno: ${process.env.NODE_ENV || "development"}`)
 })

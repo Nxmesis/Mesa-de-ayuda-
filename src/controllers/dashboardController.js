@@ -3,7 +3,6 @@
 const prisma  = require('../utils/db')
 const helpers = require('../utils/helpers')
 
-// Mapa de estados del enum Prisma a claves del objeto stats
 const ESTADO_MAP = {
   Pendiente:     'PENDIENTE',
   EnProceso:     'EN_PROCESO',
@@ -12,22 +11,49 @@ const ESTADO_MAP = {
   Cerrado:       'CERRADO',
 }
 
-// GET /dashboard
 async function mostrarDashboard(req, res) {
   try {
     const user    = req.session.usuario
     const esAdmin = user.rol === 'admin' || user.rol === 'tecnico'
     const where   = esAdmin ? {} : { usuarioId: user.id }
 
-    const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    let modoHistorial = false
+    let whereFecha    = {}
+    let tituloFecha   = ''
 
-    // Conteos en paralelo
-    const [conteoEstados, totalTickets, ticketsMes, tickets] = await Promise.all([
-      prisma.ticket.groupBy({ by: ['estado'], _count: { id: true } }),
-      prisma.ticket.count({ where }),
-      prisma.ticket.count({ where: { ...where, fechaCreacion: { gte: inicioMes } } }),
+    const { mes, dia } = req.query
+
+    if (esAdmin && mes) {
+      modoHistorial = true
+      const [anio, mesNum] = mes.split('-').map(Number)
+      const inicio = new Date(anio, mesNum - 1, 1)
+      const fin    = new Date(anio, mesNum, 0, 23, 59, 59, 999)
+      whereFecha   = { fechaCreacion: { gte: inicio, lte: fin } }
+      tituloFecha  = `${helpers.nombreMes(mesNum)} ${anio}`
+
+    } else if (esAdmin && dia) {
+      modoHistorial = true
+      const [anio, mesNum, diaNum] = dia.split('-').map(Number)
+      const inicio = new Date(anio, mesNum - 1, diaNum, 0, 0, 0, 0)
+      const fin    = new Date(anio, mesNum - 1, diaNum, 23, 59, 59, 999)
+      whereFecha   = { fechaCreacion: { gte: inicio, lte: fin } }
+      tituloFecha  = `${diaNum} de ${helpers.nombreMes(mesNum)} ${anio}`
+    }
+
+    if (esAdmin && !modoHistorial) {
+      const ahora      = new Date()
+      const inicioMes  = new Date(ahora.getFullYear(), ahora.getMonth(), 1)
+      const finMes     = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0, 23, 59, 59, 999)
+      whereFecha       = { fechaCreacion: { gte: inicioMes, lte: finMes } }
+      tituloFecha      = `${helpers.nombreMes(ahora.getMonth() + 1)} ${ahora.getFullYear()}`
+    }
+
+    const whereFinal = { ...where, ...whereFecha }
+
+    const [totalTickets, tickets] = await Promise.all([
+      prisma.ticket.count({ where: whereFinal }),
       prisma.ticket.findMany({
-        where,
+        where: whereFinal,
         orderBy: { fechaCreacion: 'desc' },
         take: 50,
         include: {
@@ -38,22 +64,32 @@ async function mostrarDashboard(req, res) {
       }),
     ])
 
-    // Construir objeto porEstado
     const porEstado = {
       PENDIENTE: 0, EN_PROCESO: 0,
       ESPERANDO_INFORMACION: 0, SOLUCIONADO: 0, CERRADO: 0,
     }
-    for (const item of conteoEstados) {
+
+    const conteoFiltrado = await prisma.ticket.groupBy({
+      by: ['estado'],
+      where: whereFinal,
+      _count: { id: true },
+    })
+
+    for (const item of conteoFiltrado) {
       const key = ESTADO_MAP[item.estado]
       if (key) porEstado[key] = item._count.id
     }
 
     res.render('dashboard', {
-      title: 'Dashboard',
+      title: modoHistorial ? `Historial - ${tituloFecha}` : 'Dashboard',
       user,
       tickets,
       helpers,
-      stats: { totalTickets, porEstado, ticketsMes },
+      stats: { totalTickets, porEstado, ticketsMes: totalTickets },
+      modoHistorial,
+      tituloFecha,
+      mesQuery: mes || '',
+      diaQuery: dia || '',
     })
 
   } catch (err) {

@@ -5,7 +5,10 @@ const prisma = require('../utils/db')
 
 // GET /login
 function mostrarLogin(req, res) {
-  if (req.session.usuario) return res.redirect('/dashboard')
+  if (req.session.usuario) {
+    const rol = req.session.usuario.rol
+    return res.redirect(rol === 'admin' || rol === 'tecnico' ? '/dashboard' : '/tickets')
+  }
   res.render('login', { titulo: 'Iniciar sesión' })
 }
 
@@ -43,7 +46,12 @@ async function procesarLogin(req, res) {
       fotoPerfil: usuario.fotoPerfil,
     }
 
-    res.redirect('/dashboard')
+    // Redirección según rol
+    if (usuario.rol === 'admin' || usuario.rol === 'tecnico') {
+      res.redirect('/dashboard')
+    } else {
+      res.redirect('/tickets')
+    }
 
   } catch (err) {
     console.error('[authController] procesarLogin:', err)

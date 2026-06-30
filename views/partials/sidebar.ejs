@@ -19,9 +19,11 @@
 
   <nav class="sidebar-nav">
 
-    <a href="/dashboard" class="sidebar-link <%= title === 'Dashboard' ? 'active' : '' %>">
+    <% if (user.rol === 'admin' || user.rol === 'tecnico') { %>
+    <a href="/dashboard" class="sidebar-link <%= title === 'Dashboard' || (title && title.startsWith('Historial')) ? 'active' : '' %>">
       Dashboard
     </a>
+    <% } %>
 
     <a href="/tickets/nuevo" class="sidebar-link <%= title === 'Crear Ticket' ? 'active' : '' %>">
       Nueva Solicitud
@@ -40,6 +42,10 @@
 
     <a href="/estadisticas" class="sidebar-link <%= title === 'Estadísticas' ? 'active' : '' %>">
       Estadísticas
+    </a>
+
+    <a href="/inventario" class="sidebar-link <%= title === 'Inventario de Equipos' ? 'active' : '' %>">
+      Inventario
     </a>
     <% } %>
 

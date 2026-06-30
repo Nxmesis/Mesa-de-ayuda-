@@ -16,7 +16,7 @@ async function main() {
     { nombre: 'Cámaras',        descripcion: 'Revisión de factura con cámaras' },
   ]
 
-  // Eliminar categorías obsoletas (incluyendo tickets de prueba)
+  // Eliminar categorías obsoletas
   const eliminadas = ['Acceso / Cuenta', 'Impresoras', 'Correo']
   for (const nombre of eliminadas) {
     const cat = await prisma.categoria.findUnique({ where: { nombre } })
@@ -41,7 +41,7 @@ async function main() {
   }
   console.log(`✅ ${categorias.length} categorías configuradas`)
 
-  // ── ELIMINAR cuentas de prueba (admin se MANTIENE) ──────────────────────
+  // ── ELIMINAR cuentas de prueba ──────────────────────────────────────────
   const cuentasPrueba = ['tecnico1', 'jruiz']
   for (const username of cuentasPrueba) {
     const usuario = await prisma.usuario.findUnique({ where: { username } })
@@ -57,64 +57,80 @@ async function main() {
     }
   }
 
-  // ── CREAR cuentas administrativas reales ─────────────────────────────────
+  // ── CREAR/ACTUALIZAR cuentas administrativas ────────────────────────────
 
-  // Jefes - Gerencia (área: Gerencial)
+  // Jefes - Gerencia
   const jefes = [
     { nombre: 'Ketherine Armesto', username: 'karmesto', password: 'Ketherine2026!', area: 'Gerencial' },
     { nombre: 'Gonzaga Aguirre',   username: 'gaguirre', password: 'Gonzaga2026!',   area: 'Gerencial' },
   ]
 
   for (const jefe of jefes) {
+    const hashedPassword = await bcrypt.hash(jefe.password, 10)
     await prisma.usuario.upsert({
       where:  { username: jefe.username },
-      update: { area: jefe.area },  // ← actualiza área si cambia
+      update: { area: jefe.area },
       create: {
         nombre:   jefe.nombre,
         username: jefe.username,
-        password: await bcrypt.hash(jefe.password, 10),
+        password: hashedPassword,
         area:     jefe.area,
-        rol:      'admin',  // ← admin en BD = Gerencia en UI
+        rol:      'admin',
+        activo:   true,
       },
     })
-    console.log(`✅ ${jefe.username} (${jefe.nombre}) → ${jefe.password} [GERENCIA - ${jefe.area}]`)
+    console.log(`✅ ${jefe.username} (${jefe.nombre}) → [GERENCIA - ${jefe.area}]`)
   }
 
-  // Administradoras - Admin (área: Administración)
+  // Administradoras - Admin
   const administradoras = [
     { nombre: 'Diana Dias',   username: 'ddias',  password: 'Diana2026!',   area: 'Administración' },
     { nombre: 'Glenis Lopez', username: 'glopez', password: 'Glenis2026!',  area: 'Administración' },
   ]
 
   for (const admin of administradoras) {
+    const hashedPassword = await bcrypt.hash(admin.password, 10)
     await prisma.usuario.upsert({
       where:  { username: admin.username },
       update: { area: admin.area },
       create: {
         nombre:   admin.nombre,
         username: admin.username,
-        password: await bcrypt.hash(admin.password, 10),
+        password: hashedPassword,
         area:     admin.area,
-        rol:      'tecnico',  // ← tecnico en BD = Admin en UI
+        rol:      'tecnico',
+        activo:   true,
       },
     })
-    console.log(`✅ ${admin.username} (${admin.nombre}) → ${admin.password} [ADMIN - ${admin.area}]`)
+    console.log(`✅ ${admin.username} (${admin.nombre}) → [ADMIN - ${admin.area}]`)
   }
 
-  // ── Actualizar cuenta admin existente (tú) ────────────────────────────────
+  // ── Actualizar cuenta admin existente ────────────────────────────────────
   const adminExistente = await prisma.usuario.findUnique({ where: { username: 'admin' } })
   if (adminExistente) {
     await prisma.usuario.update({
       where: { id: adminExistente.id },
       data: { 
-        rol: 'admin',  // ← Gerencia
-        area: 'Tecnología'  // ← Actualizar área a Gerencial
+        rol: 'admin',
+        area: 'Tecnología',
+        activo: true,
       }
     })
-    console.log(`✅ admin (Administrador TI) → rol: GERENCIA, área: Gerencial`)
+    console.log(`✅ admin (Administrador TI) → rol: GERENCIA, área: Tecnología`)
   }
 
-  console.log('\n🎉 Seed completado')
+  // ── LIMPIAR tickets y comentarios residuales ────────────────────────────
+  const comentariosCount = await prisma.comentario.count()
+  const ticketsCount = await prisma.ticket.count()
+
+  if (comentariosCount > 0 || ticketsCount > 0) {
+    await prisma.comentario.deleteMany({})
+    await prisma.ticket.deleteMany({})
+    console.log(`🗑️  Datos residuales eliminados: ${ticketsCount} tickets, ${comentariosCount} comentarios`)
+  }
+
+  console.log('\n🎉 Seed completado — Sistema listo para producción')
+  console.log('   Base de datos limpia. Solo usuarios y categorías configurados.')
 }
 
 main()

@@ -1,0 +1,464 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+    <%- include('partials/navbar') %>
+
+    <div class="container">
+
+        <div class="inventario-header">
+            <h1>Inventario de Equipos</h1>
+            <div class="inventario-tabs">
+                <button class="inventario-tab active" onclick="mostrarTab('computadoras', this)">
+                    Computadoras
+                </button>
+                <button class="inventario-tab" onclick="mostrarTab('perifericos', this)">
+                    Periféricos
+                </button>
+            </div>
+        </div>
+
+        <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
+            <div class="alert alert-success"><%= success[0] %></div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+            <div class="alert alert-danger"><%= error[0] %></div>
+        <% } %>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- PANEL COMPUTADORAS                                  -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div id="tab-computadoras" class="inventario-panel active">
+            <div class="excel-toolbar">
+                <div class="excel-search">
+                    <input type="text" id="buscar-computadoras"
+                           placeholder="Buscar computadoras..."
+                           onkeyup="filtrarTabla('tabla-computadoras', this.value)">
+                </div>
+                <button class="btn btn-success" onclick="abrirModal('modal-computadora')">
+                    + Nueva Computadora
+                </button>
+            </div>
+
+            <div class="card" style="padding:0;">
+                <div class="table-container">
+                    <table class="table" id="tabla-computadoras">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Fabricante</th>
+                                <th>Modelo</th>
+                                <th>Procesador</th>
+                                <th>RAM</th>
+                                <th>SSD</th>
+                                <th>Estado</th>
+                                <th>Observaciones</th>
+                                <th style="width:90px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (computadoras && computadoras.length > 0) { %>
+                            <% computadoras.forEach(pc => { %>
+                            <tr>
+                                <td><strong><%= pc.nombre %></strong></td>
+                                <td><%= pc.fabricante || '—' %></td>
+                                <td><%= pc.modelo || '—' %></td>
+                                <td><%= pc.procesador || '—' %></td>
+                                <td><%= pc.ramGb ? pc.ramGb + ' GB' : '—' %></td>
+                                <td><%= pc.discoSsdGb ? pc.discoSsdGb + ' GB' : '—' %></td>
+                                <td>
+                                    <span class="badge <%=
+                                        pc.estado === 'Operativo'          ? 'badge-success'   :
+                                        pc.estado === 'Averiado'           ? 'badge-danger'    :
+                                        pc.estado === 'Deficiente'         ? 'badge-warning'   :
+                                        pc.estado === 'Pendiente revisión' ? 'badge-info'      :
+                                        'badge-secondary' %>">
+                                        <%= pc.estado %>
+                                    </span>
+                                </td>
+                                <td><%= pc.observaciones || '—' %></td>
+                                <td>
+                                    <div class="excel-actions">
+                                        <button type="button" class="excel-btn excel-btn-save"
+                                                onclick="editarComputadora(<%= pc.id %>)" title="Editar">
+                                            ✏️
+                                        </button>
+                                        <button type="button" class="excel-btn excel-btn-delete"
+                                                onclick="confirmarEliminar('/inventario/computadoras/<%= pc.id %>/eliminar')"
+                                                title="Eliminar">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Fila de edición inline -->
+                            <tr id="edit-pc-<%= pc.id %>" style="display:none; background:#fffbeb;">
+                                <td colspan="9" style="padding:0;">
+                                    <form action="/inventario/computadoras/<%= pc.id %>/editar" method="POST"
+                                          style="display:table; width:100%;">
+                                        <div style="display:table-row;">
+                                            <div style="display:table-cell; padding:8px 10px; width:12%;">
+                                                <input type="text" name="nombre" value="<%= pc.nombre %>"
+                                                       class="excel-cell-input" readonly>
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:12%;">
+                                                <input type="text" name="fabricante" value="<%= pc.fabricante || '' %>"
+                                                       class="excel-cell-input">
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:12%;">
+                                                <input type="text" name="modelo" value="<%= pc.modelo || '' %>"
+                                                       class="excel-cell-input">
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:15%;">
+                                                <input type="text" name="procesador" value="<%= pc.procesador || '' %>"
+                                                       class="excel-cell-input">
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:6%;">
+                                                <input type="number" name="ramGb" value="<%= pc.ramGb || '' %>"
+                                                       class="excel-cell-input">
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:6%;">
+                                                <input type="number" name="discoSsdGb" value="<%= pc.discoSsdGb || '' %>"
+                                                       class="excel-cell-input">
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:10%;">
+                                                <select name="estado" class="excel-cell-select">
+                                                    <% ['Operativo','Deficiente','Averiado','Desconectado','Archivado','Pendiente revisión'].forEach(e => { %>
+                                                        <option value="<%= e %>" <%= pc.estado === e ? 'selected' : '' %>><%= e %></option>
+                                                    <% }) %>
+                                                </select>
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:17%;">
+                                                <input type="text" name="observaciones" value="<%= pc.observaciones || '' %>"
+                                                       class="excel-cell-input">
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:10%;">
+                                                <div class="excel-actions">
+                                                    <button type="submit" class="excel-btn excel-btn-save" title="Guardar">✓</button>
+                                                    <button type="button" class="excel-btn excel-btn-delete"
+                                                            onclick="cancelarEdicion('edit-pc-<%= pc.id %>')" title="Cancelar">✕</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            <% }) %>
+                            <% } else { %>
+                            <tr>
+                                <td colspan="9" style="text-align:center; padding:40px; color:#a0aec0;">
+                                    No hay computadoras registradas
+                                </td>
+                            </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- PANEL PERIFÉRICOS                                   -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div id="tab-perifericos" class="inventario-panel">
+            <div class="excel-toolbar">
+                <div class="excel-search">
+                    <input type="text" id="buscar-perifericos"
+                           placeholder="Buscar periféricos..."
+                           onkeyup="filtrarTabla('tabla-perifericos', this.value)">
+                </div>
+                <button class="btn btn-success" onclick="abrirModal('modal-periferico')">
+                    + Nuevo Periférico
+                </button>
+            </div>
+
+            <div class="card" style="padding:0;">
+                <div class="table-container">
+                    <table class="table" id="tabla-perifericos">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Categoría</th>
+                                <th>Descripción</th>
+                                <th>Estado</th>
+                                <th>Asignado a</th>
+                                <th>Ubicación</th>
+                                <th>Observaciones</th>
+                                <th style="width:90px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (perifericos && perifericos.length > 0) { %>
+                            <% perifericos.forEach(per => { %>
+                            <tr>
+                                <td><strong><%= per.codigo %></strong></td>
+                                <td><%= per.categoria %></td>
+                                <td><%= per.descripcion %></td>
+                                <td>
+                                    <span class="badge <%=
+                                        per.estado === 'Operativo'          ? 'badge-success'   :
+                                        per.estado === 'Averiado'           ? 'badge-danger'    :
+                                        per.estado === 'Deficiente'         ? 'badge-warning'   :
+                                        per.estado === 'Pendiente revisión' ? 'badge-info'      :
+                                        'badge-secondary' %>">
+                                        <%= per.estado %>
+                                    </span>
+                                </td>
+                                <td><%= per.computadoraAsignada || 'Sin asignar' %></td>
+                                <td><%= per.ubicacion || '—' %></td>
+                                <td><%= per.observaciones || '—' %></td>
+                                <td>
+                                    <div class="excel-actions">
+                                        <button type="button" class="excel-btn excel-btn-save"
+                                                onclick="editarPeriferico(<%= per.id %>)" title="Editar">
+                                            ✏️
+                                        </button>
+                                        <button type="button" class="excel-btn excel-btn-delete"
+                                                onclick="confirmarEliminar('/inventario/perifericos/<%= per.id %>/eliminar')"
+                                                title="Eliminar">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Fila de edición inline -->
+                            <tr id="edit-per-<%= per.id %>" style="display:none; background:#fffbeb;">
+                                <td colspan="8" style="padding:0;">
+                                    <form action="/inventario/perifericos/<%= per.id %>/editar" method="POST"
+                                          style="display:table; width:100%;">
+                                        <div style="display:table-row;">
+                                            <div style="display:table-cell; padding:8px 10px; width:10%;">
+                                                <input type="text" name="codigo" value="<%= per.codigo %>"
+                                                       class="excel-cell-input" readonly>
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:10%;">
+                                                <select name="categoria" class="excel-cell-select">
+                                                    <% ['Teclado','Mouse','Monitor','UPS','Scanner','Impresora','Servidor','Red','Otro'].forEach(c => { %>
+                                                        <option value="<%= c %>" <%= per.categoria === c ? 'selected' : '' %>><%= c %></option>
+                                                    <% }) %>
+                                                </select>
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:18%;">
+                                                <input type="text" name="descripcion" value="<%= per.descripcion %>"
+                                                       class="excel-cell-input">
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:10%;">
+                                                <select name="estado" class="excel-cell-select">
+                                                    <% ['Operativo','Deficiente','Averiado','Desconectado','Archivado','Pendiente revisión'].forEach(e => { %>
+                                                        <option value="<%= e %>" <%= per.estado === e ? 'selected' : '' %>><%= e %></option>
+                                                    <% }) %>
+                                                </select>
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:14%;">
+                                                <select name="computadoraAsignada" class="excel-cell-select">
+                                                    <option value="">-- Sin asignar --</option>
+                                                    <% computadoras.forEach(pc => { %>
+                                                        <option value="<%= pc.nombre %>" <%= per.computadoraAsignada === pc.nombre ? 'selected' : '' %>><%= pc.nombre %></option>
+                                                    <% }) %>
+                                                </select>
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:12%;">
+                                                <input type="text" name="ubicacion" value="<%= per.ubicacion || '' %>"
+                                                       class="excel-cell-input">
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:16%;">
+                                                <input type="text" name="observaciones" value="<%= per.observaciones || '' %>"
+                                                       class="excel-cell-input">
+                                            </div>
+                                            <div style="display:table-cell; padding:8px 10px; width:10%;">
+                                                <div class="excel-actions">
+                                                    <button type="submit" class="excel-btn excel-btn-save" title="Guardar">✓</button>
+                                                    <button type="button" class="excel-btn excel-btn-delete"
+                                                            onclick="cancelarEdicion('edit-per-<%= per.id %>')" title="Cancelar">✕</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            <% }) %>
+                            <% } else { %>
+                            <tr>
+                                <td colspan="8" style="text-align:center; padding:40px; color:#a0aec0;">
+                                    No hay periféricos registrados
+                                </td>
+                            </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.container -->
+
+    <%- include('partials/footer') %>
+</div><!-- /.main-content -->
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- MODAL NUEVA COMPUTADORA                                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-computadora">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Nueva Computadora</h2>
+            <button class="modal-close" onclick="cerrarModal('modal-computadora')">×</button>
+        </div>
+        <form action="/inventario/computadoras" method="POST">
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Nombre / Código *</label>
+                        <input type="text" name="nombre" class="form-control" required
+                               placeholder="Ej: PC-CAJA-01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fabricante</label>
+                        <input type="text" name="fabricante" class="form-control"
+                               placeholder="Ej: HP, Dell, Lenovo">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Modelo</label>
+                        <input type="text" name="modelo" class="form-control"
+                               placeholder="Ej: ProDesk 400 G7">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">N° de Serie</label>
+                        <input type="text" name="numeroSerie" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Procesador</label>
+                    <input type="text" name="procesador" class="form-control"
+                           placeholder="Ej: Intel Core i5-10400">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">RAM (GB)</label>
+                        <input type="number" name="ramGb" class="form-control" min="1" placeholder="8">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Disco SSD (GB)</label>
+                        <input type="number" name="discoSsdGb" class="form-control" min="1" placeholder="256">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-control">
+                            <option value="Operativo">Operativo</option>
+                            <option value="Deficiente">Deficiente</option>
+                            <option value="Averiado">Averiado</option>
+                            <option value="Desconectado">Desconectado</option>
+                            <option value="Archivado">Archivado</option>
+                            <option value="Pendiente revisión">Pendiente revisión</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Observaciones</label>
+                    <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                        onclick="cerrarModal('modal-computadora')">Cancelar</button>
+                <button type="submit" class="btn btn-success">Crear</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- MODAL NUEVO PERIFÉRICO                                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-periferico">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Nuevo Periférico</h2>
+            <button class="modal-close" onclick="cerrarModal('modal-periferico')">×</button>
+        </div>
+        <form action="/inventario/perifericos" method="POST">
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Código <span style="color:#8b95a8; font-weight:400;">(opcional)</span></label>
+                        <input type="text" 
+                               name="codigo" 
+                               class="form-control" 
+                               placeholder="<%= siguienteCodigoPeriferico %>"
+                               style="color: #a0aec0; font-style: italic;"
+                               onfocus="this.style.color='#2c3e50'; this.style.fontStyle='normal'; if(this.value==='') this.value='<%= siguienteCodigoPeriferico %>';"
+                               onblur="if(this.value==='<%= siguienteCodigoPeriferico %>' || this.value==='') { this.value=''; this.style.color='#a0aec0'; this.style.fontStyle='italic'; }">
+                        <div class="form-hint" style="font-size: 0.8rem; color: #8b95a8; margin-top: 4px;">
+                            Próximo código disponible: <strong><%= siguienteCodigoPeriferico %></strong>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categoría *</label>
+                        <select name="categoria" class="form-control" required>
+                            <option value="Teclado">Teclado</option>
+                            <option value="Mouse">Mouse</option>
+                            <option value="Monitor">Monitor</option>
+                            <option value="UPS">UPS</option>
+                            <option value="Scanner">Scanner</option>
+                            <option value="Impresora">Impresora</option>
+                            <option value="Servidor">Servidor</option>
+                            <option value="Red">Red</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descripción *</label>
+                    <input type="text" name="descripcion" class="form-control" required
+                           placeholder="Ej: Teclado CAJA 1">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-control">
+                            <option value="Operativo">Operativo</option>
+                            <option value="Deficiente">Deficiente</option>
+                            <option value="Averiado">Averiado</option>
+                            <option value="Desconectado">Desconectado</option>
+                            <option value="Archivado">Archivado</option>
+                            <option value="Pendiente revisión">Pendiente revisión</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Asignado a</label>
+                        <select name="computadoraAsignada" class="form-control">
+                            <option value="">-- Sin asignar --</option>
+                            <% computadoras.forEach(pc => { %>
+                                <option value="<%= pc.nombre %>"><%= pc.nombre %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Ubicación</label>
+                        <input type="text" name="ubicacion" class="form-control"
+                               placeholder="Ej: OFICINA, CAJA 1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Observaciones</label>
+                    <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                        onclick="cerrarModal('modal-periferico')">Cancelar</button>
+                <button type="submit" class="btn btn-success">Crear</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Formulario oculto para eliminar -->
+<form id="form-eliminar" method="POST" style="display:none;"></form>
+
+<link rel="stylesheet" href="/css/inventario.css">
+<script src="/js/inventario.js"></script>
