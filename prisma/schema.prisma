@@ -127,6 +127,23 @@ model Periferico {
   @@map("perifericos")
 }
 
+model Camara {
+  id            Int      @id @default(autoincrement())
+  codigo        String   @unique @db.VarChar(20)
+  marca         String?  @db.VarChar(100)
+  modelo        String?  @db.VarChar(100)
+  numeroSerie   String?  @map("numero_serie") @db.VarChar(100)
+  ubicacion     String?  @db.VarChar(100)
+  piso          String   @default("1") @db.VarChar(10)
+  dvr           String   @default("1") @db.VarChar(10)
+  ip            String?  @db.VarChar(50)
+  estado        String   @default("Operativo") @db.VarChar(30)
+  observaciones String?  @db.Text
+  fechaRegistro DateTime @default(now()) @map("fecha_registro") @db.Date
+
+  @@map("cameras")
+}
+
 enum tickets_prioridad {
   Baja
   Media

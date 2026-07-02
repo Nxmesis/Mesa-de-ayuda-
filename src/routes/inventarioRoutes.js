@@ -16,4 +16,8 @@ router.post('/inventario/perifericos/:id/editar', requireAuth, requireAdminOnly,
 router.post('/inventario/perifericos/:id/eliminar', requireAuth, requireAdminOnly, ctrl.eliminarPeriferico)
 router.post('/inventario/perifericos/:id/estado', requireAuth, requireAdminOnly, ctrl.cambiarEstadoPeriferico)
 
+router.post('/inventario/camaras', requireAuth, requireAdminOnly, ctrl.crearCamara)
+router.post('/inventario/camaras/:id/editar', requireAuth, requireAdminOnly, ctrl.editarCamara)
+router.post('/inventario/camaras/:id/eliminar', requireAuth, requireAdminOnly, ctrl.eliminarCamara)
+
 module.exports = router

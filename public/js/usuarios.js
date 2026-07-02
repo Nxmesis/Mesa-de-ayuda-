@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', function() {
 
   // ── Modales ──
@@ -83,24 +82,38 @@ document.addEventListener('DOMContentLoaded', function() {
     })
   }
 
-  // ── Búsqueda en tiempo real ──
+  // ── Búsqueda en tiempo real (con debounce) ──
   const buscarInput = document.getElementById('buscarUsuario')
+  let searchTimeout
   if (buscarInput) {
     buscarInput.addEventListener('input', function() {
-      const q = this.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      const rows = document.querySelectorAll('#tablaUsuarios tbody tr.ind-row')
-      let visible = 0
-      rows.forEach(function(row) {
-        const text = row.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        if (text.includes(q)) {
-          row.style.display = ''
-          visible++
-        } else {
-          row.style.display = 'none'
+      clearTimeout(searchTimeout)
+      searchTimeout = setTimeout(() => {
+        const q = this.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        
+        // Si hay muchos usuarios, usar búsqueda del servidor
+        const rows = document.querySelectorAll('#tablaUsuarios tbody tr.ind-row')
+        if (rows.length > 100) {
+          // Redirigir con parámetro de búsqueda para paginación server-side
+          const url = new URL(window.location.href)
+          url.searchParams.set('search', this.value)
+          window.location.href = url.toString()
+          return
         }
-      })
-      const contador = document.getElementById('contadorVisible')
-      if (contador) contador.textContent = visible
+        
+        let visible = 0
+        rows.forEach(function(row) {
+          const text = row.innerText.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          if (text.includes(q)) {
+            row.style.display = ''
+            visible++
+          } else {
+            row.style.display = 'none'
+          }
+        })
+        const contador = document.getElementById('contadorVisible')
+        if (contador) contador.textContent = visible
+      }, 300) // Debounce 300ms
     })
   }
 
@@ -112,7 +125,16 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       this.classList.add('active')
       const filtro = this.dataset.filter
+      
+      // Si hay paginación server-side, redirigir
       const rows = document.querySelectorAll('#tablaUsuarios tbody tr.ind-row')
+      if (rows.length > 100) {
+        const url = new URL(window.location.href)
+        url.searchParams.set('filter', filtro)
+        window.location.href = url.toString()
+        return
+      }
+      
       let visible = 0
       rows.forEach(function(row) {
         const estado = row.dataset.estado

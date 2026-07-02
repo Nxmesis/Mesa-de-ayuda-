@@ -98,3 +98,8 @@ https.createServer(certOptions, app).listen(443, "0.0.0.0", () => {
   console.log(`✅  Servidor HTTPS en https://helpdesk.local`)
   console.log(`    Entorno: ${process.env.NODE_ENV || "development"}`)
 })
+
+// HTTP para móvil (misma app Express)
+app.listen(5001, '0.0.0.0', () => {
+  console.log('HTTP para móvil en puerto 5001')
+})

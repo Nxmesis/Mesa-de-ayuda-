@@ -64,7 +64,7 @@ function abrirModal(id) {
     if (modal) modal.classList.add('active');
 }
 
-function cerrarModal(id) {
+function cerrarModal(id) {  
     const modal = document.getElementById(id);
     if (modal) modal.classList.remove('active');
 }
@@ -78,6 +78,20 @@ function confirmarEliminar(url) {
         }
     }
 }
+
+// Función para mostrar/ocultar fila de edición de cámara
+function editarCamara(id) {
+    const filaEdicion = document.getElementById('edit-cam-' + id);
+    if (filaEdicion) {
+        // Ocultar todas las demás filas de edición
+        document.querySelectorAll('[id^="edit-cam-"]').forEach(el => {
+            if (el.id !== 'edit-cam-' + id) el.style.display = 'none';
+        });
+        // Toggle la fila actual
+        filaEdicion.style.display = filaEdicion.style.display === 'none' ? 'table-row' : 'none';
+    }
+}
+
 
 // Cerrar modal al hacer clic fuera del contenido
 document.addEventListener('DOMContentLoaded', function() {

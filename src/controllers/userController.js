@@ -4,18 +4,66 @@ const bcrypt  = require('bcryptjs')
 const prisma  = require('../utils/db')
 const helpers = require('../utils/helpers')
 
+// ── Configuración de paginación ─────────────────────────────────────────────
+const USERS_PER_PAGE = 25
+
 // ── GET /usuarios ─────────────────────────────────────────────────────────────
 
 async function listarUsuarios(req, res) {
   try {
-    const usuarios = await prisma.usuario.findMany({
-      orderBy: { fechaRegistro: 'desc' },
-    })
+    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const search = (req.query.search || '').trim()
+    const filter = req.query.filter || 'todos'
+
+    // Construir where dinámico
+    const where = {}
+    
+    if (search) {
+      where.OR = [
+        { nombre:   { contains: search, mode: 'insensitive' } },
+        { username: { contains: search, mode: 'insensitive' } },
+        { area:     { contains: search, mode: 'insensitive' } },
+      ]
+    }
+    
+    if (filter === 'activo') where.activo = true
+    if (filter === 'inactivo') where.activo = false
+
+    // Ejecutar count y datos en paralelo
+    const [totalUsuarios, usuarios] = await Promise.all([
+      prisma.usuario.count({ where }),
+      prisma.usuario.findMany({
+        where,
+        orderBy: { fechaRegistro: 'desc' },
+        skip: (page - 1) * USERS_PER_PAGE,
+        take: USERS_PER_PAGE,
+        // Seleccionar solo campos necesarios para la lista
+        select: {
+          id: true,
+          nombre: true,
+          username: true,
+          area: true,
+          rol: true,
+          activo: true,
+          fechaRegistro: true,
+        },
+      }),
+    ])
+
+    const totalPages = Math.ceil(totalUsuarios / USERS_PER_PAGE)
 
     res.render('usuarios', {
       title: 'Gestion de Usuarios',
       user: req.session.usuario,
       usuarios,
+      pagination: {
+        page,
+        totalPages,
+        totalUsuarios,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+      query: { search, filter }, // Para mantener estado en la vista
       helpers,
     })
 
@@ -48,7 +96,10 @@ async function crearUsuario(req, res) {
   }
 
   try {
-    const existe = await prisma.usuario.findUnique({ where: { username } })
+    const existe = await prisma.usuario.findUnique({ 
+      where: { username: username.trim() },
+      select: { id: true } // Solo traer id, no todos los campos
+    })
     if (existe) {
       req.flash('error', 'Ese nombre de usuario ya está en uso.')
       return res.redirect('/usuarios/nuevo')
@@ -85,7 +136,10 @@ async function desactivarUsuario(req, res) {
   }
 
   try {
-    const u = await prisma.usuario.findUnique({ where: { id } })
+    const u = await prisma.usuario.findUnique({ 
+      where: { id },
+      select: { activo: true, nombre: true }
+    })
     await prisma.usuario.update({ where: { id }, data: { activo: !u.activo } })
 
     req.flash('success', `Usuario ${u.activo ? 'desactivado' : 'activado'} correctamente.`)
@@ -112,13 +166,17 @@ async function editarUsuario(req, res) {
   try {
     const usernameTomado = await prisma.usuario.findFirst({
       where: { username: username.trim(), NOT: { id } },
+      select: { id: true }
     })
     if (usernameTomado) {
       req.flash('error', 'Ese nombre de usuario ya está en uso por otra cuenta.')
       return res.redirect('/usuarios')
     }
 
-    const actual  = await prisma.usuario.findUnique({ where: { id } })
+    const actual = await prisma.usuario.findUnique({ 
+      where: { id },
+      select: { rol: true }
+    })
     const rolFinal = actual.rol === 'gerencia' ? actual.rol : (rol || actual.rol)
 
     await prisma.usuario.update({
@@ -186,23 +244,32 @@ async function eliminarUsuario(req, res) {
   }
 
   try {
-    const u = await prisma.usuario.findUnique({ where: { id } })
+    const u = await prisma.usuario.findUnique({ 
+      where: { id },
+      select: { rol: true, nombre: true }
+    })
 
     if (u.rol === 'gerencia') {
       req.flash('error', 'Las cuentas con rol Gerencia no se pueden eliminar desde aquí.')
       return res.redirect('/usuarios')
     }
 
-    const ticketsCreados = await prisma.ticket.count({ where: { usuarioId: id } })
+    const ticketsCreados = await prisma.ticket.count({ 
+      where: { usuarioId: id },
+      select: { id: true } // Optimización: solo cuenta, no selecciona
+    })
+    // Nota: count ya devuelve número, no necesita .length
     if (ticketsCreados > 0) {
       req.flash('error', 'No se puede eliminar: el usuario tiene tickets registrados. Desactívalo en su lugar.')
       return res.redirect('/usuarios')
     }
 
-    // Desvincular tickets asignados y eliminar comentarios antes de borrar
-    await prisma.ticket.updateMany({ where: { tecnicoId: id }, data: { tecnicoId: null } })
-    await prisma.comentario.deleteMany({ where: { usuarioId: id } })
-    await prisma.usuario.delete({ where: { id } })
+    // Transacción para operaciones relacionadas
+    await prisma.$transaction([
+      prisma.ticket.updateMany({ where: { tecnicoId: id }, data: { tecnicoId: null } }),
+      prisma.comentario.deleteMany({ where: { usuarioId: id } }),
+      prisma.usuario.delete({ where: { id } }),
+    ])
 
     req.flash('success', `Usuario ${u.nombre} eliminado correctamente.`)
     res.redirect('/usuarios')

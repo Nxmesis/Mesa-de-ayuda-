@@ -618,6 +618,7 @@ input[type="file"].form-control {
     border-spacing: 0;
     font-size: 0.9rem;
     min-width: 800px;
+    justify-content: center;
 }
 
 .table th {
@@ -1187,6 +1188,218 @@ canvas {
 .badge-estado-esperandoinfo { background:#e2e8f0; color:#4a5568; }
 .badge-estado-solucionado { background:#c6f6d5; color:#276749; }
 .badge-estado-cerrado     { background:#4a5568; color:white; }
+
+
+/* ============================================
+   MODAL HISTORIAL
+   ============================================ */
+
+.modal-historial {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+}
+
+.modal-historial.active {
+    display: flex;
+}
+
+.modal-historial .modal-content {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-historial .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 28px 18px;
+    border-bottom: 2px solid #f0f2f5;
+}
+
+.modal-historial .modal-header h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1f2e;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.modal-historial .modal-header h3 i {
+    color: #2ecc71;
+}
+
+.modal-historial .btn-close {
+    background: #f0f2f5;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    color: #5a6275;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.modal-historial .btn-close:hover {
+    background: #e74c3c;
+    color: white;
+    transform: rotate(90deg);
+}
+
+.modal-historial .modal-body {
+    padding: 24px 28px;
+}
+
+.modal-historial .filtro-mes,
+.modal-historial .filtro-dia {
+    margin-bottom: 20px;
+}
+
+.modal-historial .filtro-mes label,
+.modal-historial .filtro-dia label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+.modal-historial .filtro-dia small {
+    display: block;
+    margin-top: 6px;
+    color: #8b95a8;
+    font-size: 0.8rem;
+}
+
+.modal-historial .modal-footer {
+    display: flex;
+    gap: 12px;
+    padding: 18px 28px 24px;
+    border-top: 2px solid #f0f2f5;
+    justify-content: flex-end;
+}
+
+.modal-historial .modal-footer .btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   HISTORIAL BANNER
+   ============================================ */
+
+.historial-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.historial-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+}
+
+.historial-info i {
+    font-size: 1.3rem;
+}
+
+.historial-info strong {
+    font-weight: 700;
+}
+
+.historial-banner .btn-outline-primary {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.historial-banner .btn-outline-primary:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* ============================================
+   CARD HEADER ACTIONS
+   ============================================ */
+
+.card-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* ============================================
+   BTN OUTLINE SECONDARY
+   ============================================ */
+
+.btn-outline-secondary {
+    background: transparent;
+    color: #5a6275;
+    border: 2px solid #d5dbe4;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-outline-secondary:hover {
+    background: #f0f2f5;
+    border-color: #8b95a8;
+    color: #2c3e50;
+}
 
 
 
