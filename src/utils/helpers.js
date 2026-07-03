@@ -53,7 +53,7 @@ function textoEstado(estado) {
 
 const ROL_NOMBRES = {
   admin:   'Admin',
-  tecnico: 'Suprvisor',
+  tecnico: 'Supervisor',
   usuario: 'Usuario',
 }
 
@@ -78,8 +78,6 @@ const PRIORIDADES_VALIDAS = ['Baja', 'Media', 'Alta', 'Critica']
 function esPrioridadValida(prioridad) {
   return PRIORIDADES_VALIDAS.includes(prioridad)
 }
-
-// Agregar al final de src/utils/helpers.js:
 
 function nombreMes(numero) {
   const meses = [

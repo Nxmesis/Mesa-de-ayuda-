@@ -57,7 +57,7 @@ async function mostrarInventario(req, res) {
           estado: true, observaciones: true,
         },
       }) : Promise.resolve([]),
-      
+
       prisma.computadora.findMany({
         orderBy: { nombre: 'asc' },
         select: { id: true, nombre: true },
@@ -75,7 +75,7 @@ async function mostrarInventario(req, res) {
           estado: true, computadoraAsignada: true, ubicacion: true, observaciones: true,
         },
       }) : Promise.resolve([]),
-      
+
       tab !== 'perifericos' ? prisma.periferico.findMany({
         orderBy: { codigo: 'asc' },
         select: {
@@ -86,26 +86,26 @@ async function mostrarInventario(req, res) {
     ])
 
     const [camarasPaginadas, camarasTodos] = await Promise.all([
-  tab === 'camaras' ? prisma.camara.findMany({
-    where: whereCam,
-    orderBy: { codigo: 'asc' },
-    skip: (page - 1) * ITEMS_PER_PAGE,
-    take: ITEMS_PER_PAGE,
-    select: {
-      id: true, codigo: true, marca: true, ubicacion: true,
-      piso: true, dvr: true, estado: true, observaciones: true,  // ← agregar dvr
-    },
-  }) : Promise.resolve([]),
-  
-  tab !== 'camaras' ? prisma.camara.findMany({
-    where: { piso: piso },
-    orderBy: { codigo: 'asc' },
-    select: {
-      id: true, codigo: true, marca: true, ubicacion: true,
-      piso: true, dvr: true, estado: true, observaciones: true,  // ← agregar dvr
-    },
-  }) : Promise.resolve([]),
-])
+      tab === 'camaras' ? prisma.camara.findMany({
+        where: whereCam,
+        orderBy: { codigo: 'asc' },
+        skip: (page - 1) * ITEMS_PER_PAGE,
+        take: ITEMS_PER_PAGE,
+        select: {
+          id: true, codigo: true, marca: true, ubicacion: true,
+          piso: true, dvr: true, estado: true, observaciones: true,
+        },
+      }) : Promise.resolve([]),
+
+      tab !== 'camaras' ? prisma.camara.findMany({
+        where: { piso: piso },
+        orderBy: { codigo: 'asc' },
+        select: {
+          id: true, codigo: true, marca: true, ubicacion: true,
+          piso: true, dvr: true, estado: true, observaciones: true,
+        },
+      }) : Promise.resolve([]),
+    ])
 
     const computadoras = tab === 'computadoras' ? computadorasPaginadas : computadorasTodas
     const perifericos  = tab === 'perifericos'  ? perifericosPaginados  : perifericosTodos
@@ -145,7 +145,7 @@ async function mostrarInventario(req, res) {
         orderBy: { codigo: 'desc' },
         select: { codigo: true },
       })
-      
+
       if (ultimaCamara?.codigo) {
         const match = ultimaCamara.codigo.match(/CAM-P\d+-(\d+)/)
         if (match) {
@@ -413,7 +413,7 @@ async function cambiarEstadoPeriferico(req, res) {
 async function crearCamara(req, res) {
   let { codigo, marca, modelo, numeroSerie, ubicacion, piso, dvr, ip, estado, observaciones } = req.body
   piso = piso || '1'
-    dvr = dvr || '1'
+  dvr = dvr || '1'
 
   if (!codigo || !codigo.trim()) {
     try {
@@ -468,7 +468,7 @@ async function crearCamara(req, res) {
 
 async function editarCamara(req, res) {
   const id = parseInt(req.params.id)
-   const { marca, modelo, numeroSerie, ubicacion, piso, dvr, ip, estado, observaciones } = req.body 
+  const { marca, modelo, numeroSerie, ubicacion, piso, dvr, ip, estado, observaciones } = req.body
 
   try {
     await prisma.camara.update({

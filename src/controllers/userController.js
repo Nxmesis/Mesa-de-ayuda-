@@ -17,7 +17,7 @@ async function listarUsuarios(req, res) {
 
     // Construir where dinámico
     const where = {}
-    
+
     if (search) {
       where.OR = [
         { nombre:   { contains: search, mode: 'insensitive' } },
@@ -25,7 +25,7 @@ async function listarUsuarios(req, res) {
         { area:     { contains: search, mode: 'insensitive' } },
       ]
     }
-    
+
     if (filter === 'activo') where.activo = true
     if (filter === 'inactivo') where.activo = false
 
@@ -98,7 +98,7 @@ async function crearUsuario(req, res) {
   try {
     const existe = await prisma.usuario.findUnique({ 
       where: { username: username.trim() },
-      select: { id: true } // Solo traer id, no todos los campos
+      select: { id: true }
     })
     if (existe) {
       req.flash('error', 'Ese nombre de usuario ya está en uso.')
@@ -256,9 +256,8 @@ async function eliminarUsuario(req, res) {
 
     const ticketsCreados = await prisma.ticket.count({ 
       where: { usuarioId: id },
-      select: { id: true } // Optimización: solo cuenta, no selecciona
+      select: { id: true }
     })
-    // Nota: count ya devuelve número, no necesita .length
     if (ticketsCreados > 0) {
       req.flash('error', 'No se puede eliminar: el usuario tiene tickets registrados. Desactívalo en su lugar.')
       return res.redirect('/usuarios')

@@ -5,7 +5,6 @@ const helpers    = require('../utils/helpers')
 const path       = require('path')
 const fs         = require('fs')
 
-// html-pdf-node en lugar de puppeteer
 let html_to_pdf
 try {
   html_to_pdf = require('html-pdf-node')
@@ -89,15 +88,15 @@ async function obtenerDatosEstadisticas() {
 
   const porDia = [0, 0, 0, 0, 0, 0, 0]
   const diasLabels = []
-  
+
   for (let i = 6; i >= 0; i--) {
     const fecha = new Date(ahora)
     fecha.setDate(fecha.getDate() - i)
     diasLabels.push(fecha.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric' }))
-    
+
     const inicioDia = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate())
     const finDia = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate() + 1)
-    
+
     porDia[6 - i] = ticketsPorDiaRaw.filter(t => 
       t.fechaCreacion >= inicioDia && t.fechaCreacion < finDia
     ).length
@@ -166,7 +165,6 @@ async function generarReportePDF(req, res) {
       throw new Error('El template renderizó HTML vacío')
     }
 
-    // ✅ Usar html-pdf-node en lugar de Puppeteer
     if (!html_to_pdf) {
       throw new Error('La librería html-pdf-node no está instalada. Ejecuta: npm install html-pdf-node')
     }
@@ -175,8 +173,7 @@ async function generarReportePDF(req, res) {
       format: 'A4',
       printBackground: true,
       margin: { top: '15mm', right: '15mm', bottom: '15mm', left: '15mm' },
-      // Ruta a wkhtmltopdf (ajusta si instalaste en otra ubicación)
-      executablePath: 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe',
+      executablePath: 'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe',
     }
 
     const file = { content: html }
