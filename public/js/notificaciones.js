@@ -1,6 +1,7 @@
 // ═══════════════════════════════════════════════════════
 //  NOTIFICACIONES SSE + WEB NOTIFICATIONS API
 //  Alertas en página (toast) y nativas del sistema (OS)
+//  + Integración con sistema de notificaciones en navbar
 // ═══════════════════════════════════════════════════════
 
 'use strict'
@@ -94,14 +95,26 @@ function mostrarToast(data) {
   setTimeout(function () { if (toast.parentElement) toast.remove() }, 5000)
 }
 
-// ── 3. Manejar evento recibido ────────────────────────
+// ── 3. Enviar al sistema de notificaciones del navbar ───
+function enviarANavbar(data) {
+  try {
+    window.dispatchEvent(new CustomEvent('notificacion-sse', { detail: data }))
+  } catch (e) {
+    var event = document.createEvent('CustomEvent')
+    event.initCustomEvent('notificacion-sse', true, true, data)
+    window.dispatchEvent(event)
+  }
+}
+
+// ── 4. Manejar evento recibido ────────────────────────
 function manejarEvento(data) {
   if (data.tipo === 'conectado') return
   mostrarToast(data)
   mostrarNotificacionSO(data)
+  enviarANavbar(data)
 }
 
-// ── 4. Conexión SSE ───────────────────────────────────
+// ── 5. Conexión SSE ───────────────────────────────────
 var _eventSource       = null
 var _reconectarIntento = 0
 var MAX_REINTENTOS     = 5
@@ -114,11 +127,13 @@ function iniciarSSE() {
 
   _eventSource.onopen = function () {
     _reconectarIntento = 0
+    console.log('[SSE] Conexión establecida')
   }
 
   _eventSource.onmessage = function (event) {
     try {
       var data = JSON.parse(event.data)
+      console.log('[SSE] Mensaje recibido:', data)
       manejarEvento(data)
     } catch (err) {
       console.error('Error parseando SSE:', err)
@@ -126,6 +141,7 @@ function iniciarSSE() {
   }
 
   _eventSource.onerror = function () {
+    console.log('[SSE] Error en conexión, reintentando...')
     _eventSource.close()
     if (_reconectarIntento < MAX_REINTENTOS) {
       _reconectarIntento++
@@ -134,7 +150,7 @@ function iniciarSSE() {
   }
 }
 
-// ── 5. Banner para pedir permiso ──────────────────────
+// ── 6. Banner para pedir permiso ──────────────────────
 function mostrarBannerPermiso() {
   if (!('Notification' in window))          return
   if (Notification.permission !== 'default') return
@@ -181,7 +197,7 @@ function mostrarBannerPermiso() {
   setTimeout(function () { if (banner.parentElement) banner.remove() }, 15000)
 }
 
-// ── 6. Estilos de animación ───────────────────────────
+// ── 7. Estilos de animación ───────────────────────────
 var _style = document.createElement('style')
 _style.textContent =
   '@keyframes toastSlideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}' +

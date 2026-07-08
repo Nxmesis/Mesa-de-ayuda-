@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/css/fonts.css">
     <link rel="stylesheet" href="/css/font-awesome.min.css">
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/notificaciones-navbar.css">
 
     <!-- Estilos condicionales -->
     <% if (typeof title !== 'undefined' && title === 'Gestion de Usuarios') { %>
@@ -23,18 +24,37 @@
     <script src="/js/chart.umd.min.js"></script>
     <% } %>
 
+    <!-- Pasar datos del usuario al cliente -->
+    <% if (typeof user !== 'undefined' && user && user.id) { %>
+    <script>
+      window.USER_ID = <%= user.id %>;
+      window.USER_ROL = '<%= user.rol %>';
+      window.USER_NOMBRE = '<%= user.nombre %>';
+    </script>
+    <% } %>
+
     <!-- Scripts base -->
     <script src="/js/main.js" defer></script>
     <script src="/js/notificaciones.js" defer></script>
+    <script src="/js/notificaciones-navbar.js" defer></script>
     <script src="/js/charts.js" defer></script>
-    
+
     <!-- Script del dashboard -->
     <% if (typeof title !== 'undefined' && (title === 'Dashboard' || title.startsWith('Historial'))) { %>
     <script src="/js/dashboard.js" defer></script>
     <% } %>
-    
+
     <% if (typeof title !== 'undefined' && title === 'Inventario de Equipos') { %>
     <script src="/js/inventario.js" defer></script>
+    <% } %>
+
+    <!-- Scripts específicos de vistas -->
+    <% if (typeof title !== 'undefined' && title === 'Crear Ticket') { %>
+    <script src="/js/crear-ticket.js" defer></script>
+    <% } %>
+
+    <% if (typeof title !== 'undefined' && title.startsWith('Ticket TK-')) { %>
+    <script src="/js/detalle-ticket.js" defer></script>
     <% } %>
 </head>
 <body>

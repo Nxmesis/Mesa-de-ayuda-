@@ -36,6 +36,9 @@ model Ticket {
   estado             String            @default("Pendiente") @db.VarChar(30)
   solucion           String?           @db.Text
   imagenAdjunta      String?           @map("imagen_adjunta") @db.VarChar(255)
+  videoSolucion      String?           @map("video_solucion") @db.VarChar(255)
+  imagenSolucion     String?           @map("imagen_solucion") @db.VarChar(255)
+  solicitarLlamada   Boolean           @default(false) @map("solicitar_llamada")
   fechaCreacion      DateTime          @default(now()) @map("fecha_creacion")
   fechaActualizacion DateTime          @updatedAt @map("fecha_actualizacion")
   fechaCierre        DateTime?         @map("fecha_cierre")
@@ -65,14 +68,15 @@ model Categoria {
 }
 
 model Comentario {
-  id            Int      @id @default(autoincrement())
-  contenido     String   @db.Text
-  esInterno     Boolean  @default(false) @map("es_interno")
-  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
-  ticketId      Int      @map("ticket_id")
-  ticket        Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  usuarioId     Int      @map("usuario_id")
-  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  id              Int      @id @default(autoincrement())
+  contenido       String   @db.Text
+  esInterno       Boolean  @default(false) @map("es_interno")
+  archivoAdjunto  String?  @map("archivo_adjunto") @db.VarChar(255)
+  fechaCreacion   DateTime @default(now()) @map("fecha_creacion")
+  ticketId        Int      @map("ticket_id")
+  ticket          Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  usuarioId       Int      @map("usuario_id")
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@index([ticketId], map: "comentarios_ticket_id_fkey")
   @@index([usuarioId], map: "comentarios_usuario_id_fkey")

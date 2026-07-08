@@ -19,6 +19,14 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  // No interceptar el stream SSE: es una conexión de larga duración,
+  // no debe pasar por el Service Worker.
+  if (url.pathname === '/notificaciones/stream') {
+    return; // deja que el navegador la maneje directamente
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {

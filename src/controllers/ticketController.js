@@ -96,11 +96,18 @@ async function mostrarFormulario(req, res) {
 // ── POST /tickets ─────────────────────────────────────────────────────────────
 
 async function crearTicket(req, res) {
-  const { titulo, descripcion, equipo, prioridad, categoriaId } = req.body
+  const { titulo, descripcion, equipo, prioridad, categoriaId, solicitarLlamada } = req.body
   const user = req.session.usuario
 
-  if (!titulo || !descripcion || !prioridad) {
-    req.flash('error', 'El título, la descripción y la prioridad son obligatorios.')
+  const esLlamada = solicitarLlamada === 'on'
+
+  if (!titulo || !prioridad) {
+    req.flash('error', 'El título y la prioridad son obligatorios.')
+    return res.redirect('/tickets/nuevo')
+  }
+
+  if (!esLlamada && !descripcion) {
+    req.flash('error', 'La descripción es obligatoria a menos que solicites una llamada.')
     return res.redirect('/tickets/nuevo')
   }
 
@@ -115,25 +122,25 @@ async function crearTicket(req, res) {
     const ticket = await prisma.ticket.create({
       data: {
         numeroTicket,
-        titulo:        titulo.trim(),
-        descripcion:   descripcion.trim(),
-        equipo:        equipo       ? equipo.trim()       : null,
+        titulo:           titulo.trim(),
+        descripcion:      esLlamada ? 'Solicitud de llamada telefónica.' : descripcion.trim(),
+        equipo:           equipo ? equipo.trim() : null,
         prioridad,
-        categoriaId:   categoriaId  ? parseInt(categoriaId) : null,
-        usuarioId:     user.id,
-        imagenAdjunta: req.file     ? req.file.filename   : null,
+        categoriaId:      categoriaId ? parseInt(categoriaId) : null,
+        usuarioId:        user.id,
+        imagenAdjunta:    req.file ? req.file.filename : null,
+        solicitarLlamada: esLlamada,
       },
     })
 
     // ── Notificar a todos los admin/técnico ──────────────
     const idsAdmins = await obtenerIdsAdmins()
-    // No notificar al creador si él mismo es admin/técnico
     const destinatarios = idsAdmins.filter(id => id !== user.id)
 
     notificaciones.enviarAMultiples(destinatarios, {
       tipo:     'nuevo_ticket',
-      titulo:   'Nueva solicitud recibida',
-      mensaje:  `${user.nombre} creó el ticket ${numeroTicket}: "${titulo.trim()}"`,
+      titulo:   esLlamada ? 'Nueva solicitud de llamada' : 'Nueva solicitud recibida',
+      mensaje:  `${user.nombre} creó el ticket ${numeroTicket}: "${titulo.trim()}"${esLlamada ? ' (Solicita llamada)' : ''}`,
       ticketId: ticket.id,
     })
 
@@ -221,7 +228,6 @@ async function cambiarEstado(req, res) {
 
     // ── Notificaciones ───────────────────────────────────
 
-    // 1. Avisar al creador del ticket (si no es quien hace el cambio)
     if (ticketAntes.usuarioId !== req.session.usuario.id) {
       notificaciones.enviarAUsuario(ticketAntes.usuarioId, {
         tipo:     'estado',
@@ -231,7 +237,6 @@ async function cambiarEstado(req, res) {
       })
     }
 
-    // 2. Avisar al técnico asignado si cambió (y no es quien hace el cambio)
     const nuevoTecnicoId = tecnicoId ? parseInt(tecnicoId) : ticketAntes.tecnicoId
     if (nuevoTecnicoId &&
         nuevoTecnicoId !== req.session.usuario.id &&
@@ -271,7 +276,6 @@ async function asignarTecnico(req, res) {
       data:  { tecnicoId: parseInt(tecnicoId), estado: 'EnProceso' },
     })
 
-    // Avisar al técnico asignado
     if (parseInt(tecnicoId) !== req.session.usuario.id) {
       notificaciones.enviarAUsuario(parseInt(tecnicoId), {
         tipo:     'asignado',
@@ -281,7 +285,6 @@ async function asignarTecnico(req, res) {
       })
     }
 
-    // Avisar al creador
     if (ticket.usuarioId !== req.session.usuario.id) {
       notificaciones.enviarAUsuario(ticket.usuarioId, {
         tipo:     'estado',
@@ -308,8 +311,8 @@ async function agregarComentario(req, res) {
   const { contenido, esInterno } = req.body
   const user                  = req.session.usuario
 
-  if (!contenido || !contenido.trim()) {
-    req.flash('error', 'El comentario no puede estar vacío.')
+  if ((!contenido || !contenido.trim()) && !req.file) {
+    req.flash('error', 'El comentario no puede estar vacío si no adjuntas un archivo.')
     return res.redirect(`/tickets/${id}`)
   }
 
@@ -321,16 +324,15 @@ async function agregarComentario(req, res) {
 
     await prisma.comentario.create({
       data: {
-        contenido:  contenido.trim(),
-        esInterno:  esInterno === 'on',
-        ticketId:   parseInt(id),
-        usuarioId:  user.id,
+        contenido:      contenido ? contenido.trim() : 'Archivo adjunto',
+        esInterno:      esInterno === 'on',
+        ticketId:       parseInt(id),
+        usuarioId:      user.id,
+        archivoAdjunto: req.file ? req.file.filename : null,
       },
     })
 
-    // Solo notificar si el comentario es público
     if (esInterno !== 'on') {
-      // Si escribe el técnico/admin → avisar al creador
       if ((user.rol === 'admin' || user.rol === 'tecnico') &&
            user.id !== ticket.usuarioId) {
         notificaciones.enviarAUsuario(ticket.usuarioId, {
@@ -341,7 +343,6 @@ async function agregarComentario(req, res) {
         })
       }
 
-      // Si escribe el usuario → avisar al técnico asignado
       if (user.rol === 'usuario' && ticket.tecnicoId &&
           ticket.tecnicoId !== user.id) {
         notificaciones.enviarAUsuario(ticket.tecnicoId, {
@@ -362,6 +363,37 @@ async function agregarComentario(req, res) {
   }
 }
 
+// ── POST /tickets/:id/solucion-media ──────────────────────────────────────────
+
+async function subirSolucionMedia(req, res) {
+  const { id } = req.params
+  const { tipo } = req.body
+
+  if (!req.file) {
+    req.flash('error', 'No se seleccionó ningún archivo.')
+    return res.redirect(`/tickets/${id}`)
+  }
+
+  try {
+    const data = tipo === 'video'
+      ? { videoSolucion: req.file.filename }
+      : { imagenSolucion: req.file.filename }
+
+    await prisma.ticket.update({
+      where: { id: parseInt(id) },
+      data,
+    })
+
+    req.flash('success', `${tipo === 'video' ? 'Video' : 'Imagen'} de solución subido correctamente.`)
+    res.redirect(`/tickets/${id}`)
+
+  } catch (err) {
+    console.error('[ticketController] subirSolucionMedia:', err)
+    req.flash('error', 'Error al subir el archivo.')
+    res.redirect(`/tickets/${id}`)
+  }
+}
+
 module.exports = {
   listarTickets,
   mostrarFormulario,
@@ -370,4 +402,5 @@ module.exports = {
   cambiarEstado,
   asignarTecnico,
   agregarComentario,
+  subirSolucionMedia,
 }

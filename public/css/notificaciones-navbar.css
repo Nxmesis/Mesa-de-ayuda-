@@ -1,0 +1,287 @@
+/* ═══════════════════════════════════════════════════════
+   ESTILOS DEL SISTEMA DE NOTIFICACIONES EN NAVBAR
+   ═══════════════════════════════════════════════════════ */
+
+.notificaciones-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.notificaciones-btn {
+    background: none;
+    border: none;
+    color: #a0aec0;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notificaciones-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+}
+
+.notificaciones-btn.active {
+    color: #63b3ed;
+    background: rgba(99, 179, 237, 0.1);
+}
+
+.notificaciones-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #e53e3e;
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid #1a202c;
+    animation: badgePulse 0.3s ease;
+}
+
+@keyframes badgePulse {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+/* Dropdown de notificaciones */
+.notificaciones-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: -10px;
+    width: 380px;
+    max-height: 480px;
+    background: #1a202c;
+    border: 1px solid #2d3748;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.notificaciones-dropdown.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.notificaciones-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: #1a202c;
+    border-left: 1px solid #2d3748;
+    border-top: 1px solid #2d3748;
+    transform: rotate(45deg);
+}
+
+.notificaciones-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid #2d3748;
+    background: #1a202c;
+    flex-shrink: 0;
+}
+
+.notificaciones-header span {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #e2e8f0;
+}
+
+.notificaciones-marcar-leidas {
+    background: none;
+    border: none;
+    color: #63b3ed;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.notificaciones-marcar-leidas:hover {
+    background: rgba(99, 179, 237, 0.1);
+    color: #90cdf4;
+}
+
+.notificaciones-lista {
+    overflow-y: auto;
+    flex: 1;
+    max-height: 400px;
+    scrollbar-width: thin;
+    scrollbar-color: #4a5568 #1a202c;
+}
+
+.notificaciones-lista::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notificaciones-lista::-webkit-scrollbar-track {
+    background: #1a202c;
+}
+
+.notificaciones-lista::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 3px;
+}
+
+.notificaciones-vacio {
+    padding: 40px 20px;
+    text-align: center;
+    color: #718096;
+    font-size: 0.85rem;
+}
+
+.notificaciones-vacio i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: block;
+    color: #4a5568;
+}
+
+/* Item de notificación */
+.notificacion-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid #2d3748;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    text-decoration: none;
+}
+
+.notificacion-item:last-child {
+    border-bottom: none;
+}
+
+.notificacion-item:hover {
+    background: #2d3748;
+}
+
+.notificacion-item.no-leida {
+    background: rgba(99, 179, 237, 0.05);
+}
+
+.notificacion-item.no-leida::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: #63b3ed;
+    border-radius: 0 2px 2px 0;
+}
+
+.notificacion-icono {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+}
+
+.notificacion-icono.nuevo_ticket { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+.notificacion-icono.estado       { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+.notificacion-icono.asignado     { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+.notificacion-icono.comentario   { background: rgba(243, 156, 18, 0.15); color: #f39c12; }
+
+.notificacion-contenido {
+    flex: 1;
+    min-width: 0;
+}
+
+.notificacion-titulo {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    margin-bottom: 3px;
+    line-height: 1.3;
+}
+
+.notificacion-mensaje {
+    font-size: 0.78rem;
+    color: #a0aec0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notificacion-hora {
+    font-size: 0.7rem;
+    color: #5a6275;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.notificacion-eliminar {
+    background: none;
+    border: none;
+    color: #5a6275;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 2px;
+}
+
+.notificacion-item:hover .notificacion-eliminar {
+    opacity: 1;
+}
+
+.notificacion-eliminar:hover {
+    color: #e53e3e;
+    background: rgba(229, 62, 62, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .notificaciones-dropdown {
+        width: calc(100vw - 40px);
+        right: -60px;
+    }
+    .notificaciones-dropdown::before {
+        right: 70px;
+    }
+}

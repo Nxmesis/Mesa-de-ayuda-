@@ -55,9 +55,25 @@
                    placeholder="Ej: Caja1, Caja2, etc.">
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Descripción detallada *</label>
-            <textarea name="descripcion" class="form-control"
+          <!-- Checkbox Solicitar Llamada -->
+          <div class="form-group" id="llamadaBox" style="background:#fffbeb; padding:18px; border-radius:8px; border:2px solid #f6e05e; margin-bottom:20px;">
+            <label style="display:flex; align-items:flex-start; gap:12px; cursor:pointer; margin:0;">
+              <input type="checkbox" name="solicitarLlamada" id="chkLlamada" style="width:20px; height:20px; margin-top:2px; accent-color:#d69e2e;">
+              <div>
+                <div style="font-weight:600; color:#744210; font-size:1.05rem;">📞 Solicitar llamada telefónica</div>
+                <div style="color:#975a16; font-size:0.9rem; margin-top:4px;">
+                  Si activas esta opción, alguien del personal administrativo te llamará para atender tu solicitud.
+                  No necesitas escribir una descripción detallada.
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div class="form-group" id="grupoDescripcion">
+            <label class="form-label">
+              Descripción detallada <span id="reqDesc" style="color:#e53e3e; font-weight:600;">*</span>
+            </label>
+            <textarea name="descripcion" id="txtDescripcion" class="form-control" rows="5"
                       placeholder="Describe el problema con el mayor detalle posible: ¿cuándo comenzó?, ¿qué sucedió?, ¿qué estabas haciendo cuando ocurrió?"
                       required></textarea>
           </div>
@@ -81,3 +97,5 @@
 
   <%- include('partials/footer') %>
 </div>
+
+<script src="/js/crear-ticket.js"></script>

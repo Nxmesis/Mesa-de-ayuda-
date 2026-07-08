@@ -21,11 +21,18 @@
       <!-- Columna izquierda: info + comentarios -->
       <div>
         <div class="card">
-          <div class="card-header">
+          <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
             <span>Información del Ticket</span>
-            <span class="badge <%= helpers.getEstadoClass(ticket.estado) %>">
-              <%= helpers.textoEstado(ticket.estado) %>
-            </span>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <% if (ticket.solicitarLlamada) { %>
+                <span class="badge" style="background:#fffbeb; color:#975a16; border:1px solid #f6e05e; font-size:0.8rem;">
+                  📞 Solicita llamada
+                </span>
+              <% } %>
+              <span class="badge <%= helpers.getEstadoClass(ticket.estado) %>">
+                <%= helpers.textoEstado(ticket.estado) %>
+              </span>
+            </div>
           </div>
 
           <h2 style="color:#2d3748; margin-bottom:15px;"><%= ticket.titulo %></h2>
@@ -90,6 +97,25 @@
             </div>
           </div>
           <% } %>
+
+          <!-- Media de solución -->
+          <% if (ticket.imagenSolucion) { %>
+          <div class="mt-3">
+            <div class="meta-label" style="margin-bottom:8px;">📷 EVIDENCIA DE SOLUCIÓN (IMAGEN)</div>
+            <img src="/uploads/<%= ticket.imagenSolucion %>" alt="Evidencia de solución"
+                 style="max-width:100%; border-radius:6px; border:1px solid #e2e8f0;">
+          </div>
+          <% } %>
+
+          <% if (ticket.videoSolucion) { %>
+          <div class="mt-3">
+            <div class="meta-label" style="margin-bottom:8px;">🎥 EVIDENCIA DE SOLUCIÓN (VIDEO)</div>
+            <video controls preload="metadata" style="max-width:100%; border-radius:6px; border:1px solid #e2e8f0; background:#000;">
+              <source src="/uploads/<%= ticket.videoSolucion %>" type="video/mp4">
+              Tu navegador no soporta la reproducción de video.
+            </video>
+          </div>
+          <% } %>
         </div>
 
         <!-- Comentarios -->
@@ -108,6 +134,25 @@
                   <span class="comentario-fecha"><%= helpers.formatearFecha(com.fechaCreacion) %></span>
                 </div>
                 <div class="comentario-texto"><%= com.contenido %></div>
+
+                <% if (com.archivoAdjunto) { %>
+                  <% const extCom = com.archivoAdjunto.split('.').pop().toLowerCase(); %>
+                  <% const esVideoCom = ['mp4','webm','mov','ogg','avi','mkv'].includes(extCom); %>
+                  <div style="margin-top:12px;">
+                    <% if (esVideoCom) { %>
+                      <video controls preload="metadata" style="max-width:100%; max-height:350px; border-radius:6px; border:1px solid #e2e8f0; background:#000;">
+                        <source src="/uploads/<%= com.archivoAdjunto %>" type="video/<%= extCom === 'mov' ? 'mp4' : extCom %>">
+                        Tu navegador no soporta videos.
+                      </video>
+                    <% } else { %>
+                      <img src="/uploads/<%= com.archivoAdjunto %>"
+                           style="max-width:100%; max-height:350px; border-radius:6px; border:1px solid #e2e8f0;"
+                           alt="Adjunto del comentario"
+                           onclick="window.open(this.src, '_blank')"
+                           onmouseover="this.style.cursor='pointer'">
+                    <% } %>
+                  </div>
+                <% } %>
               </div>
               <% } %>
             <% }) %>
@@ -115,11 +160,19 @@
             <p style="color:#718096; padding:10px 0;">No hay comentarios aún.</p>
           <% } %>
 
-          <form method="POST" action="/tickets/<%= ticket.id %>/comentario" style="margin-top:20px;">
+          <form method="POST" action="/tickets/<%= ticket.id %>/comentario" enctype="multipart/form-data" style="margin-top:20px;">
             <div class="form-group">
-              <textarea name="contenido" class="form-control"
-                        placeholder="Escribe un comentario o actualización..." required></textarea>
+              <textarea name="contenido" class="form-control" rows="3"
+                        placeholder="Escribe un comentario o actualización..."></textarea>
             </div>
+
+            <div class="form-group">
+              <label class="form-label">Adjuntar imagen o video (opcional)</label>
+              <input type="file" name="archivoComentario" id="archivoComentario" class="form-control"
+                     accept=".png,.jpg,.jpeg,.gif,.webp,.mp4,.webm,.mov,.ogg,.avi,.mkv">
+              <div class="form-hint">Máx 50MB. Formatos: PNG, JPG, GIF, WEBP, MP4, WEBM, MOV. Se reproduce directamente en el navegador.</div>
+            </div>
+
             <% if (user.rol === 'admin' || user.rol === 'tecnico') { %>
             <div style="margin-bottom:10px;">
               <label style="font-size:0.85rem; color:#718096; cursor:pointer;">
@@ -175,7 +228,7 @@
 
             <div class="form-group">
               <label class="form-label">Solución aplicada</label>
-              <textarea name="solucion" class="form-control"
+              <textarea name="solucion" class="form-control" rows="3"
                         placeholder="Describe la solución..."><%= ticket.solucion || '' %></textarea>
             </div>
 
@@ -183,6 +236,39 @@
               Guardar Cambios
             </button>
           </form>
+
+          <!-- Subir evidencia de solución -->
+          <div style="margin-top:25px; border-top:2px solid #e2e8f0; padding-top:20px;">
+            <div style="font-weight:600; color:#2d3748; margin-bottom:15px; font-size:0.95rem;">
+              📎 Evidencia de Solución
+            </div>
+
+            <% if (ticket.imagenSolucion) { %>
+              <div style="margin-bottom:12px; padding:10px; background:#f0fff4; border-radius:6px; border-left:3px solid #48bb78;">
+                <div style="font-size:0.85rem; color:#38a169;">✅ Imagen de solución cargada</div>
+                <a href="/uploads/<%= ticket.imagenSolucion %>" target="_blank" style="font-size:0.8rem; color:#2b6cb0;">Ver imagen →</a>
+              </div>
+            <% } %>
+
+            <% if (ticket.videoSolucion) { %>
+              <div style="margin-bottom:12px; padding:10px; background:#f0fff4; border-radius:6px; border-left:3px solid #48bb78;">
+                <div style="font-size:0.85rem; color:#38a169;">✅ Video de solución cargado</div>
+                <a href="/uploads/<%= ticket.videoSolucion %>" target="_blank" style="font-size:0.8rem; color:#2b6cb0;">Ver video →</a>
+              </div>
+            <% } %>
+
+            <form method="POST" action="/tickets/<%= ticket.id %>/solucion-media" enctype="multipart/form-data">
+              <div class="form-group" style="margin-bottom:10px;">
+                <input type="file" name="videoSolucion" id="inputSolucionMedia" class="form-control form-control-sm"
+                       accept=".png,.jpg,.jpeg,.mp4,.webm,.mov,.ogg,.avi,.mkv" required>
+                <div class="form-hint" style="font-size:0.75rem;">Máx 100MB para videos, 16MB para imágenes.</div>
+              </div>
+              <input type="hidden" name="tipo" id="tipoMediaSolucion" value="imagen">
+              <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">
+                📤 Subir Archivo
+              </button>
+            </form>
+          </div>
         </div>
 
         <div class="card">
@@ -210,3 +296,5 @@
 
   <%- include('partials/footer') %>
 </div>
+
+<script src="/js/detalle-ticket.js"></script>
