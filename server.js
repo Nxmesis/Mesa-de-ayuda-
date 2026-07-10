@@ -63,7 +63,6 @@ app.use("/", require("./src/routes/dashboardRoutes"))
 app.use("/", require("./src/routes/ticketRoutes"))
 app.use("/", require("./src/routes/userRoutes"))
 app.use("/", require("./src/routes/perfilRoutes"))
-app.use("/", require("./src/routes/estadisticasRoutes"))
 app.use("/", require("./src/routes/notificacionesRoutes"))
 app.use('/', require('./src/routes/inventarioRoutes'))
 
@@ -97,9 +96,4 @@ const certOptions = {
 https.createServer(certOptions, app).listen(443, "0.0.0.0", () => {
   console.log(`✅  Servidor HTTPS en https://helpdesk.local`)
   console.log(`    Entorno: ${process.env.NODE_ENV || "development"}`)
-})
-
-// HTTP para móvil (misma app Express)
-app.listen(5001, '0.0.0.0', () => {
-  console.log('HTTP para móvil en puerto 5001')
 })

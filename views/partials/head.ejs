@@ -18,9 +18,12 @@
     <% if (typeof title !== 'undefined' && title === 'Inventario de Equipos') { %>
     <link rel="stylesheet" href="/css/inventario.css">
     <% } %>
+    <% if (typeof title !== 'undefined' && (title === 'Dashboard' || (title && title.startsWith('Historial')))) { %>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <% } %>
 
-    <!-- Chart.js solo en estadísticas -->
-    <% if (typeof title !== 'undefined' && title === 'Estadísticas') { %>
+    <!-- Chart.js solo en dashboard -->
+    <% if (typeof title !== 'undefined' && (title === 'Dashboard' || (title && title.startsWith('Historial')))) { %>
     <script src="/js/chart.umd.min.js"></script>
     <% } %>
 
@@ -37,11 +40,11 @@
     <script src="/js/main.js" defer></script>
     <script src="/js/notificaciones.js" defer></script>
     <script src="/js/notificaciones-navbar.js" defer></script>
-    <script src="/js/charts.js" defer></script>
 
     <!-- Script del dashboard -->
-    <% if (typeof title !== 'undefined' && (title === 'Dashboard' || title.startsWith('Historial'))) { %>
+    <% if (typeof title !== 'undefined' && (title === 'Dashboard' || (title && title.startsWith('Historial')))) { %>
     <script src="/js/dashboard.js" defer></script>
+    <script src="/js/dashboard-charts.js" defer></script>
     <% } %>
 
     <% if (typeof title !== 'undefined' && title === 'Inventario de Equipos') { %>
