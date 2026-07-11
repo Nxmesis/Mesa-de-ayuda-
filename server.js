@@ -3,14 +3,15 @@
 require("dotenv").config()
 
 const express = require("express")
-const https   = require("https")
+// const https   = require("https")  // ← COMENTADO: solo para producción
+const http    = require("http")    // ← NUEVO: para desarrollo
 const session = require("express-session")
 const flash   = require("connect-flash")
 const path    = require("path")
 const fs      = require("fs")
 
 const app  = express()
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5001  // ← CAMBIADO: 5001 para desarrollo
 
 // ── Crear carpetas necesarias al arrancar ────────────────────────────────────
 ;["./uploads", "./uploads/perfiles"].forEach((dir) => {
@@ -36,7 +37,8 @@ app.use(
     resave:            false,
     saveUninitialized: false,
     cookie: {
-      secure:   true,  // HTTPS activo
+      // secure:   true,  // ← COMENTADO: solo para HTTPS en producción
+      secure:   false,   // ← NUEVO: false para HTTP en desarrollo
       httpOnly: true,
       maxAge:   1000 * 60 * 60 * 8,
     },
@@ -45,6 +47,10 @@ app.use(
 
 // ── Flash messages ───────────────────────────────────────────────────────────
 app.use(flash())
+
+// ── Rastreo de sesiones activas (indicador "en línea") ─────────────────────
+const { trackSession } = require("./src/middleware/sessionTracker")
+app.use(trackSession)
 
 // ── Variables locales disponibles en todas las vistas ────────────────────────
 app.use((req, res, next) => {
@@ -87,7 +93,21 @@ app.use((err, req, res, next) => {
   })
 })
 
-// ── Arranque HTTPS ───────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+//  ARRANQUE SERVIDOR - MODO DESARROLLO (HTTP puerto 5001)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── HTTP para desarrollo ───────────────────────────────────────────────────
+http.createServer(app).listen(PORT, "192.168.10.184", () => {
+  console.log(`✅  Servidor HTTP en http://192.168.10.184:${PORT}`)
+  console.log(`    Entorno: ${process.env.NODE_ENV || "development"}`)
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  ARRANQUE SERVIDOR - MODO PRODUCCIÓN (HTTPS puerto 443)
+//  Descomentar estas líneas y comentar las de arriba para producción
+// ═══════════════════════════════════════════════════════════════════════════
+/*
 const certOptions = {
   key:  fs.readFileSync(path.join(__dirname, "certificados", "helpdesk.local+4-key.pem")),
   cert: fs.readFileSync(path.join(__dirname, "certificados", "helpdesk.local+4.pem")),
@@ -97,3 +117,4 @@ https.createServer(certOptions, app).listen(443, "0.0.0.0", () => {
   console.log(`✅  Servidor HTTPS en https://helpdesk.local`)
   console.log(`    Entorno: ${process.env.NODE_ENV || "development"}`)
 })
+*/

@@ -3,6 +3,7 @@
 const bcrypt  = require('bcryptjs')
 const prisma  = require('../utils/db')
 const helpers = require('../utils/helpers')
+const { estaConectado } = require('../middleware/sessionTracker')
 
 // ── Configuración de paginación ─────────────────────────────────────────────
 const USERS_PER_PAGE = 25
@@ -37,7 +38,6 @@ async function listarUsuarios(req, res) {
         orderBy: { fechaRegistro: 'desc' },
         skip: (page - 1) * USERS_PER_PAGE,
         take: USERS_PER_PAGE,
-        // Seleccionar solo campos necesarios para la lista
         select: {
           id: true,
           nombre: true,
@@ -63,8 +63,11 @@ async function listarUsuarios(req, res) {
         hasNext: page < totalPages,
         hasPrev: page > 1,
       },
-      query: { search, filter }, // Para mantener estado en la vista
-      helpers,
+      query: { search, filter },
+      helpers: {
+        ...helpers,
+        estaConectado
+      },
     })
 
   } catch (err) {
@@ -263,7 +266,6 @@ async function eliminarUsuario(req, res) {
       return res.redirect('/usuarios')
     }
 
-    // Transacción para operaciones relacionadas
     await prisma.$transaction([
       prisma.ticket.updateMany({ where: { tecnicoId: id }, data: { tecnicoId: null } }),
       prisma.comentario.deleteMany({ where: { usuarioId: id } }),
