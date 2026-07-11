@@ -36,7 +36,7 @@ app.use(
     resave:            false,
     saveUninitialized: false,
     cookie: {
-      secure:   true,
+      secure:   true,  // HTTPS activo
       httpOnly: true,
       maxAge:   1000 * 60 * 60 * 8,
     },
@@ -97,7 +97,7 @@ const certOptions = {
   cert: fs.readFileSync(path.join(__dirname, "certificados", "helpdesk.local+4.pem")),
 }
 
-https.createServer(certOptions, app).listen(PORT, "0.0.0.0", () => {
-  console.log(`✅  Servidor HTTPS en https://helpdesk.local:${PORT}`)
-  console.log(`    Entorno: ${process.env.NODE_ENV || "production"}`)
+https.createServer(certOptions, app).listen(443, "0.0.0.0", () => {
+  console.log(`✅  Servidor HTTPS en https://helpdesk.local`)
+  console.log(`    Entorno: ${process.env.NODE_ENV || "Producción"}`)
 })
