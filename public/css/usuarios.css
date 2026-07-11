@@ -466,3 +466,31 @@ select.ind-input {
   .ind-footer-bar { flex-direction: column; gap: 8px; text-align: center; }
   .ind-modal { margin: 10px; }
 }
+
+/* ── Indicador de usuario en línea ── */
+.ind-avatar-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.ind-online-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  background: #2ecc71;
+  border: 2px solid white;
+  border-radius: 50%;
+  animation: pulse-online 2s infinite;
+  z-index: 2;
+}
+
+@keyframes pulse-online {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(46, 204, 113, 0);
+  }
+}

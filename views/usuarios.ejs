@@ -84,18 +84,23 @@
                 <span class="ind-id-tag">#<%= u.id %></span>
               </td>
               <td class="col-user">
-                <div class="ind-user-cell">
-                  <div class="ind-avatar" style="background: linear-gradient(135deg, #2c5282, #3182ce)">
-                    <%= u.nombre.charAt(0).toUpperCase() %>
-                  </div>
-                  <div class="ind-user-info">
-                    <div class="ind-user-name"><%= u.nombre %></div>
-                    <% if (u.id === user.id) { %>
-                      <span class="ind-you-badge">Tú</span>
-                    <% } %>
-                  </div>
-                </div>
-              </td>
+  <div class="ind-user-cell">
+    <div class="ind-avatar-wrap">
+      <div class="ind-avatar" style="background: linear-gradient(135deg, #2c5282, #3182ce)">
+        <%= u.nombre.charAt(0).toUpperCase() %>
+      </div>
+      <% if (helpers.estaConectado(u.id)) { %>
+        <span class="ind-online-dot" title="En línea"></span>
+      <% } %>
+    </div>
+    <div class="ind-user-info">
+      <div class="ind-user-name"><%= u.nombre %></div>
+      <% if (u.id === user.id) { %>
+        <span class="ind-you-badge">Tú</span>
+      <% } %>
+    </div>
+  </div>
+</td>
               <td class="col-access">
                 <code class="ind-code"><%= u.username %></code>
               </td>
