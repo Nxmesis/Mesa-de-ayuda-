@@ -14,7 +14,12 @@
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h1 style="color:#2d3748;">Mis Tickets</h1>
-            <a href="/tickets/nuevo" class="btn btn-success">+ Nuevo Ticket</a>
+            <div style="display:flex; gap:10px;">
+                <% if (user.rol === 'admin' || user.rol === 'tecnico') { %>
+                <a href="/ordenes/nueva" class="btn btn-primary">+ Nueva Orden</a>
+                <% } %>
+                <a href="/tickets/nuevo" class="btn btn-success">+ Nuevo Ticket</a>
+            </div>
         </div>
 
         <div class="card">

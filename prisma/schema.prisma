@@ -22,6 +22,8 @@ model Usuario {
   ticketsCreados    Ticket[]     @relation("TicketsCreados")
   ticketsAsignados  Ticket[]     @relation("TicketsAsignados")
   comentarios       Comentario[]
+  ordenesEnviadas   Orden[]      @relation("OrdenesEnviadas")
+  ordenesRecibidas  Orden[]      @relation("OrdenesRecibidas")
 
   @@map("usuarios")
 }
@@ -82,6 +84,25 @@ model Comentario {
   @@index([usuarioId], map: "comentarios_usuario_id_fkey")
   @@map("comentarios")
 }
+
+model Orden {
+  id            Int       @id @default(autoincrement())
+  asunto        String    @db.VarChar(200)
+  contenido     String    @db.Text
+  leido         Boolean   @default(false)
+  fechaCreacion DateTime  @default(now()) @map("fecha_creacion")
+  fechaLectura  DateTime? @map("fecha_lectura")
+
+  remitenteId    Int     @map("remitente_id")
+  remitente      Usuario @relation("OrdenesEnviadas", fields: [remitenteId], references: [id])
+  destinatarioId Int     @map("destinatario_id")
+  destinatario   Usuario @relation("OrdenesRecibidas", fields: [destinatarioId], references: [id])
+
+  @@index([remitenteId], map: "ordenes_remitente_id_fkey")
+  @@index([destinatarioId], map: "ordenes_destinatario_id_fkey")
+  @@map("ordenes")
+}
+
 
 model HistorialCambio {
   id              Int       @id @default(autoincrement())

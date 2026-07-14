@@ -1,0 +1,30 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+    <%- include('partials/navbar') %>
+
+    <div class="container">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h1 style="color:#2d3748;"><%= orden.asunto %></h1>
+            <a href="/ordenes" class="btn btn-secondary">Volver</a>
+        </div>
+
+        <div class="card orden-detalle">
+            <div class="orden-meta">
+                <div><strong>De:</strong> <%= orden.remitente.nombre %> (<%= helpers.nombreRol(orden.remitente.rol) %>)</div>
+                <div><strong>Para:</strong> <%= orden.destinatario.nombre %></div>
+                <div><strong>Fecha:</strong> <%= helpers.formatearFecha(orden.fechaCreacion) %></div>
+                <% if (orden.leido && orden.fechaLectura) { %>
+                <div><strong>Leído:</strong> <%= helpers.formatearFecha(orden.fechaLectura) %></div>
+                <% } %>
+            </div>
+
+            <div class="orden-contenido">
+                <%= orden.contenido %>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+</div>

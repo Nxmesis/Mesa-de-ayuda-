@@ -33,6 +33,10 @@
       Mis Solicitudes
     </a>
 
+    <a href="/ordenes" class="sidebar-link <%= (title === 'Ordenes' || title === 'Nueva Orden' || title === 'Orden') ? 'active' : '' %>">
+      Ordenes
+    </a>
+
     <% if (user.rol === 'admin' || user.rol === 'tecnico') { %>
     <div class="sidebar-section">Administración</div>
 
