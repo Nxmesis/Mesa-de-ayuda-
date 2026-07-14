@@ -18,6 +18,9 @@
     <% if (typeof title !== 'undefined' && title === 'Inventario de Equipos') { %>
     <link rel="stylesheet" href="/css/inventario.css">
     <% } %>
+    <% if (typeof title !== 'undefined' && (title === 'Ordenes' || title === 'Nueva Orden')) { %>
+    <link rel="stylesheet" href="/css/ordenes.css">
+    <% } %>
     <% if (typeof title !== 'undefined' && (title === 'Dashboard' || (title && title.startsWith('Historial')))) { %>
     <link rel="stylesheet" href="/css/dashboard.css">
     <% } %>

@@ -1,0 +1,48 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+    <%- include('partials/navbar') %>
+
+    <div class="container">
+        <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+            <div class="alert alert-danger"><%= error[0] %></div>
+        <% } %>
+
+        <h1 style="color:#2d3748; margin-bottom:20px;">Nueva Orden</h1>
+
+        <div class="card">
+            <div class="card-header">Enviar solicitud directa</div>
+            <div style="padding:20px;">
+                <form action="/ordenes" method="POST">
+                    <div class="form-group">
+                        <label for="destinatarioId">Destinatario</label>
+                        <select name="destinatarioId" id="destinatarioId" class="form-control" required>
+                            <option value="">Selecciona un usuario</option>
+                            <% usuarios.forEach(u => { %>
+                            <option value="<%= u.id %>"><%= u.nombre %><%= u.area ? ' - ' + u.area : '' %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="asunto">Asunto</label>
+                        <input type="text" name="asunto" id="asunto" class="form-control" maxlength="200" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contenido">Mensaje</label>
+                        <textarea name="contenido" id="contenido" class="form-control" rows="6" required></textarea>
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button type="submit" class="btn btn-success">Enviar orden</button>
+                        <a href="/ordenes" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+</div>

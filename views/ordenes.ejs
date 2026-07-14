@@ -1,0 +1,64 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+    <%- include('partials/navbar') %>
+
+    <div class="container">
+        <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
+            <div class="alert alert-success"><%= success[0] %></div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+            <div class="alert alert-danger"><%= error[0] %></div>
+        <% } %>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h1 style="color:#2d3748;">Ordenes</h1>
+            <% if (user.rol === 'admin' || user.rol === 'tecnico') { %>
+            <a href="/ordenes/nueva" class="btn btn-primary">+ Nueva Orden</a>
+            <% } %>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Bandeja de órdenes</div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>De</th>
+                            <th>Para</th>
+                            <th>Asunto</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (typeof ordenes !== 'undefined' && ordenes && ordenes.length > 0) { %>
+                        <% ordenes.forEach(o => { %>
+                        <tr>
+                            <td><%= o.remitente.nombre %></td>
+                            <td><%= o.destinatario.nombre %></td>
+                            <td><%= o.asunto.length > 40 ? o.asunto.substring(0,40)+'...' : o.asunto %></td>
+                            <td>
+                                <% if (o.leido) { %>
+                                    <span class="badge badge-secondary">Leído</span>
+                                <% } else { %>
+                                    <span class="badge badge-warning">Sin leer</span>
+                                <% } %>
+                            </td>
+                            <td><%= helpers.formatearFecha(o.fechaCreacion) %></td>
+                            <td><a href="/ordenes/<%= o.id %>" class="btn btn-primary btn-sm">Ver</a></td>
+                        </tr>
+                        <% }) %>
+                        <% } else { %>
+                        <tr><td colspan="6" style="text-align:center;padding:20px;">No hay órdenes registradas</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+</div>
