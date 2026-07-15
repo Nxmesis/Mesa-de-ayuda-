@@ -1,190 +1,147 @@
 'use strict'
 
 const prisma = require('../utils/db')
+const fs   = require('fs')
+const path = require('path')
 
 const ITEMS_PER_PAGE = 50
 const PISOS = ['1', '2', '3']
+const ESTADOS = ['Operativo', 'Deficiente', 'Averiado', 'Desconectado', 'Archivado', 'Pendiente revisión']
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  GET /inventario — Mostrar vista principal
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function esArchivado(estado) {
+  return estado === 'Archivado'
+}
+
+function filtrarArchivados(lista) {
+  return lista.filter(item => !esArchivado(item.estado))
+}
+
+function soloArchivados(lista) {
+  return lista.filter(item => esArchivado(item.estado))
+}
+
+async function generarSiguienteCodigo(prefijo, campoBusqueda, tablaPrisma) {
+  const ultimo = await tablaPrisma.findFirst({
+    where: { [campoBusqueda]: { startsWith: prefijo } },
+    orderBy: { [campoBusqueda]: 'desc' },
+    select: { [campoBusqueda]: true },
+  })
+  if (ultimo?.[campoBusqueda]) {
+    const match = ultimo[campoBusqueda].match(new RegExp(`${prefijo.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}(\\d+)`))
+    if (match) return `${prefijo}${String(parseInt(match[1]) + 1).padStart(3, '0')}`
+  }
+  return `${prefijo}001`
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  GET /inventario
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function mostrarInventario(req, res) {
   try {
-    const tab = req.query.tab || 'computadoras'
-    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const tab    = req.query.tab || 'computadoras'
+    const page   = Math.max(1, parseInt(req.query.page) || 1)
     const search = (req.query.search || '').trim()
-    const piso = req.query.piso || '1'
+    const piso   = req.query.piso || '1'
 
-    const wherePC = search ? {
-      OR: [
-        { nombre: { contains: search, mode: 'insensitive' } },
-        { fabricante: { contains: search, mode: 'insensitive' } },
-        { modelo: { contains: search, mode: 'insensitive' } },
-      ]
-    } : {}
+    const wherePC = search ? { OR: [{ nombre: { contains: search, mode: 'insensitive' } }, { fabricante: { contains: search, mode: 'insensitive' } }, { modelo: { contains: search, mode: 'insensitive' } }] } : {}
+    const wherePer = search ? { OR: [{ codigo: { contains: search, mode: 'insensitive' } }, { categoria: { contains: search, mode: 'insensitive' } }, { descripcion: { contains: search, mode: 'insensitive' } }] } : {}
+    const whereCam = search ? { OR: [{ codigo: { contains: search, mode: 'insensitive' } }, { marca: { contains: search, mode: 'insensitive' } }, { ubicacion: { contains: search, mode: 'insensitive' } }] } : {}
+    const whereSensor = search ? { OR: [{ codigo: { contains: search, mode: 'insensitive' } }, { equipo: { contains: search, mode: 'insensitive' } }, { nomenclatura: { contains: search, mode: 'insensitive' } }, { ubicacion: { contains: search, mode: 'insensitive' } }] } : {}
+    const whereRed = search ? { OR: [{ codigo: { contains: search, mode: 'insensitive' } }, { ubicacion: { contains: search, mode: 'insensitive' } }, { tipoCable: { contains: search, mode: 'insensitive' } }] } : {}
 
-    const wherePer = search ? {
-      OR: [
-        { codigo: { contains: search, mode: 'insensitive' } },
-        { categoria: { contains: search, mode: 'insensitive' } },
-        { descripcion: { contains: search, mode: 'insensitive' } },
-      ]
-    } : {}
-
-    const whereCam = search ? {
-      AND: [
-        { piso: piso },
-        {
-          OR: [
-            { codigo: { contains: search, mode: 'insensitive' } },
-            { marca: { contains: search, mode: 'insensitive' } },
-            { ubicacion: { contains: search, mode: 'insensitive' } },
-          ]
-        }
-      ]
-    } : { piso: piso }
-
-    const [computadorasPaginadas, computadorasTodas] = await Promise.all([
-      tab === 'computadoras' ? prisma.computadora.findMany({
-        where: wherePC,
-        orderBy: { nombre: 'asc' },
-        skip: (page - 1) * ITEMS_PER_PAGE,
-        take: ITEMS_PER_PAGE,
-        select: {
-          id: true, nombre: true, fabricante: true, modelo: true,
-          procesador: true, ramGb: true, discoSsdGb: true,
-          estado: true, observaciones: true,
-        },
-      }) : Promise.resolve([]),
-
-      prisma.computadora.findMany({
-        orderBy: { nombre: 'asc' },
-        select: { id: true, nombre: true },
-      }),
+    const [computadorasTodas, perifericosTodas, camarasTodasLista, sensoresTodas, puntosRedTodas, documentosTodos] = await Promise.all([
+      prisma.computadora.findMany({ where: wherePC, orderBy: { nombre: 'asc' }, select: { id: true, nombre: true, fabricante: true, modelo: true, numeroSerie: true, procesador: true, ramGb: true, discoSsdGb: true, estado: true, observaciones: true } }),
+      prisma.periferico.findMany({ where: wherePer, orderBy: { codigo: 'asc' }, select: { id: true, codigo: true, categoria: true, descripcion: true, estado: true, computadoraAsignada: true, ubicacion: true, observaciones: true } }),
+      prisma.camara.findMany({ where: whereCam, orderBy: { codigo: 'asc' }, select: { id: true, codigo: true, marca: true, modelo: true, numeroSerie: true, ubicacion: true, piso: true, dvr: true, ip: true, estado: true, observaciones: true } }),
+      prisma.sensor.findMany({ where: whereSensor, orderBy: { codigo: 'asc' } }),
+      prisma.puntoRed.findMany({ where: whereRed, orderBy: { codigo: 'asc' } }),
+      prisma.documentoInventario.findMany({ orderBy: { fechaSubida: 'desc' } }),
     ])
 
-    const [perifericosPaginados, perifericosTodos] = await Promise.all([
-      tab === 'perifericos' ? prisma.periferico.findMany({
-        where: wherePer,
-        orderBy: { codigo: 'asc' },
-        skip: (page - 1) * ITEMS_PER_PAGE,
-        take: ITEMS_PER_PAGE,
-        select: {
-          id: true, codigo: true, categoria: true, descripcion: true,
-          estado: true, computadoraAsignada: true, ubicacion: true, observaciones: true,
-        },
-      }) : Promise.resolve([]),
+    // Separar archivados
+    const computadorasActivas = filtrarArchivados(computadorasTodas)
+    const perifericosActivos  = filtrarArchivados(perifericosTodas)
+    const camarasActivas      = filtrarArchivados(camarasTodasLista)
+    const sensoresActivos     = filtrarArchivados(sensoresTodas)
+    const puntosRedActivos    = filtrarArchivados(puntosRedTodas)
 
-      tab !== 'perifericos' ? prisma.periferico.findMany({
-        orderBy: { codigo: 'asc' },
-        select: {
-          id: true, codigo: true, categoria: true, descripcion: true,
-          estado: true, computadoraAsignada: true, ubicacion: true, observaciones: true,
-        },
-      }) : Promise.resolve([]),
-    ])
+    const computadorasArchivadas = soloArchivados(computadorasTodas)
+    const perifericosArchivados  = soloArchivados(perifericosTodas)
+    const camarasArchivadas      = soloArchivados(camarasTodasLista)
+    const sensoresArchivados     = soloArchivados(sensoresTodas)
+    const puntosRedArchivados    = soloArchivados(puntosRedTodas)
 
-    const [camarasPaginadas, camarasTodos] = await Promise.all([
-      tab === 'camaras' ? prisma.camara.findMany({
-        where: whereCam,
-        orderBy: { codigo: 'asc' },
-        skip: (page - 1) * ITEMS_PER_PAGE,
-        take: ITEMS_PER_PAGE,
-        select: {
-          id: true, codigo: true, marca: true, ubicacion: true,
-          piso: true, dvr: true, estado: true, observaciones: true,
-        },
-      }) : Promise.resolve([]),
+    // Construir lista unificada de archivados
+    const archivados = []
+    computadorasArchivadas.forEach(pc => archivados.push({ tipo: 'computadora', tipoLabel: 'Computadora', icono: 'fa-desktop', id: pc.id, codigo: pc.nombre, nombre: pc.nombre, detalle1: pc.fabricante || '—', detalle2: pc.modelo || '—', detalle3: pc.procesador ? `${pc.procesador} / ${pc.ramGb || '?'}GB` : '—', estado: pc.estado, observaciones: pc.observaciones }))
+    perifericosArchivados.forEach(per => archivados.push({ tipo: 'periferico', tipoLabel: 'Periférico', icono: 'fa-keyboard', id: per.id, codigo: per.codigo, nombre: per.descripcion, detalle1: per.categoria, detalle2: per.computadoraAsignada || 'Sin asignar', detalle3: per.ubicacion || '—', estado: per.estado, observaciones: per.observaciones }))
+    camarasArchivadas.forEach(cam => archivados.push({ tipo: 'camara', tipoLabel: 'Cámara', icono: 'fa-video', id: cam.id, codigo: cam.codigo, nombre: cam.marca || cam.codigo, detalle1: `DVR ${cam.dvr || '—'}`, detalle2: cam.ubicacion || '—', detalle3: `Piso ${cam.piso || '—'}`, estado: cam.estado, observaciones: cam.observaciones }))
+    sensoresArchivados.forEach(s => archivados.push({ tipo: 'sensor', tipoLabel: 'Sensor', icono: 'fa-shield-alt', id: s.id, codigo: s.codigo, nombre: s.equipo, detalle1: s.nomenclatura, detalle2: s.ubicacion, detalle3: s.tecnologia, estado: s.estado, observaciones: s.observaciones }))
+    puntosRedArchivados.forEach(r => archivados.push({ tipo: 'puntored', tipoLabel: 'Punto de Red', icono: 'fa-network-wired', id: r.id, codigo: r.codigo, nombre: r.ubicacion, detalle1: r.tipoCable, detalle2: r.longitud || '—', detalle3: r.tipoUso, estado: r.estado, observaciones: r.observaciones }))
 
-      tab !== 'camaras' ? prisma.camara.findMany({
-        where: { piso: piso },
-        orderBy: { codigo: 'asc' },
-        select: {
-          id: true, codigo: true, marca: true, ubicacion: true,
-          piso: true, dvr: true, estado: true, observaciones: true,
-        },
-      }) : Promise.resolve([]),
-    ])
+    // Cámaras por piso (solo activas)
+    const camarasPorPisoLista = { '1': [], '2': [], '3': [] }
+    camarasActivas.forEach(c => { if (['1','2','3'].includes(c.piso)) camarasPorPisoLista[c.piso].push(c) })
 
-    const computadoras = tab === 'computadoras' ? computadorasPaginadas : computadorasTodas
-    const perifericos  = tab === 'perifericos'  ? perifericosPaginados  : perifericosTodos
-    const camaras      = tab === 'camaras'      ? camarasPaginadas      : camarasTodos
-
-    const [totalPCs, totalPer, totalCam] = await Promise.all([
-      prisma.computadora.count({ where: wherePC }),
-      prisma.periferico.count({ where: wherePer }),
-      prisma.camara.count({ where: whereCam }),
-    ])
-
-    const camarasPorPiso = await Promise.all(
-      PISOS.map(p => prisma.camara.count({ where: { piso: p } }))
-    )
-
-    let siguienteCodigoPeriferico = 'PER-001'
-
-    if (totalPer < 10000) {
-      const ultimoPeriferico = await prisma.periferico.findFirst({
-        where: { codigo: { startsWith: 'PER-' } },
-        orderBy: { codigo: 'desc' },
-        select: { codigo: true },
-      })
-      if (ultimoPeriferico?.codigo) {
-        const match = ultimoPeriferico.codigo.match(/PER-(\d+)/)
-        if (match) siguienteCodigoPeriferico = `PER-${String(parseInt(match[1]) + 1).padStart(3, '0')}`
-      }
+    // Paginación
+    let items = [], totalItems = 0
+    switch(tab) {
+      case 'computadoras': items = computadorasActivas; totalItems = computadorasActivas.length; break
+      case 'perifericos':  items = perifericosActivos;  totalItems = perifericosActivos.length; break
+      case 'camaras':      items = camarasActivas;      totalItems = camarasActivas.length; break
+      case 'sensores':     items = sensoresActivos;     totalItems = sensoresActivos.length; break
+      case 'puntosred':    items = puntosRedActivos;    totalItems = puntosRedActivos.length; break
+      case 'documentos':   items = documentosTodos;     totalItems = documentosTodos.length; break
+      case 'archivados':   items = archivados;          totalItems = archivados.length; break
+      default:             items = computadorasActivas; totalItems = computadorasActivas.length
     }
+
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1
+    const paginatedItems = items.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+
+    const listaComputadoras = computadorasActivas.map(pc => ({ nombre: pc.nombre }))
+
+    const siguienteCodigoPeriferico = await generarSiguienteCodigo('PER-', 'codigo', prisma.periferico)
+    const siguienteCodigoSensor = await generarSiguienteCodigo('SEG-', 'codigo', prisma.sensor)
+    const siguienteCodigoRed = await generarSiguienteCodigo('Red-', 'codigo', prisma.puntoRed)
 
     const siguienteCodigoCamara = {}
     for (const p of PISOS) {
-      const ultimaCamara = await prisma.camara.findFirst({
-        where: { 
-          codigo: { startsWith: `CAM-P${p}-` },
-          piso: p
-        },
-        orderBy: { codigo: 'desc' },
-        select: { codigo: true },
-      })
-
-      if (ultimaCamara?.codigo) {
-        const match = ultimaCamara.codigo.match(/CAM-P\d+-(\d+)/)
-        if (match) {
-          siguienteCodigoCamara[p] = `CAM-P${p}-${String(parseInt(match[1]) + 1).padStart(3, '0')}`
-        } else {
-          siguienteCodigoCamara[p] = `CAM-P${p}-001`
-        }
-      } else {
-        siguienteCodigoCamara[p] = `CAM-P${p}-001`
-      }
+      const prefijo = `CAM-P${p}-`
+      siguienteCodigoCamara[p] = await generarSiguienteCodigo(prefijo, 'codigo', prisma.camara)
     }
 
-    const listaComputadoras = computadorasTodas.map(pc => ({ nombre: pc.nombre }))
+    const counts = {
+      pcs: computadorasActivas.length,
+      perifericos: perifericosActivos.length,
+      camaras: camarasActivas.length,
+      sensores: sensoresActivos.length,
+      puntosred: puntosRedActivos.length,
+      documentos: documentosTodos.length,
+      archivados: archivados.length,
+    }
+
+    const camarasPorPiso = { '1': camarasPorPisoLista['1'].length, '2': camarasPorPisoLista['2'].length, '3': camarasPorPisoLista['3'].length }
 
     res.render('inventario', {
       title: 'Inventario de Equipos',
       user: req.session.usuario,
-      tab,
-      piso,
-      pisos: PISOS,
-      camarasPorPiso: Object.fromEntries(PISOS.map((p, i) => [p, camarasPorPiso[i]])),
-      computadoras,
-      perifericos,
-      camaras,
-      listaComputadoras,
-      siguienteCodigoPeriferico,
-      siguienteCodigoCamara,
-      pagination: {
-        page,
-        totalPages: Math.ceil(
-          (tab === 'computadoras' ? totalPCs : tab === 'perifericos' ? totalPer : totalCam) / ITEMS_PER_PAGE
-        ),
-        hasNext: page < Math.ceil(
-          (tab === 'computadoras' ? totalPCs : tab === 'perifericos' ? totalPer : totalCam) / ITEMS_PER_PAGE
-        ),
-        hasPrev: page > 1,
-      },
-      counts: { pcs: totalPCs, perifericos: totalPer, camaras: totalCam },
-      search,
+      tab, piso, pisos: PISOS, estados: ESTADOS,
+      camarasPorPiso, camarasPorPisoLista, camarasArchivoCount: 0,
+      computadoras: tab === 'computadoras' ? paginatedItems : computadorasActivas.slice(0, ITEMS_PER_PAGE),
+      perifericos: tab === 'perifericos' ? paginatedItems : perifericosActivos.slice(0, ITEMS_PER_PAGE),
+      sensores: tab === 'sensores' ? paginatedItems : sensoresActivos.slice(0, ITEMS_PER_PAGE),
+      puntosRed: tab === 'puntosred' ? paginatedItems : puntosRedActivos.slice(0, ITEMS_PER_PAGE),
+      documentos: tab === 'documentos' ? paginatedItems : documentosTodos.slice(0, ITEMS_PER_PAGE),
+      archivados: tab === 'archivados' ? paginatedItems : archivados.slice(0, ITEMS_PER_PAGE),
+      listaComputadoras, siguienteCodigoPeriferico, siguienteCodigoCamara, siguienteCodigoSensor, siguienteCodigoRed,
+      pagination: { page, totalPages, hasNext: page < totalPages, hasPrev: page > 1 },
+      counts, search,
       helpers: require('../utils/helpers'),
     })
 
@@ -201,91 +158,33 @@ async function mostrarInventario(req, res) {
 
 async function crearComputadora(req, res) {
   const { nombre, fabricante, modelo, numeroSerie, procesador, ramGb, discoSsdGb, estado, observaciones } = req.body
-
-  if (!nombre || !nombre.trim()) {
-    req.flash('error', 'El nombre de la computadora es obligatorio.')
-    return res.redirect('/inventario')
-  }
-
+  if (!nombre || !nombre.trim()) { req.flash('error', 'El nombre es obligatorio.'); return res.redirect('/inventario') }
   try {
-    await prisma.computadora.create({
-      data: {
-        nombre: nombre.trim(),
-        fabricante: fabricante ? fabricante.trim() : null,
-        modelo: modelo ? modelo.trim() : null,
-        numeroSerie: numeroSerie ? numeroSerie.trim() : null,
-        procesador: procesador ? procesador.trim() : null,
-        ramGb: ramGb ? parseInt(ramGb) : null,
-        discoSsdGb: discoSsdGb ? parseInt(discoSsdGb) : null,
-        estado: estado || 'Operativo',
-        observaciones: observaciones ? observaciones.trim() : null,
-      },
-    })
-
-    req.flash('success', `Computadora ${nombre} agregada correctamente.`)
+    await prisma.computadora.create({ data: { nombre: nombre.trim(), fabricante: fabricante?.trim() || null, modelo: modelo?.trim() || null, numeroSerie: numeroSerie?.trim() || null, procesador: procesador?.trim() || null, ramGb: ramGb ? parseInt(ramGb) : null, discoSsdGb: discoSsdGb ? parseInt(discoSsdGb) : null, estado: estado || 'Operativo', observaciones: observaciones?.trim() || null } })
+    req.flash('success', `Computadora ${nombre} agregada.`)
     res.redirect('/inventario?tab=computadoras')
-
-  } catch (err) {
-    console.error('[inventarioController] crearComputadora:', err)
-    req.flash('error', 'Error al crear la computadora. ¿El nombre ya existe?')
-    res.redirect('/inventario?tab=computadoras')
-  }
+  } catch (err) { console.error(err); req.flash('error', 'Error al crear computadora.'); res.redirect('/inventario?tab=computadoras') }
 }
 
 async function editarComputadora(req, res) {
   const id = parseInt(req.params.id)
   const { fabricante, modelo, numeroSerie, procesador, ramGb, discoSsdGb, estado, observaciones } = req.body
-
   try {
-    await prisma.computadora.update({
-      where: { id },
-      data: {
-        fabricante: fabricante ? fabricante.trim() : null,
-        modelo: modelo ? modelo.trim() : null,
-        numeroSerie: numeroSerie ? numeroSerie.trim() : null,
-        procesador: procesador ? procesador.trim() : null,
-        ramGb: ramGb ? parseInt(ramGb) : null,
-        discoSsdGb: discoSsdGb ? parseInt(discoSsdGb) : null,
-        estado: estado || 'Operativo',
-        observaciones: observaciones ? observaciones.trim() : null,
-      },
-    })
-
-    req.flash('success', 'Computadora actualizada correctamente.')
-    res.redirect('/inventario?tab=computadoras')
-
-  } catch (err) {
-    console.error('[inventarioController] editarComputadora:', err)
-    req.flash('error', 'Error al actualizar la computadora.')
-    res.redirect('/inventario?tab=computadoras')
-  }
+    const pcAntes = await prisma.computadora.findUnique({ where: { id }, select: { estado: true } })
+    const eraArchivado = esArchivado(pcAntes.estado)
+    const ahoraArchivado = esArchivado(estado)
+    await prisma.computadora.update({ where: { id }, data: { fabricante: fabricante?.trim() || null, modelo: modelo?.trim() || null, numeroSerie: numeroSerie?.trim() || null, procesador: procesador?.trim() || null, ramGb: ramGb ? parseInt(ramGb) : null, discoSsdGb: discoSsdGb ? parseInt(discoSsdGb) : null, estado: estado || 'Operativo', observaciones: observaciones?.trim() || null } })
+    req.flash('success', 'Computadora actualizada.')
+    if (ahoraArchivado) res.redirect('/inventario?tab=archivados')
+    else if (eraArchivado && !ahoraArchivado) res.redirect('/inventario?tab=computadoras')
+    else res.redirect('/inventario?tab=computadoras')
+  } catch (err) { console.error(err); req.flash('error', 'Error al actualizar.'); res.redirect('/inventario?tab=computadoras') }
 }
 
 async function eliminarComputadora(req, res) {
-  const id = parseInt(req.params.id)
-
-  try {
-    const pc = await prisma.computadora.findUnique({ 
-      where: { id },
-      select: { nombre: true }
-    })
-    if (pc) {
-      await prisma.periferico.updateMany({
-        where: { computadoraAsignada: pc.nombre },
-        data: { computadoraAsignada: null },
-      })
-    }
-
-    await prisma.computadora.delete({ where: { id } })
-
-    req.flash('success', 'Computadora eliminada correctamente.')
-    res.redirect('/inventario?tab=computadoras')
-
-  } catch (err) {
-    console.error('[inventarioController] eliminarComputadora:', err)
-    req.flash('error', 'Error al eliminar la computadora.')
-    res.redirect('/inventario?tab=computadoras')
-  }
+  try { await prisma.computadora.delete({ where: { id: parseInt(req.params.id) } }); req.flash('success', 'Eliminada.') } 
+  catch (err) { console.error(err); req.flash('error', 'Error al eliminar.') }
+  res.redirect('/inventario?tab=computadoras')
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -294,116 +193,41 @@ async function eliminarComputadora(req, res) {
 
 async function crearPeriferico(req, res) {
   let { codigo, categoria, descripcion, estado, observaciones, computadoraAsignada, ubicacion } = req.body
-
-  if (!codigo || !codigo.trim()) {
-    try {
-      const ultimoPeriferico = await prisma.periferico.findFirst({
-        where: { codigo: { startsWith: 'PER-' } },
-        orderBy: { codigo: 'desc' },
-        select: { codigo: true },
-      })
-
-      let siguienteNumero = 1
-      if (ultimoPeriferico?.codigo) {
-        const match = ultimoPeriferico.codigo.match(/PER-(\d+)/)
-        if (match) siguienteNumero = parseInt(match[1]) + 1
-      }
-
-      codigo = `PER-${String(siguienteNumero).padStart(3, '0')}`
-    } catch (err) {
-      console.error('[inventarioController] Error generando código:', err)
-      req.flash('error', 'Error al generar el código automático.')
-      return res.redirect('/inventario?tab=perifericos')
-    }
+  if (!codigo?.trim()) {
+    const ultimo = await prisma.periferico.findFirst({ where: { codigo: { startsWith: 'PER-' } }, orderBy: { codigo: 'desc' }, select: { codigo: true } })
+    let n = 1; if (ultimo?.codigo) { const m = ultimo.codigo.match(/PER-(\d+)/); if (m) n = parseInt(m[1]) + 1 }
+    codigo = `PER-${String(n).padStart(3, '0')}`
   }
-
-  if (!categoria || !categoria.trim() || !descripcion || !descripcion.trim()) {
-    req.flash('error', 'Categoría y descripción son obligatorios.')
-    return res.redirect('/inventario?tab=perifericos')
-  }
-
+  if (!categoria?.trim() || !descripcion?.trim()) { req.flash('error', 'Categoría y descripción obligatorias.'); return res.redirect('/inventario?tab=perifericos') }
   try {
-    await prisma.periferico.create({
-      data: {
-        codigo: codigo.trim(),
-        categoria: categoria.trim(),
-        descripcion: descripcion.trim(),
-        estado: estado || 'Operativo',
-        observaciones: observaciones ? observaciones.trim() : null,
-        computadoraAsignada: computadoraAsignada ? computadoraAsignada.trim() : null,
-        ubicacion: ubicacion ? ubicacion.trim() : null,
-      },
-    })
-
-    req.flash('success', `Periférico ${codigo} agregado correctamente.`)
-    res.redirect('/inventario?tab=perifericos')
-
-  } catch (err) {
-    console.error('[inventarioController] crearPeriferico:', err)
-    req.flash('error', 'Error al crear el periférico. ¿El código ya existe?')
-    res.redirect('/inventario?tab=perifericos')
-  }
+    await prisma.periferico.create({ data: { codigo: codigo.trim(), categoria: categoria.trim(), descripcion: descripcion.trim(), estado: estado || 'Operativo', observaciones: observaciones?.trim() || null, computadoraAsignada: computadoraAsignada?.trim() || null, ubicacion: ubicacion?.trim() || null } })
+    req.flash('success', `Periférico ${codigo} agregado.`); res.redirect('/inventario?tab=perifericos')
+  } catch (err) { console.error(err); req.flash('error', 'Error al crear periférico.'); res.redirect('/inventario?tab=perifericos') }
 }
 
 async function editarPeriferico(req, res) {
   const id = parseInt(req.params.id)
   const { categoria, descripcion, estado, observaciones, computadoraAsignada, ubicacion } = req.body
-
   try {
-    await prisma.periferico.update({
-      where: { id },
-      data: {
-        categoria: categoria ? categoria.trim() : undefined,
-        descripcion: descripcion ? descripcion.trim() : undefined,
-        estado: estado || 'Operativo',
-        observaciones: observaciones ? observaciones.trim() : null,
-        computadoraAsignada: computadoraAsignada ? computadoraAsignada.trim() : null,
-        ubicacion: ubicacion ? ubicacion.trim() : null,
-      },
-    })
-
-    req.flash('success', 'Periférico actualizado correctamente.')
-    res.redirect('/inventario?tab=perifericos')
-
-  } catch (err) {
-    console.error('[inventarioController] editarPeriferico:', err)
-    req.flash('error', 'Error al actualizar el periférico.')
-    res.redirect('/inventario?tab=perifericos')
-  }
+    const perAntes = await prisma.periferico.findUnique({ where: { id }, select: { estado: true } })
+    const eraArchivado = esArchivado(perAntes.estado), ahoraArchivado = esArchivado(estado)
+    await prisma.periferico.update({ where: { id }, data: { categoria: categoria?.trim(), descripcion: descripcion?.trim(), estado: estado || 'Operativo', observaciones: observaciones?.trim() || null, computadoraAsignada: computadoraAsignada?.trim() || null, ubicacion: ubicacion?.trim() || null } })
+    req.flash('success', 'Periférico actualizado.')
+    if (ahoraArchivado) res.redirect('/inventario?tab=archivados')
+    else if (eraArchivado && !ahoraArchivado) res.redirect('/inventario?tab=perifericos')
+    else res.redirect('/inventario?tab=perifericos')
+  } catch (err) { console.error(err); req.flash('error', 'Error al actualizar.'); res.redirect('/inventario?tab=perifericos') }
 }
 
 async function eliminarPeriferico(req, res) {
-  const id = parseInt(req.params.id)
-
-  try {
-    await prisma.periferico.delete({ where: { id } })
-
-    req.flash('success', 'Periférico eliminado correctamente.')
-    res.redirect('/inventario?tab=perifericos')
-
-  } catch (err) {
-    console.error('[inventarioController] eliminarPeriferico:', err)
-    req.flash('error', 'Error al eliminar el periférico.')
-    res.redirect('/inventario?tab=perifericos')
-  }
+  try { await prisma.periferico.delete({ where: { id: parseInt(req.params.id) } }); req.flash('success', 'Eliminado.') }
+  catch (err) { console.error(err); req.flash('error', 'Error al eliminar.') }
+  res.redirect('/inventario?tab=perifericos')
 }
 
 async function cambiarEstadoPeriferico(req, res) {
-  const id = parseInt(req.params.id)
-  const { estado } = req.body
-
-  try {
-    await prisma.periferico.update({
-      where: { id },
-      data: { estado },
-    })
-
-    res.json({ success: true, estado })
-
-  } catch (err) {
-    console.error('[inventarioController] cambiarEstadoPeriferico:', err)
-    res.status(500).json({ success: false, error: 'Error al cambiar estado' })
-  }
+  try { await prisma.periferico.update({ where: { id: parseInt(req.params.id) }, data: { estado: req.body.estado } }); res.json({ success: true }) }
+  catch (err) { res.status(500).json({ success: false, error: err.message }) }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -412,114 +236,166 @@ async function cambiarEstadoPeriferico(req, res) {
 
 async function crearCamara(req, res) {
   let { codigo, marca, modelo, numeroSerie, ubicacion, piso, dvr, ip, estado, observaciones } = req.body
-  piso = piso || '1'
-  dvr = dvr || '1'
-
-  if (!codigo || !codigo.trim()) {
-    try {
-      const ultimaCamara = await prisma.camara.findFirst({
-        where: { 
-          codigo: { startsWith: `CAM-P${piso}-` },
-          piso: piso
-        },
-        orderBy: { codigo: 'desc' },
-        select: { codigo: true },
-      })
-
-      let siguienteNumero = 1
-      if (ultimaCamara?.codigo) {
-        const match = ultimaCamara.codigo.match(/CAM-P\d+-(\d+)/)
-        if (match) siguienteNumero = parseInt(match[1]) + 1
-      }
-
-      codigo = `CAM-P${piso}-${String(siguienteNumero).padStart(3, '0')}`
-    } catch (err) {
-      console.error('[inventarioController] Error generando código cámara:', err)
-      req.flash('error', 'Error al generar el código automático.')
-      return res.redirect('/inventario?tab=camaras&piso=' + piso)
-    }
+  piso = piso || '1'; dvr = dvr || '1'
+  if (!codigo?.trim()) {
+    const prefijo = `CAM-P${piso}-`
+    const ultima = await prisma.camara.findFirst({ where: { codigo: { startsWith: prefijo }, piso }, orderBy: { codigo: 'desc' }, select: { codigo: true } })
+    let n = 1; if (ultima?.codigo) { const m = ultima.codigo.match(new RegExp(`${prefijo.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}(\\d+)`)); if (m) n = parseInt(m[1]) + 1 }
+    codigo = `${prefijo}${String(n).padStart(3, '0')}`
   }
-
   try {
-    await prisma.camara.create({
-      data: {
-        codigo: codigo.trim(),
-        marca: marca ? marca.trim() : null,
-        modelo: modelo ? modelo.trim() : null,
-        numeroSerie: numeroSerie ? numeroSerie.trim() : null,
-        ubicacion: ubicacion ? ubicacion.trim() : null,
-        piso: piso,
-        dvr: dvr,
-        ip: ip ? ip.trim() : null,
-        estado: estado || 'Operativo',
-        observaciones: observaciones ? observaciones.trim() : null,
-      },
-    })
-
-    req.flash('success', `Cámara ${codigo} agregada correctamente.`)
-    res.redirect('/inventario?tab=camaras&piso=' + piso)
-
-  } catch (err) {
-    console.error('[inventarioController] crearCamara:', err)
-    req.flash('error', 'Error al crear la cámara. ¿El código ya existe?')
-    res.redirect('/inventario?tab=camaras&piso=' + piso)
-  }
+    await prisma.camara.create({ data: { codigo: codigo.trim(), marca: marca?.trim() || null, modelo: modelo?.trim() || null, numeroSerie: numeroSerie?.trim() || null, ubicacion: ubicacion?.trim() || null, piso, dvr, ip: ip?.trim() || null, estado: estado || 'Operativo', observaciones: observaciones?.trim() || null } })
+    req.flash('success', `Cámara ${codigo} agregada.`); res.redirect('/inventario?tab=camaras&piso=' + piso)
+  } catch (err) { console.error(err); req.flash('error', 'Error al crear cámara.'); res.redirect('/inventario?tab=camaras&piso=' + piso) }
 }
 
 async function editarCamara(req, res) {
   const id = parseInt(req.params.id)
   const { marca, modelo, numeroSerie, ubicacion, piso, dvr, ip, estado, observaciones } = req.body
-
   try {
-    await prisma.camara.update({
-      where: { id },
-      data: {
-        marca: marca ? marca.trim() : null,
-        modelo: modelo ? modelo.trim() : null,
-        numeroSerie: numeroSerie ? numeroSerie.trim() : null,
-        ubicacion: ubicacion ? ubicacion.trim() : null,
-        piso: piso || '1',
-        dvr: dvr || '1',
-        ip: ip ? ip.trim() : null,
-        estado: estado || 'Operativo',
-        observaciones: observaciones ? observaciones.trim() : null,
-      },
-    })
-
-    req.flash('success', 'Cámara actualizada correctamente.')
-    res.redirect('/inventario?tab=camaras&piso=' + (piso || '1'))
-
-  } catch (err) {
-    console.error('[inventarioController] editarCamara:', err)
-    req.flash('error', 'Error al actualizar la cámara.')
-    res.redirect('/inventario?tab=camaras')
-  }
+    const camAntes = await prisma.camara.findUnique({ where: { id }, select: { piso: true, estado: true } })
+    const eraArchivado = esArchivado(camAntes.estado), ahoraArchivado = esArchivado(estado)
+    await prisma.camara.update({ where: { id }, data: { marca: marca?.trim() || null, modelo: modelo?.trim() || null, numeroSerie: numeroSerie?.trim() || null, ubicacion: ubicacion?.trim() || null, piso: piso || camAntes.piso, dvr: dvr || '1', ip: ip?.trim() || null, estado: estado || 'Operativo', observaciones: observaciones?.trim() || null } })
+    req.flash('success', 'Cámara actualizada.')
+    if (ahoraArchivado) res.redirect('/inventario?tab=archivados')
+    else if (eraArchivado && !ahoraArchivado) res.redirect('/inventario?tab=camaras&piso=' + (piso || camAntes.piso))
+    else res.redirect('/inventario?tab=camaras&piso=' + (piso || camAntes.piso))
+  } catch (err) { console.error(err); req.flash('error', 'Error al actualizar.'); res.redirect('/inventario?tab=camaras') }
 }
 
 async function eliminarCamara(req, res) {
-  const id = parseInt(req.params.id)
-
-  try {
-    await prisma.camara.delete({ where: { id } })
-
-    req.flash('success', 'Cámara eliminada correctamente.')
-    res.redirect('/inventario?tab=camaras')
-
-  } catch (err) {
-    console.error('[inventarioController] eliminarCamara:', err)
-    req.flash('error', 'Error al eliminar la cámara.')
-    res.redirect('/inventario?tab=camaras')
-  }
+  try { await prisma.camara.delete({ where: { id: parseInt(req.params.id) } }); req.flash('success', 'Eliminada.') }
+  catch (err) { console.error(err); req.flash('error', 'Error al eliminar.') }
+  res.redirect('/inventario?tab=camaras')
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  EXPORTS
+//  SENSORES
 // ═══════════════════════════════════════════════════════════════════════════
+
+async function crearSensor(req, res) {
+  let { codigo, equipo, nomenclatura, ubicacion, tecnologia, estado, observaciones } = req.body
+  if (!codigo?.trim()) {
+    const ultimo = await prisma.sensor.findFirst({ where: { codigo: { startsWith: 'SEG-' } }, orderBy: { codigo: 'desc' }, select: { codigo: true } })
+    let n = 1; if (ultimo?.codigo) { const m = ultimo.codigo.match(/SEG-(\d+)/); if (m) n = parseInt(m[1]) + 1 }
+    codigo = `SEG-${String(n).padStart(2, '0')}`
+  }
+  if (!equipo?.trim() || !ubicacion?.trim()) { req.flash('error', 'Equipo y ubicación obligatorios.'); return res.redirect('/inventario?tab=sensores') }
+  try {
+    await prisma.sensor.create({ data: { codigo: codigo.trim(), equipo: equipo.trim(), nomenclatura: nomenclatura?.trim() || equipo.trim(), ubicacion: ubicacion.trim(), tecnologia: tecnologia || 'Cableado', estado: estado || 'Operativo', observaciones: observaciones?.trim() || null } })
+    req.flash('success', `Sensor ${codigo} agregado.`); res.redirect('/inventario?tab=sensores')
+  } catch (err) { console.error(err); req.flash('error', 'Error al crear sensor.'); res.redirect('/inventario?tab=sensores') }
+}
+
+async function editarSensor(req, res) {
+  const id = parseInt(req.params.id)
+  const { equipo, nomenclatura, ubicacion, tecnologia, estado, observaciones } = req.body
+  try {
+    const sensorAntes = await prisma.sensor.findUnique({ where: { id }, select: { estado: true } })
+    const eraArchivado = esArchivado(sensorAntes.estado), ahoraArchivado = esArchivado(estado)
+    await prisma.sensor.update({ where: { id }, data: { equipo: equipo?.trim(), nomenclatura: nomenclatura?.trim(), ubicacion: ubicacion?.trim(), tecnologia: tecnologia || 'Cableado', estado: estado || 'Operativo', observaciones: observaciones?.trim() || null } })
+    req.flash('success', 'Sensor actualizado.')
+    if (ahoraArchivado) res.redirect('/inventario?tab=archivados')
+    else if (eraArchivado && !ahoraArchivado) res.redirect('/inventario?tab=sensores')
+    else res.redirect('/inventario?tab=sensores')
+  } catch (err) { console.error(err); req.flash('error', 'Error al actualizar.'); res.redirect('/inventario?tab=sensores') }
+}
+
+async function eliminarSensor(req, res) {
+  try { await prisma.sensor.delete({ where: { id: parseInt(req.params.id) } }); req.flash('success', 'Eliminado.') }
+  catch (err) { console.error(err); req.flash('error', 'Error al eliminar.') }
+  res.redirect('/inventario?tab=sensores')
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  PUNTOS DE RED
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function crearPuntoRed(req, res) {
+  let { codigo, ubicacion, tipoCable, longitud, tipoUso, estado, observaciones } = req.body
+  if (!codigo?.trim()) {
+    const ultimo = await prisma.puntoRed.findFirst({ where: { codigo: { startsWith: 'Red-' } }, orderBy: { codigo: 'desc' }, select: { codigo: true } })
+    let n = 1, sufijo = 'S1'; if (ultimo?.codigo) { const m = ultimo.codigo.match(/Red-(\d+)-(S\d+)/); if (m) { n = parseInt(m[1]) + 1; sufijo = m[2] } }
+    codigo = `Red-${String(n).padStart(2, '0')}-${sufijo}`
+  }
+  if (!ubicacion?.trim()) { req.flash('error', 'Ubicación obligatoria.'); return res.redirect('/inventario?tab=puntosred') }
+  try {
+    await prisma.puntoRed.create({ data: { codigo: codigo.trim(), ubicacion: ubicacion.trim(), tipoCable: tipoCable || 'Cat 5e', longitud: longitud?.trim() || null, tipoUso: tipoUso || 'Datos', estado: estado || 'Operativo', observaciones: observaciones?.trim() || null } })
+    req.flash('success', `Punto de red ${codigo} agregado.`); res.redirect('/inventario?tab=puntosred')
+  } catch (err) { console.error(err); req.flash('error', 'Error al crear punto de red.'); res.redirect('/inventario?tab=puntosred') }
+}
+
+async function editarPuntoRed(req, res) {
+  const id = parseInt(req.params.id)
+  const { ubicacion, tipoCable, longitud, tipoUso, estado, observaciones } = req.body
+  try {
+    const redAntes = await prisma.puntoRed.findUnique({ where: { id }, select: { estado: true } })
+    const eraArchivado = esArchivado(redAntes.estado), ahoraArchivado = esArchivado(estado)
+    await prisma.puntoRed.update({ where: { id }, data: { ubicacion: ubicacion?.trim(), tipoCable: tipoCable || 'Cat 5e', longitud: longitud?.trim() || null, tipoUso: tipoUso || 'Datos', estado: estado || 'Operativo', observaciones: observaciones?.trim() || null } })
+    req.flash('success', 'Punto de red actualizado.')
+    if (ahoraArchivado) res.redirect('/inventario?tab=archivados')
+    else if (eraArchivado && !ahoraArchivado) res.redirect('/inventario?tab=puntosred')
+    else res.redirect('/inventario?tab=puntosred')
+  } catch (err) { console.error(err); req.flash('error', 'Error al actualizar.'); res.redirect('/inventario?tab=puntosred') }
+}
+
+async function eliminarPuntoRed(req, res) {
+  try { await prisma.puntoRed.delete({ where: { id: parseInt(req.params.id) } }); req.flash('success', 'Eliminado.') }
+  catch (err) { console.error(err); req.flash('error', 'Error al eliminar.') }
+  res.redirect('/inventario?tab=puntosred')
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  DOCUMENTOS
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function subirDocumento(req, res) {
+  const { titulo, empresa, tipoDocumento, categoria, fechaDocumento, observaciones } = req.body
+  if (!titulo?.trim() || !empresa?.trim()) { req.flash('error', 'Título y empresa obligatorios.'); return res.redirect('/inventario?tab=documentos') }
+  if (!req.file) { req.flash('error', 'Adjunta un archivo.'); return res.redirect('/inventario?tab=documentos') }
+  try {
+    await prisma.documentoInventario.create({ data: { titulo: titulo.trim(), empresa: empresa.trim(), tipoDocumento: tipoDocumento || 'Acta', categoria: categoria || 'General', archivo: req.file.filename, fechaDocumento: fechaDocumento ? new Date(fechaDocumento) : null, observaciones: observaciones?.trim() || null } })
+    req.flash('success', 'Documento subido.'); res.redirect('/inventario?tab=documentos')
+  } catch (err) { console.error(err); req.flash('error', 'Error al subir documento.'); res.redirect('/inventario?tab=documentos') }
+}
+
+async function eliminarDocumento(req, res) {
+  try {
+    const doc = await prisma.documentoInventario.findUnique({ where: { id: parseInt(req.params.id) }, select: { archivo: true } })
+    await prisma.documentoInventario.delete({ where: { id: parseInt(req.params.id) } })
+    if (doc?.archivo) fs.unlink(path.join(__dirname, '..', '..', 'uploads', 'documentos', doc.archivo), () => {})
+    req.flash('success', 'Documento eliminado.')
+  } catch (err) { console.error(err); req.flash('error', 'Error al eliminar.') }
+  res.redirect('/inventario?tab=documentos')
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  RESTAURAR ARCHIVADO
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function restaurarArchivado(req, res) {
+  const { tipo, id } = req.params
+  const { estado, ...datos } = req.body
+  const nuevoEstado = estado || 'Operativo'
+  const itemId = parseInt(id)
+  try {
+    switch(tipo) {
+      case 'computadora': await prisma.computadora.update({ where: { id: itemId }, data: { estado: nuevoEstado, ...datos } }); break
+      case 'periferico': await prisma.periferico.update({ where: { id: itemId }, data: { estado: nuevoEstado, ...datos } }); break
+      case 'camara': await prisma.camara.update({ where: { id: itemId }, data: { estado: nuevoEstado, ...datos } }); break
+      case 'sensor': await prisma.sensor.update({ where: { id: itemId }, data: { estado: nuevoEstado, ...datos } }); break
+      case 'puntored': await prisma.puntoRed.update({ where: { id: itemId }, data: { estado: nuevoEstado, ...datos } }); break
+      default: return res.status(400).json({ success: false, error: 'Tipo no válido' })
+    }
+    req.flash('success', 'Equipo restaurado correctamente.')
+    res.redirect('/inventario?tab=' + tipo.replace('puntored', 'puntosred'))
+  } catch (err) { console.error(err); req.flash('error', 'Error al restaurar.'); res.redirect('/inventario?tab=archivados') }
+}
 
 module.exports = {
   mostrarInventario,
   crearComputadora,
-  editarComputadora,
+  editarComputadora, 
   eliminarComputadora,
   crearPeriferico,
   editarPeriferico,
@@ -528,4 +404,12 @@ module.exports = {
   crearCamara,
   editarCamara,
   eliminarCamara,
+  crearSensor, 
+  editarSensor, eliminarSensor,
+  crearPuntoRed,
+  editarPuntoRed,
+  eliminarPuntoRed,
+  subirDocumento,
+  eliminarDocumento, 
+  restaurarArchivado,
 }

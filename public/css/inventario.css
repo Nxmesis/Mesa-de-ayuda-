@@ -17,6 +17,8 @@
     font-weight: 700;
 }
 
+/* .inventario-tabs / .inventario-tab ya no se usan (se reemplazaron por el
+   menú lateral .inventario-nav de abajo), se dejan por si algo más las usa */
 .inventario-tabs {
     display: inline-flex;
     gap: 5px;
@@ -53,6 +55,15 @@
 }
 
 .inventario-panel.active {
+    display: block;
+}
+
+/* Sub-paneles de piso dentro de Cámaras (Piso 1/2/3/Archivo) */
+.camara-piso-panel {
+    display: none;
+}
+
+.camara-piso-panel.active {
     display: block;
 }
 
@@ -234,4 +245,129 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+}
+
+/* ============================================
+   MENÚ LATERAL DE CATEGORÍAS (nuevo)
+   ============================================ */
+
+.inventario-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.inventario-nav {
+    flex: 0 0 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 20px;
+}
+
+.inventario-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+}
+
+.inventario-nav-item i {
+    width: 18px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.inventario-nav-item:hover {
+    background: #f1f5f9;
+}
+
+.inventario-nav-item.active {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(46,204,113,0.3);
+}
+
+.inventario-nav-item span {
+    flex: 1;
+}
+
+.inventario-nav-count {
+    flex: 0 0 auto !important;
+    background: #e2e8f0;
+    color: #64748b;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.inventario-nav-item.active .inventario-nav-count {
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+}
+
+.inventario-nav-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 8px 4px;
+}
+
+.inventario-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* En móvil, el menú lateral pasa a fila horizontal con scroll */
+@media (max-width: 768px) {
+    .inventario-layout {
+        flex-direction: column;
+    }
+    .inventario-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        width: 100%;
+        position: static;
+    }
+    .inventario-nav-item {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+}
+
+/* Estilos para badge de archivado */
+.badge-secondary {
+    background: #e2e8f0;
+    color: #64748b;
+}
+
+/* Tab archivados - icono destacado */
+#tab-archivados .fa-archive {
+    color: #f39c12 !important;
+}
+
+/* Animación suave al cambiar de tab */
+.inventario-panel {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
