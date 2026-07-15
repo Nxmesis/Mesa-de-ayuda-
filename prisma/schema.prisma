@@ -169,6 +169,49 @@ model Camara {
   @@map("cameras")
 }
 
+
+model Sensor {
+  id            Int      @id @default(autoincrement())
+  codigo        String   @unique @db.VarChar(20)   // Ej: SEG-01
+  equipo        String   @db.VarChar(100)          // Ej: Hs2032, Teclado RF, Sirena, Humo, Infrarrojo, Vibro sensor
+  nomenclatura  String   @db.VarChar(100)          // Ej: Tarjeta madre, Teclado, Sirena, Hum, Infra 1
+  ubicacion     String   @db.VarChar(150)          // Ej: Bodega 2, Oficina 1, Rack
+  tecnologia    String   @default("Cableado") @db.VarChar(30) // Cableado / Inalámbrico
+  estado        String   @default("Operativo") @db.VarChar(30)
+  observaciones String?  @db.Text
+  fechaRegistro DateTime @default(now()) @map("fecha_registro")
+
+  @@map("sensores")
+}
+
+model PuntoRed {
+  id            Int      @id @default(autoincrement())
+  codigo        String   @unique @db.VarChar(20)   // Ej: Red-01-S1
+  ubicacion     String   @db.VarChar(150)          // Ej: Oficina 2 Izq.
+  tipoCable     String   @default("Cat 5e") @map("tipo_cable") @db.VarChar(30)
+  longitud      String?  @db.VarChar(30)           // Ej: 10mtr (texto libre, como en el acta)
+  tipoUso       String   @default("Datos") @map("tipo_uso") @db.VarChar(30) // Datos / AP / Cámara / Ruta Enlace
+  estado        String   @default("Operativo") @db.VarChar(30)
+  observaciones String?  @db.Text
+  fechaRegistro DateTime @default(now()) @map("fecha_registro")
+
+  @@map("puntos_red")
+}
+
+model DocumentoInventario {
+  id             Int      @id @default(autoincrement())
+  titulo         String   @db.VarChar(150)          // Ej: Acta de entrega sistema de intrusión
+  empresa        String   @db.VarChar(150)          // Ej: TECNOSEGUR SAS
+  tipoDocumento  String   @default("Acta") @map("tipo_documento") @db.VarChar(30) // Acta / Certificado / Bitácora / Otro
+  categoria      String   @default("General") @db.VarChar(30) // Camaras / Sensores / PuntosRed / General
+  archivo        String   @db.VarChar(255)          // nombre del archivo guardado en /uploads/documentos
+  fechaDocumento DateTime? @map("fecha_documento") @db.Date
+  observaciones  String?  @db.Text
+  fechaSubida    DateTime @default(now()) @map("fecha_subida")
+
+  @@map("documentos_inventario")
+}
+
 enum tickets_prioridad {
   Baja
   Media

@@ -2,7 +2,7 @@
 
 const express = require('express')
 const router  = express.Router()
-const ctrl    = require('../controllers/ordenController')
+const ctrl    = require('../controllers/ordencontroller')
 const { requireAuth, requireAdmin } = require('../middleware/auth')
 
 router.get('/ordenes',       requireAuth,               ctrl.listarOrdenes)
