@@ -13,7 +13,7 @@ const app  = express()
 const PORT = process.env.PORT || 5000
 
 // ── Crear carpetas necesarias al arrancar ────────────────────────────────────
-;["./uploads", "./uploads/perfiles"].forEach((dir) => {
+;["./uploads", "./uploads/perfiles", "./uploads/documentos"].forEach((dir) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 })
 
@@ -36,7 +36,7 @@ app.use(
     resave:            false,
     saveUninitialized: false,
     cookie: {
-      secure:   true,  // HTTPS activo
+      secure:   true,  // HTTPS activo en producción
       httpOnly: true,
       maxAge:   1000 * 60 * 60 * 8,
     },
@@ -69,6 +69,7 @@ app.use("/", require("./src/routes/userRoutes"))
 app.use("/", require("./src/routes/perfilRoutes"))
 app.use("/", require("./src/routes/notificacionesRoutes"))
 app.use('/', require('./src/routes/inventarioRoutes'))
+app.use('/', require('./src/routes/ordenroutes'))
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => {
@@ -91,7 +92,9 @@ app.use((err, req, res, next) => {
   })
 })
 
-// ── Arranque HTTPS ───────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+//  ARRANQUE SERVIDOR - MODO PRODUCCIÓN (HTTPS puerto 443)
+// ═══════════════════════════════════════════════════════════════════════════
 const certOptions = {
   key:  fs.readFileSync(path.join(__dirname, "certificados", "helpdesk.local+4-key.pem")),
   cert: fs.readFileSync(path.join(__dirname, "certificados", "helpdesk.local+4.pem")),

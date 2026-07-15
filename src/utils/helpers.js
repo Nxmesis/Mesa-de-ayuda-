@@ -2,12 +2,30 @@
 
 // ── Fechas ────────────────────────────────────────────────────────────────────
 
+/**
+ * Formatea una fecha mostrando solo DD/MM/YYYY (sin hora).
+ * Usa UTC para evitar desfase por zona horaria con campos DATE de MySQL.
+ */
 function formatearFecha(fecha) {
   if (!fecha) return '—'
-  return new Date(fecha).toLocaleDateString('es-CO', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
+  
+  // Si es string ISO (ej: "2026-07-14T00:00:00.000Z"), extraemos directamente
+  // para evitar cualquier conversión de zona horaria
+  if (typeof fecha === 'string') {
+    const match = fecha.match(/^(\d{4})-(\d{2})-(\d{2})/)
+    if (match) {
+      const [, year, month, day] = match
+      return `${day}/${month}/${year}`
+    }
+  }
+  
+  // Para Date objects, usamos métodos UTC
+  const d = new Date(fecha)
+  const day = String(d.getUTCDate()).padStart(2, '0')
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const year = d.getUTCFullYear()
+  
+  return `${day}/${month}/${year}`
 }
 
 // ── Prioridad ─────────────────────────────────────────────────────────────────
