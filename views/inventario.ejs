@@ -6,81 +6,93 @@
 
     <div class="container">
         <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
-            <div class="alert alert-success"><%= success[0] %></div>
+            <div class="inv-alert inv-alert-success"><%= success[0] %></div>
         <% } %>
         <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
-            <div class="alert alert-danger"><%= error[0] %></div>
+            <div class="inv-alert inv-alert-danger"><%= error[0] %></div>
         <% } %>
 
-        <h1 style="color:#2d3748; margin-bottom:20px;">Inventario de Equipos</h1>
+        
+        <div class="inv-header">
+            <div class="inv-header-left">
+                <div class="inv-header-icon">
+                    <i class="fas fa-boxes-stacked"></i>
+                </div>
+                <div class="inv-header-text">
+                    <h1>Inventario de Equipos</h1>
+                </div>
+            </div>
+        </div>
 
-        <div class="inventario-layout">
+        <!-- Layout principal -->
+
+        <div class="inv-layout">
 
             <!-- ═══════════════════════════════════════════════ -->
             <!-- MENÚ LATERAL DE CATEGORÍAS                       -->
             <!-- ═══════════════════════════════════════════════ -->
-            <div class="inventario-nav">
-                <button type="button" class="inventario-nav-item <%= tab === 'computadoras' ? 'active' : '' %>" data-tab="computadoras" onclick="mostrarTab('computadoras', this)">
+            <div class="inv-nav">
+                <button type="button" class="inv-nav-item <%= tab === 'computadoras' ? 'active' : '' %>" data-tab="computadoras" onclick="mostrarTab('computadoras', this)">
                     <i class="fas fa-desktop"></i>
                     <span>Computadoras</span>
-                    <span class="inventario-nav-count"><%= counts.pcs %></span>
+                    <span class="inv-nav-count"><%= counts.pcs %></span>
                 </button>
-                <button type="button" class="inventario-nav-item <%= tab === 'perifericos' ? 'active' : '' %>" data-tab="perifericos" onclick="mostrarTab('perifericos', this)">
+                <button type="button" class="inv-nav-item <%= tab === 'perifericos' ? 'active' : '' %>" data-tab="perifericos" onclick="mostrarTab('perifericos', this)">
                     <i class="fas fa-keyboard"></i>
                     <span>Periféricos</span>
-                    <span class="inventario-nav-count"><%= counts.perifericos %></span>
+                    <span class="inv-nav-count"><%= counts.perifericos %></span>
                 </button>
-                <button type="button" class="inventario-nav-item <%= tab === 'camaras' ? 'active' : '' %>" data-tab="camaras" onclick="mostrarTab('camaras', this)">
+                <button type="button" class="inv-nav-item <%= tab === 'camaras' ? 'active' : '' %>" data-tab="camaras" onclick="mostrarTab('camaras', this)">
                     <i class="fas fa-video"></i>
                     <span>Cámaras</span>
-                    <span class="inventario-nav-count"><%= counts.camaras %></span>
+                    <span class="inv-nav-count"><%= counts.camaras %></span>
                 </button>
-                <button type="button" class="inventario-nav-item <%= tab === 'sensores' ? 'active' : '' %>" data-tab="sensores" onclick="mostrarTab('sensores', this)">
+                <button type="button" class="inv-nav-item <%= tab === 'sensores' ? 'active' : '' %>" data-tab="sensores" onclick="mostrarTab('sensores', this)">
                     <i class="fas fa-shield-alt"></i>
                     <span>Sensores</span>
-                    <span class="inventario-nav-count"><%= counts.sensores %></span>
+                    <span class="inv-nav-count"><%= counts.sensores %></span>
                 </button>
-                <button type="button" class="inventario-nav-item <%= tab === 'puntosred' ? 'active' : '' %>" data-tab="puntosred" onclick="mostrarTab('puntosred', this)">
+                <button type="button" class="inv-nav-item <%= tab === 'puntosred' ? 'active' : '' %>" data-tab="puntosred" onclick="mostrarTab('puntosred', this)">
                     <i class="fas fa-network-wired"></i>
                     <span>Puntos de Red</span>
-                    <span class="inventario-nav-count"><%= counts.puntosred %></span>
+                    <span class="inv-nav-count"><%= counts.puntosred %></span>
                 </button>
-                <div class="inventario-nav-divider"></div>
-                <button type="button" class="inventario-nav-item <%= tab === 'archivados' ? 'active' : '' %>" data-tab="archivados" onclick="mostrarTab('archivados', this)">
+                <div class="inv-nav-divider"></div>
+                <button type="button" class="inv-nav-item <%= tab === 'archivados' ? 'active' : '' %>" data-tab="archivados" onclick="mostrarTab('archivados', this)">
                     <i class="fas fa-archive"></i>
                     <span>Archivados</span>
-                    <span class="inventario-nav-count"><%= counts.archivados %></span>
+                    <span class="inv-nav-count"><%= counts.archivados %></span>
                 </button>
-                <button type="button" class="inventario-nav-item <%= tab === 'documentos' ? 'active' : '' %>" data-tab="documentos" onclick="mostrarTab('documentos', this)">
+                <button type="button" class="inv-nav-item <%= tab === 'documentos' ? 'active' : '' %>" data-tab="documentos" onclick="mostrarTab('documentos', this)">
                     <i class="fas fa-file-alt"></i>
                     <span>Documentos</span>
-                    <span class="inventario-nav-count"><%= counts.documentos %></span>
+                    <span class="inv-nav-count"><%= counts.documentos %></span>
                 </button>
             </div>
 
             <!-- ═══════════════════════════════════════════════ -->
             <!-- CONTENIDO                                        -->
             <!-- ═══════════════════════════════════════════════ -->
-            <div class="inventario-content">
+            <div class="inv-content">
 
         <!-- ═══════════════════════════════════════════════════ -->
         <!-- PANEL COMPUTADORAS                                  -->
         <!-- ═══════════════════════════════════════════════════ -->
-        <div id="tab-computadoras" class="inventario-panel <%= tab === 'computadoras' ? 'active' : '' %>">
-            <div class="excel-toolbar">
-                <div class="excel-search">
+        <div id="tab-computadoras" class="inv-panel <%= tab === 'computadoras' ? 'active' : '' %>">
+            <div class="inv-toolbar">
+                <div class="inv-search">
                     <input type="text" id="buscar-computadoras"
                            placeholder="Buscar computadoras..."
                            onkeyup="filtrarTabla('tabla-computadoras', this.value)">
                 </div>
-                <button class="btn btn-success" onclick="abrirModal('modal-computadora')">
+                <button class="inv-btn inv-btn-success" onclick="abrirModal('modal-computadora')">
                     + Nueva Computadora
                 </button>
             </div>
 
-            <div class="card" style="padding:0;">
-                <div class="table-container">
-                    <table class="table" id="tabla-computadoras">
+            <div class="inv-table-wrap">
+                <div style="overflow-x: auto;">
+                    <table class="inv-table" id="tabla-computadoras">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
@@ -105,59 +117,67 @@
                                 <td><%= pc.ramGb ? pc.ramGb + ' GB' : '—' %></td>
                                 <td><%= pc.discoSsdGb ? pc.discoSsdGb + ' GB' : '—' %></td>
                                 <td>
-                                    <span class="badge <%= pc.estado === 'Operativo' ? 'badge-success' : pc.estado === 'Averiado' ? 'badge-danger' : pc.estado === 'Deficiente' ? 'badge-warning' : pc.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
+                                    <span class="inv-badge <%= pc.estado === 'Operativo' ? 'badge-success' : pc.estado === 'Averiado' ? 'badge-danger' : pc.estado === 'Deficiente' ? 'badge-warning' : pc.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
                                         <%= pc.estado %>
                                     </span>
                                 </td>
                                 <td><%= pc.observaciones || '—' %></td>
                                 <td>
-                                    <div class="excel-actions">
-                                        <button type="button" class="excel-btn excel-btn-save"
-                                                onclick="editarComputadora(<%= pc.id %>)" title="Editar">✏️</button>
-                                        <button type="button" class="excel-btn excel-btn-delete"
+                                    <div class="inv-actions">
+                                        <button type="button" class="inv-action-btn inv-action-edit"
+                                                onclick="editarComputadora(<%= pc.id %>)" title="Editar">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                        <button type="button" class="inv-action-btn inv-action-delete"
                                                 onclick="confirmarEliminar('/inventario/computadoras/<%= pc.id %>/eliminar')"
-                                                title="Eliminar">🗑️</button>
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr id="edit-pc-<%= pc.id %>" style="display:none; background:#fffbeb;">
-                                <td colspan="9" style="padding:0;">
+                                <td colspan="9">
                                     <form action="/inventario/computadoras/<%= pc.id %>/editar" method="POST"
                                           style="display:table; width:100%;">
                                         <div style="display:table-row;">
                                             <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <input type="text" value="<%= pc.nombre %>" class="excel-cell-input" readonly>
+                                                <input type="text" value="<%= pc.nombre %>" class="inv-cell-input" readonly>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:11%;">
-                                                <input type="text" name="fabricante" value="<%= pc.fabricante || '' %>" class="excel-cell-input">
+                                                <input type="text" name="fabricante" value="<%= pc.fabricante || '' %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:11%;">
-                                                <input type="text" name="modelo" value="<%= pc.modelo || '' %>" class="excel-cell-input">
+                                                <input type="text" name="modelo" value="<%= pc.modelo || '' %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:14%;">
-                                                <input type="text" name="procesador" value="<%= pc.procesador || '' %>" class="excel-cell-input">
+                                                <input type="text" name="procesador" value="<%= pc.procesador || '' %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:8%;">
-                                                <input type="number" name="ramGb" value="<%= pc.ramGb || '' %>" class="excel-cell-input">
+                                                <input type="number" name="ramGb" value="<%= pc.ramGb || '' %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:8%;">
-                                                <input type="number" name="discoSsdGb" value="<%= pc.discoSsdGb || '' %>" class="excel-cell-input">
+                                                <input type="number" name="discoSsdGb" value="<%= pc.discoSsdGb || '' %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <select name="estado" class="excel-cell-select" onchange="validarArchivado(this, 'computadora', <%= pc.id %>)">
+                                                <select name="estado" class="inv-cell-select" onchange="validarArchivado(this, 'computadora', <%= pc.id %>)">
                                                     <% estados.forEach(e => { %>
                                                         <option value="<%= e %>" <%= pc.estado === e ? 'selected' : '' %>><%= e %></option>
                                                     <% }) %>
                                                 </select>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:14%;">
-                                                <input type="text" name="observaciones" value="<%= pc.observaciones || '' %>" class="excel-cell-input">
+                                                <input type="text" name="observaciones" value="<%= pc.observaciones || '' %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                <div class="excel-actions">
-                                                    <button type="submit" class="excel-btn excel-btn-save" title="Guardar">✓</button>
-                                                    <button type="button" class="excel-btn excel-btn-delete"
-                                                            onclick="cancelarEdicion('edit-pc-<%= pc.id %>')" title="Cancelar">✕</button>
+                                                <div class="inv-actions">
+                                                    <button type="submit" class="inv-action-btn inv-action-edit" title="Guardar">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="inv-action-btn inv-action-delete"
+                                                            onclick="cancelarEdicion('edit-pc-<%= pc.id %>')" title="Cancelar">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -166,7 +186,7 @@
                             </tr>
                             <% }) %>
                             <% } else { %>
-                            <tr><td colspan="9" style="text-align:center; padding:40px; color:#a0aec0;">No hay computadoras registradas</td></tr>
+                            <tr><td colspan="9" >No hay computadoras registradas</td></tr>
                             <% } %>
                         </tbody>
                     </table>
@@ -177,21 +197,21 @@
         <!-- ═══════════════════════════════════════════════════ -->
         <!-- PANEL PERIFÉRICOS                                   -->
         <!-- ═══════════════════════════════════════════════════ -->
-        <div id="tab-perifericos" class="inventario-panel <%= tab === 'perifericos' ? 'active' : '' %>">
-            <div class="excel-toolbar">
-                <div class="excel-search">
+        <div id="tab-perifericos" class="inv-panel <%= tab === 'perifericos' ? 'active' : '' %>">
+            <div class="inv-toolbar">
+                <div class="inv-search">
                     <input type="text" id="buscar-perifericos"
                            placeholder="Buscar periféricos..."
                            onkeyup="filtrarTabla('tabla-perifericos', this.value)">
                 </div>
-                <button class="btn btn-success" onclick="abrirModal('modal-periferico')">
+                <button class="inv-btn inv-btn-success" onclick="abrirModal('modal-periferico')">
                     + Nuevo Periférico
                 </button>
             </div>
 
-            <div class="card" style="padding:0;">
-                <div class="table-container">
-                    <table class="table" id="tabla-perifericos">
+            <div class="inv-table-wrap">
+                <div style="overflow-x: auto;">
+                    <table class="inv-table" id="tabla-perifericos">
                         <thead>
                             <tr>
                                 <th>Código</th>
@@ -212,7 +232,7 @@
                                 <td><%= per.categoria %></td>
                                 <td><%= per.descripcion %></td>
                                 <td>
-                                    <span class="badge <%= per.estado === 'Operativo' ? 'badge-success' : per.estado === 'Averiado' ? 'badge-danger' : per.estado === 'Deficiente' ? 'badge-warning' : per.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
+                                    <span class="inv-badge <%= per.estado === 'Operativo' ? 'badge-success' : per.estado === 'Averiado' ? 'badge-danger' : per.estado === 'Deficiente' ? 'badge-warning' : per.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
                                         <%= per.estado %>
                                     </span>
                                 </td>
@@ -220,42 +240,46 @@
                                 <td><%= per.ubicacion || '—' %></td>
                                 <td><%= per.observaciones || '—' %></td>
                                 <td>
-                                    <div class="excel-actions">
-                                        <button type="button" class="excel-btn excel-btn-save"
-                                                onclick="editarPeriferico(<%= per.id %>)" title="Editar">✏️</button>
-                                        <button type="button" class="excel-btn excel-btn-delete"
+                                    <div class="inv-actions">
+                                        <button type="button" class="inv-action-btn inv-action-edit"
+                                                onclick="editarPeriferico(<%= per.id %>)" title="Editar">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                        <button type="button" class="inv-action-btn inv-action-delete"
                                                 onclick="confirmarEliminar('/inventario/perifericos/<%= per.id %>/eliminar')"
-                                                title="Eliminar">🗑️</button>
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr id="edit-per-<%= per.id %>" style="display:none; background:#fffbeb;">
-                                <td colspan="8" style="padding:0;">
+                                <td colspan="8">
                                     <form action="/inventario/perifericos/<%= per.id %>/editar" method="POST"
                                           style="display:table; width:100%;">
                                         <div style="display:table-row;">
                                             <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                <input type="text" name="codigo" value="<%= per.codigo %>" class="excel-cell-input" readonly>
+                                                <input type="text" name="codigo" value="<%= per.codigo %>" class="inv-cell-input" readonly>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                <select name="categoria" class="excel-cell-select">
+                                                <select name="categoria" class="inv-cell-select">
                                                     <% ['Teclado','Mouse','Monitor','UPS','Scanner','Impresora','Servidor','Red','Otro'].forEach(c => { %>
                                                         <option value="<%= c %>" <%= per.categoria === c ? 'selected' : '' %>><%= c %></option>
                                                     <% }) %>
                                                 </select>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:18%;">
-                                                <input type="text" name="descripcion" value="<%= per.descripcion %>" class="excel-cell-input">
+                                                <input type="text" name="descripcion" value="<%= per.descripcion %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                <select name="estado" class="excel-cell-select" onchange="validarArchivado(this, 'periferico', <%= per.id %>)">
+                                                <select name="estado" class="inv-cell-select" onchange="validarArchivado(this, 'periferico', <%= per.id %>)">
                                                     <% estados.forEach(e => { %>
                                                         <option value="<%= e %>" <%= per.estado === e ? 'selected' : '' %>><%= e %></option>
                                                     <% }) %>
                                                 </select>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:14%;">
-                                                <select name="computadoraAsignada" class="excel-cell-select">
+                                                <select name="computadoraAsignada" class="inv-cell-select">
                                                     <option value="">-- Sin asignar --</option>
                                                     <% listaComputadoras.forEach(pc => { %>
                                                         <option value="<%= pc.nombre %>" <%= per.computadoraAsignada === pc.nombre ? 'selected' : '' %>><%= pc.nombre %></option>
@@ -263,16 +287,20 @@
                                                 </select>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <input type="text" name="ubicacion" value="<%= per.ubicacion || '' %>" class="excel-cell-input">
+                                                <input type="text" name="ubicacion" value="<%= per.ubicacion || '' %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:16%;">
-                                                <input type="text" name="observaciones" value="<%= per.observaciones || '' %>" class="excel-cell-input">
+                                                <input type="text" name="observaciones" value="<%= per.observaciones || '' %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                <div class="excel-actions">
-                                                    <button type="submit" class="excel-btn excel-btn-save" title="Guardar">✓</button>
-                                                    <button type="button" class="excel-btn excel-btn-delete"
-                                                            onclick="cancelarEdicion('edit-per-<%= per.id %>')" title="Cancelar">✕</button>
+                                                <div class="inv-actions">
+                                                    <button type="submit" class="inv-action-btn inv-action-edit" title="Guardar">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="inv-action-btn inv-action-delete"
+                                                            onclick="cancelarEdicion('edit-per-<%= per.id %>')" title="Cancelar">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -281,7 +309,7 @@
                             </tr>
                             <% }) %>
                             <% } else { %>
-                            <tr><td colspan="8" style="text-align:center; padding:40px; color:#a0aec0;">No hay periféricos registrados</td></tr>
+                            <tr><td colspan="8" >No hay periféricos registrados</td></tr>
                             <% } %>
                         </tbody>
                     </table>
@@ -292,40 +320,40 @@
         <!-- ═══════════════════════════════════════════════════ -->
         <!-- PANEL CÁMARAS                                       -->
         <!-- ═══════════════════════════════════════════════════ -->
-        <div id="tab-camaras" class="inventario-panel <%= tab === 'camaras' ? 'active' : '' %>">
+        <div id="tab-camaras" class="inv-panel <%= tab === 'camaras' ? 'active' : '' %>">
 
             <!-- Sub-tabs de pisos -->
-            <div class="piso-tabs" style="display:flex; gap:8px; margin-bottom:20px; padding:0 0 10px 0; border-bottom:2px solid #e2e8f0; flex-wrap:wrap;">
+            <div class="inv-piso-tabs" style="display:flex; gap:8px; margin-bottom:20px; padding:0 0 10px 0; border-bottom:2px solid #e2e8f0; flex-wrap:wrap;">
                 <% pisos.forEach((p, i) => { %>
                     <button type="button"
-                       class="piso-tab <%= piso === p ? 'active' : '' %>" data-piso="<%= p %>"
+                       class="inv-piso-tab <%= piso === p ? 'active' : '' %>" data-piso="<%= p %>"
                        onclick="mostrarPisoCamara('<%= p %>', this)"
                        style="display:flex; align-items:center; gap:8px; padding:10px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:600; font-size:0.9rem; font-family:inherit; transition:all 0.2s; <%= piso === p ? 'background:linear-gradient(135deg, #2ecc71, #27ae60); color:white; box-shadow:0 2px 8px rgba(46,204,113,0.3);' : 'background:#f8fafc; color:#64748b;' %>">
                         <i class="fas fa-building" style="font-size:0.85rem;"></i>
                         Piso <%= p %>
-                        <span class="piso-tab-count" style="background:<%= piso === p ? 'rgba(255,255,255,0.25)' : '#e2e8f0' %>; color:<%= piso === p ? 'white' : '#64748b' %>; padding:2px 10px; border-radius:12px; font-size:0.75rem; font-weight:700;">
+                        <span class="inv-piso-tab-count" style="background:<%= piso === p ? 'rgba(255,255,255,0.25)' : '#e2e8f0' %>; color:<%= piso === p ? 'white' : '#64748b' %>; padding:2px 10px; border-radius:12px; font-size:0.75rem; font-weight:700;">
                             <%= camarasPorPiso[p] || 0 %>
                         </span>
                     </button>
                 <% }) %>
             </div>
 
-            <div class="excel-toolbar">
-                <div class="excel-search">
+            <div class="inv-toolbar">
+                <div class="inv-search">
                     <input type="text" id="buscar-camaras"
                            placeholder="Buscar cámaras..."
                            onkeyup="filtrarTablaCamaras(this.value)">
                 </div>
-                <button class="btn btn-success" id="btn-nueva-camara" onclick="abrirModalCamara(currentPisoCamara)">
+                <button class="inv-btn inv-btn-success" id="btn-nueva-camara" onclick="abrirModalCamara(currentPisoCamara)">
                     + Nueva Cámara (Piso <%= piso %>)
                 </button>
             </div>
 
             <% ['1','2','3'].forEach((p, i) => { %>
-            <div class="camara-piso-panel <%= piso === p ? 'active' : '' %>" id="camaras-piso-<%= p %>">
-                <div class="card" style="padding:0;">
-                    <div class="table-container">
-                        <table class="table" id="tabla-camaras-<%= p %>">
+            <div class="inv-camara-panel <%= piso === p ? 'active' : '' %>" id="camaras-piso-<%= p %>">
+                <div class="inv-table-wrap">
+                    <div style="overflow-x: auto;">
+                        <table class="inv-table" id="tabla-camaras-<%= p %>">
                             <thead>
                                 <tr>
                                     <th>Código</th>
@@ -347,58 +375,66 @@
                                     <td><%= cam.dvr || '—' %></td>
                                     <td><%= cam.ubicacion || '—' %></td>
                                     <td>
-                                        <span class="badge <%= cam.estado === 'Operativo' ? 'badge-success' : cam.estado === 'Averiado' ? 'badge-danger' : cam.estado === 'Deficiente' ? 'badge-warning' : cam.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
+                                        <span class="inv-badge <%= cam.estado === 'Operativo' ? 'badge-success' : cam.estado === 'Averiado' ? 'badge-danger' : cam.estado === 'Deficiente' ? 'badge-warning' : cam.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
                                             <%= cam.estado %>
                                         </span>
                                     </td>
                                     <td><%= cam.observaciones || '—' %></td>
                                     <td>
-                                        <div class="excel-actions">
-                                            <button type="button" class="excel-btn excel-btn-save"
-                                                    onclick="editarCamara(<%= cam.id %>)" title="Editar">✏️</button>
-                                            <button type="button" class="excel-btn excel-btn-delete"
+                                        <div class="inv-actions">
+                                            <button type="button" class="inv-action-btn inv-action-edit"
+                                                    onclick="editarCamara(<%= cam.id %>)" title="Editar">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                            <button type="button" class="inv-action-btn inv-action-delete"
                                                     onclick="confirmarEliminar('/inventario/camaras/<%= cam.id %>/eliminar')"
-                                                    title="Eliminar">🗑️</button>
+                                                    title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                         </div>
                                     </td>
                                 </tr>
                                 <tr id="edit-cam-<%= cam.id %>" style="display:none; background:#fffbeb;">
-                                    <td colspan="7" style="padding:0;">
+                                    <td colspan="7">
                                         <form action="/inventario/camaras/<%= cam.id %>/editar" method="POST"
                                               style="display:table; width:100%;">
                                             <div style="display:table-row;">
                                                 <div style="display:table-cell; padding:8px 10px; width:14%;">
-                                                    <input type="text" value="<%= cam.codigo %>" class="excel-cell-input" readonly>
+                                                    <input type="text" value="<%= cam.codigo %>" class="inv-cell-input" readonly>
                                                 </div>
                                                 <div style="display:table-cell; padding:8px 10px; width:14%;">
-                                                    <input type="text" name="marca" value="<%= cam.marca || '' %>" class="excel-cell-input">
+                                                    <input type="text" name="marca" value="<%= cam.marca || '' %>" class="inv-cell-input">
                                                 </div>
                                                 <div style="display:table-cell; padding:8px 10px; width:8%;">
-                                                    <select name="dvr" class="excel-cell-select">
+                                                    <select name="dvr" class="inv-cell-select">
                                                     <% ['1','2','3'].forEach(d => { %>
                                                     <option value="<%= d %>" <%= (cam.dvr || '1') === d ? 'selected' : '' %>>DVR <%= d %></option>
                                                     <% }) %>
                                                     </select>
                                                 </div>
                                                 <div style="display:table-cell; padding:8px 10px; width:18%;">
-                                                    <input type="text" name="ubicacion" value="<%= cam.ubicacion || '' %>" class="excel-cell-input">
+                                                    <input type="text" name="ubicacion" value="<%= cam.ubicacion || '' %>" class="inv-cell-input">
                                                 </div>
                                                 <input type="hidden" name="piso" value="<%= cam.piso %>">
                                                 <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                    <select name="estado" class="excel-cell-select" onchange="validarArchivado(this, 'camara', <%= cam.id %>)">
+                                                    <select name="estado" class="inv-cell-select" onchange="validarArchivado(this, 'camara', <%= cam.id %>)">
                                                         <% estados.forEach(e => { %>
                                                             <option value="<%= e %>" <%= cam.estado === e ? 'selected' : '' %>><%= e %></option>
                                                         <% }) %>
                                                     </select>
                                                 </div>
                                                 <div style="display:table-cell; padding:8px 10px; width:14%;">
-                                                    <input type="text" name="observaciones" value="<%= cam.observaciones || '' %>" class="excel-cell-input">
+                                                    <input type="text" name="observaciones" value="<%= cam.observaciones || '' %>" class="inv-cell-input">
                                                 </div>
                                                 <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                    <div class="excel-actions">
-                                                        <button type="submit" class="excel-btn excel-btn-save" title="Guardar">✓</button>
-                                                        <button type="button" class="excel-btn excel-btn-delete"
-                                                                onclick="cancelarEdicion('edit-cam-<%= cam.id %>')" title="Cancelar">✕</button>
+                                                    <div class="inv-actions">
+                                                        <button type="submit" class="inv-action-btn inv-action-edit" title="Guardar">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                        <button type="button" class="inv-action-btn inv-action-delete"
+                                                                onclick="cancelarEdicion('edit-cam-<%= cam.id %>')" title="Cancelar">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -407,7 +443,7 @@
                                 </tr>
                                 <% }) %>
                                 <% } else { %>
-                                <tr><td colspan="7" style="text-align:center; padding:40px; color:#a0aec0;">No hay cámaras registradas en el piso <%= p %></td></tr>
+                                <tr><td colspan="7" >No hay cámaras registradas en el piso <%= p %></td></tr>
                                 <% } %>
                             </tbody>
                         </table>
@@ -425,21 +461,21 @@
         <!-- ═══════════════════════════════════════════════════ -->
         <!-- PANEL SENSORES                                      -->
         <!-- ═══════════════════════════════════════════════════ -->
-        <div id="tab-sensores" class="inventario-panel <%= tab === 'sensores' ? 'active' : '' %>">
-            <div class="excel-toolbar">
-                <div class="excel-search">
+        <div id="tab-sensores" class="inv-panel <%= tab === 'sensores' ? 'active' : '' %>">
+            <div class="inv-toolbar">
+                <div class="inv-search">
                     <input type="text" id="buscar-sensores"
                            placeholder="Buscar sensores..."
                            onkeyup="filtrarTabla('tabla-sensores', this.value)">
                 </div>
-                <button class="btn btn-success" onclick="abrirModal('modal-sensor')">
+                <button class="inv-btn inv-btn-success" onclick="abrirModal('modal-sensor')">
                     + Nuevo Sensor
                 </button>
             </div>
 
-            <div class="card" style="padding:0;">
-                <div class="table-container">
-                    <table class="table" id="tabla-sensores">
+            <div class="inv-table-wrap">
+                <div style="overflow-x: auto;">
+                    <table class="inv-table" id="tabla-sensores">
                         <thead>
                             <tr>
                                 <th>Código</th>
@@ -462,60 +498,68 @@
                                 <td><%= s.ubicacion %></td>
                                 <td><%= s.tecnologia %></td>
                                 <td>
-                                    <span class="badge <%= s.estado === 'Operativo' ? 'badge-success' : s.estado === 'Averiado' ? 'badge-danger' : s.estado === 'Deficiente' ? 'badge-warning' : s.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
+                                    <span class="inv-badge <%= s.estado === 'Operativo' ? 'badge-success' : s.estado === 'Averiado' ? 'badge-danger' : s.estado === 'Deficiente' ? 'badge-warning' : s.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
                                         <%= s.estado %>
                                     </span>
                                 </td>
                                 <td><%= s.observaciones || '—' %></td>
                                 <td>
-                                    <div class="excel-actions">
-                                        <button type="button" class="excel-btn excel-btn-save"
-                                                onclick="editarFila('edit-seg-<%= s.id %>')" title="Editar">✏️</button>
-                                        <button type="button" class="excel-btn excel-btn-delete"
+                                    <div class="inv-actions">
+                                        <button type="button" class="inv-action-btn inv-action-edit"
+                                                onclick="editarFila('edit-seg-<%= s.id %>')" title="Editar">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                        <button type="button" class="inv-action-btn inv-action-delete"
                                                 onclick="confirmarEliminar('/inventario/sensores/<%= s.id %>/eliminar')"
-                                                title="Eliminar">🗑️</button>
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr id="edit-seg-<%= s.id %>" style="display:none; background:#fffbeb;">
-                                <td colspan="8" style="padding:0;">
+                                <td colspan="8">
                                     <form action="/inventario/sensores/<%= s.id %>/editar" method="POST"
                                           style="display:table; width:100%;">
                                         <div style="display:table-row;">
                                             <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                <input type="text" value="<%= s.codigo %>" class="excel-cell-input" readonly>
+                                                <input type="text" value="<%= s.codigo %>" class="inv-cell-input" readonly>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:15%;">
-                                                <input type="text" name="equipo" value="<%= s.equipo %>" class="excel-cell-input">
+                                                <input type="text" name="equipo" value="<%= s.equipo %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:15%;">
-                                                <input type="text" name="nomenclatura" value="<%= s.nomenclatura %>" class="excel-cell-input">
+                                                <input type="text" name="nomenclatura" value="<%= s.nomenclatura %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:15%;">
-                                                <input type="text" name="ubicacion" value="<%= s.ubicacion %>" class="excel-cell-input">
+                                                <input type="text" name="ubicacion" value="<%= s.ubicacion %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <select name="tecnologia" class="excel-cell-select">
+                                                <select name="tecnologia" class="inv-cell-select">
                                                     <% ['Cableado','Inalámbrico'].forEach(t => { %>
                                                         <option value="<%= t %>" <%= s.tecnologia === t ? 'selected' : '' %>><%= t %></option>
                                                     <% }) %>
                                                 </select>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <select name="estado" class="excel-cell-select" onchange="validarArchivado(this, 'sensor', <%= s.id %>)">
+                                                <select name="estado" class="inv-cell-select" onchange="validarArchivado(this, 'sensor', <%= s.id %>)">
                                                     <% estados.forEach(e => { %>
                                                         <option value="<%= e %>" <%= s.estado === e ? 'selected' : '' %>><%= e %></option>
                                                     <% }) %>
                                                 </select>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:11%;">
-                                                <input type="text" name="observaciones" value="<%= s.observaciones || '' %>" class="excel-cell-input">
+                                                <input type="text" name="observaciones" value="<%= s.observaciones || '' %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                <div class="excel-actions">
-                                                    <button type="submit" class="excel-btn excel-btn-save" title="Guardar">✓</button>
-                                                    <button type="button" class="excel-btn excel-btn-delete"
-                                                            onclick="cancelarEdicion('edit-seg-<%= s.id %>')" title="Cancelar">✕</button>
+                                                <div class="inv-actions">
+                                                    <button type="submit" class="inv-action-btn inv-action-edit" title="Guardar">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="inv-action-btn inv-action-delete"
+                                                            onclick="cancelarEdicion('edit-seg-<%= s.id %>')" title="Cancelar">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -524,7 +568,7 @@
                             </tr>
                             <% }) %>
                             <% } else { %>
-                            <tr><td colspan="8" style="text-align:center; padding:40px; color:#a0aec0;">No hay sensores registrados</td></tr>
+                            <tr><td colspan="8" >No hay sensores registrados</td></tr>
                             <% } %>
                         </tbody>
                     </table>
@@ -535,21 +579,21 @@
         <!-- ═══════════════════════════════════════════════════ -->
         <!-- PANEL PUNTOS DE RED                                  -->
         <!-- ═══════════════════════════════════════════════════ -->
-        <div id="tab-puntosred" class="inventario-panel <%= tab === 'puntosred' ? 'active' : '' %>">
-            <div class="excel-toolbar">
-                <div class="excel-search">
+        <div id="tab-puntosred" class="inv-panel <%= tab === 'puntosred' ? 'active' : '' %>">
+            <div class="inv-toolbar">
+                <div class="inv-search">
                     <input type="text" id="buscar-puntosred"
                            placeholder="Buscar puntos de red..."
                            onkeyup="filtrarTabla('tabla-puntosred', this.value)">
                 </div>
-                <button class="btn btn-success" onclick="abrirModal('modal-puntored')">
+                <button class="inv-btn inv-btn-success" onclick="abrirModal('modal-puntored')">
                     + Nuevo Punto de Red
                 </button>
             </div>
 
-            <div class="card" style="padding:0;">
-                <div class="table-container">
-                    <table class="table" id="tabla-puntosred">
+            <div class="inv-table-wrap">
+                <div style="overflow-x: auto;">
+                    <table class="inv-table" id="tabla-puntosred">
                         <thead>
                             <tr>
                                 <th>Código</th>
@@ -572,64 +616,72 @@
                                 <td><%= r.longitud || '—' %></td>
                                 <td><%= r.tipoUso %></td>
                                 <td>
-                                    <span class="badge <%= r.estado === 'Operativo' ? 'badge-success' : r.estado === 'Averiado' ? 'badge-danger' : r.estado === 'Deficiente' ? 'badge-warning' : r.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
+                                    <span class="inv-badge <%= r.estado === 'Operativo' ? 'badge-success' : r.estado === 'Averiado' ? 'badge-danger' : r.estado === 'Deficiente' ? 'badge-warning' : r.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
                                         <%= r.estado %>
                                     </span>
                                 </td>
                                 <td><%= r.observaciones || '—' %></td>
                                 <td>
-                                    <div class="excel-actions">
-                                        <button type="button" class="excel-btn excel-btn-save"
-                                                onclick="editarFila('edit-red-<%= r.id %>')" title="Editar">✏️</button>
-                                        <button type="button" class="excel-btn excel-btn-delete"
+                                    <div class="inv-actions">
+                                        <button type="button" class="inv-action-btn inv-action-edit"
+                                                onclick="editarFila('edit-red-<%= r.id %>')" title="Editar">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                        <button type="button" class="inv-action-btn inv-action-delete"
                                                 onclick="confirmarEliminar('/inventario/puntosred/<%= r.id %>/eliminar')"
-                                                title="Eliminar">🗑️</button>
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr id="edit-red-<%= r.id %>" style="display:none; background:#fffbeb;">
-                                <td colspan="8" style="padding:0;">
+                                <td colspan="8">
                                     <form action="/inventario/puntosred/<%= r.id %>/editar" method="POST"
                                           style="display:table; width:100%;">
                                         <div style="display:table-row;">
                                             <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <input type="text" value="<%= r.codigo %>" class="excel-cell-input" readonly>
+                                                <input type="text" value="<%= r.codigo %>" class="inv-cell-input" readonly>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:16%;">
-                                                <input type="text" name="ubicacion" value="<%= r.ubicacion %>" class="excel-cell-input">
+                                                <input type="text" name="ubicacion" value="<%= r.ubicacion %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <select name="tipoCable" class="excel-cell-select">
+                                                <select name="tipoCable" class="inv-cell-select">
                                                     <% ['Cat 5e','Cat 6','Cat 6a','Fibra óptica'].forEach(c => { %>
                                                         <option value="<%= c %>" <%= r.tipoCable === c ? 'selected' : '' %>><%= c %></option>
                                                     <% }) %>
                                                 </select>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                <input type="text" name="longitud" value="<%= r.longitud || '' %>" class="excel-cell-input" placeholder="Ej: 10mtr">
+                                                <input type="text" name="longitud" value="<%= r.longitud || '' %>" class="inv-cell-input" placeholder="Ej: 10mtr">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <select name="tipoUso" class="excel-cell-select">
+                                                <select name="tipoUso" class="inv-cell-select">
                                                     <% ['Datos','AP','Cámara','Ruta Enlace'].forEach(u => { %>
                                                         <option value="<%= u %>" <%= r.tipoUso === u ? 'selected' : '' %>><%= u %></option>
                                                     <% }) %>
                                                 </select>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <select name="estado" class="excel-cell-select" onchange="validarArchivado(this, 'puntored', <%= r.id %>)">
+                                                <select name="estado" class="inv-cell-select" onchange="validarArchivado(this, 'puntored', <%= r.id %>)">
                                                     <% estados.forEach(e => { %>
                                                         <option value="<%= e %>" <%= r.estado === e ? 'selected' : '' %>><%= e %></option>
                                                     <% }) %>
                                                 </select>
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:16%;">
-                                                <input type="text" name="observaciones" value="<%= r.observaciones || '' %>" class="excel-cell-input">
+                                                <input type="text" name="observaciones" value="<%= r.observaciones || '' %>" class="inv-cell-input">
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                <div class="excel-actions">
-                                                    <button type="submit" class="excel-btn excel-btn-save" title="Guardar">✓</button>
-                                                    <button type="button" class="excel-btn excel-btn-delete"
-                                                            onclick="cancelarEdicion('edit-red-<%= r.id %>')" title="Cancelar">✕</button>
+                                                <div class="inv-actions">
+                                                    <button type="submit" class="inv-action-btn inv-action-edit" title="Guardar">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="inv-action-btn inv-action-delete"
+                                                            onclick="cancelarEdicion('edit-red-<%= r.id %>')" title="Cancelar">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -638,7 +690,7 @@
                             </tr>
                             <% }) %>
                             <% } else { %>
-                            <tr><td colspan="8" style="text-align:center; padding:40px; color:#a0aec0;">No hay puntos de red registrados</td></tr>
+                            <tr><td colspan="8" >No hay puntos de red registrados</td></tr>
                             <% } %>
                         </tbody>
                     </table>
@@ -649,14 +701,14 @@
         <!-- ═══════════════════════════════════════════════════ -->
         <!-- PANEL ARCHIVADOS                                    -->
         <!-- ═══════════════════════════════════════════════════ -->
-        <div id="tab-archivados" class="inventario-panel <%= tab === 'archivados' ? 'active' : '' %>">
-            <div class="excel-toolbar">
-                <div class="excel-search">
+        <div id="tab-archivados" class="inv-panel <%= tab === 'archivados' ? 'active' : '' %>">
+            <div class="inv-toolbar">
+                <div class="inv-search">
                     <input type="text" id="buscar-archivados"
                            placeholder="Buscar archivados..."
                            onkeyup="filtrarTabla('tabla-archivados', this.value)">
                 </div>
-                <button class="btn btn-success" onclick="abrirModal('modal-seleccion-archivado')">
+                <button class="inv-btn inv-btn-success" onclick="abrirModal('modal-seleccion-archivado')">
                     + Nuevo Archivado
                 </button>
             </div>
@@ -665,9 +717,9 @@
                 Equipos archivados temporalmente. Puedes restaurarlos a su categoría original cuando los necesites.
             </p>
 
-            <div class="card" style="padding:0;">
-                <div class="table-container">
-                    <table class="table" id="tabla-archivados">
+            <div class="inv-table-wrap">
+                <div style="overflow-x: auto;">
+                    <table class="inv-table" id="tabla-archivados">
                         <thead>
                             <tr>
                                 <th style="width:40px;"></th>
@@ -688,25 +740,29 @@
                                     <i class="fas <%= a.icono %>" style="color:#8b95a8; font-size:0.9rem;"></i>
                                 </td>
                                 <td><strong><%= a.codigo %></strong><br><small style="color:#8b95a8;"><%= a.nombre %></small></td>
-                                <td><span class="badge badge-info"><%= a.tipoLabel %></span></td>
+                                <td><span class="inv-badge inv-inv-badge-info"><%= a.tipoLabel %></span></td>
                                 <td><%= a.detalle1 %></td>
                                 <td><%= a.detalle2 %></td>
                                 <td><%= a.detalle3 %></td>
                                 <td><%= a.observaciones || '—' %></td>
                                 <td>
-                                    <div class="excel-actions">
-                                        <button type="button" class="excel-btn excel-btn-save"
+                                    <div class="inv-actions">
+                                        <button type="button" class="inv-action-btn inv-action-edit"
                                                 onclick="abrirModalRestaurar('<%= a.tipo %>', <%= a.id %>, '<%= a.codigo %>', '<%= a.tipoLabel %>')"
-                                                title="Restaurar">🔄</button>
-                                        <button type="button" class="excel-btn excel-btn-delete"
+                                                title="Restaurar">
+                                            <i class="fas fa-rotate-left"></i>
+                                        </button>
+                                        <button type="button" class="inv-action-btn inv-action-delete"
                                                 onclick="confirmarEliminar('/inventario/<%= a.tipo === 'puntored' ? 'puntosred' : a.tipo + 's' %>/<%= a.id %>/eliminar')"
-                                                title="Eliminar">🗑️</button>
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                             <% }) %>
                             <% } else { %>
-                            <tr><td colspan="8" style="text-align:center; padding:40px; color:#a0aec0;">No hay equipos archivados</td></tr>
+                            <tr><td colspan="8" >No hay equipos archivados</td></tr>
                             <% } %>
                         </tbody>
                     </table>
@@ -717,14 +773,14 @@
         <!-- ═══════════════════════════════════════════════════ -->
         <!-- PANEL DOCUMENTOS                                    -->
         <!-- ═══════════════════════════════════════════════════ -->
-        <div id="tab-documentos" class="inventario-panel <%= tab === 'documentos' ? 'active' : '' %>">
-            <div class="excel-toolbar">
-                <div class="excel-search">
+        <div id="tab-documentos" class="inv-panel <%= tab === 'documentos' ? 'active' : '' %>">
+            <div class="inv-toolbar">
+                <div class="inv-search">
                     <input type="text" id="buscar-documentos"
                            placeholder="Buscar documentos..."
                            onkeyup="filtrarTabla('tabla-documentos', this.value)">
                 </div>
-                <button class="btn btn-success" onclick="abrirModal('modal-documento')">
+                <button class="inv-btn inv-btn-success" onclick="abrirModal('modal-documento')">
                     + Subir Documento
                 </button>
             </div>
@@ -733,9 +789,9 @@
                 Actas de entrega, certificados y bitácoras escaneadas de las empresas contratistas.
             </p>
 
-            <div class="card" style="padding:0;">
-                <div class="table-container">
-                    <table class="table" id="tabla-documentos">
+            <div class="inv-table-wrap">
+                <div style="overflow-x: auto;">
+                    <table class="inv-table" id="tabla-documentos">
                         <thead>
                             <tr>
                                 <th>Título</th>
@@ -752,22 +808,27 @@
                             <tr>
                                 <td><strong><%= d.titulo %></strong></td>
                                 <td><%= d.empresa %></td>
-                                <td><span class="badge badge-info"><%= d.tipoDocumento %></span></td>
+                                <td><span class="inv-badge inv-inv-badge-info"><%= d.tipoDocumento %></span></td>
                                 <td><%= d.categoria %></td>
                                 <td><%= d.fechaDocumento ? helpers.formatearFecha(d.fechaDocumento) : '—' %></td>
                                 <td>
-                                    <div class="excel-actions">
+                                    <div class="inv-actions">
                                         <a href="/uploads/documentos/<%= d.archivo %>" target="_blank"
-                                           class="excel-btn excel-btn-save" title="Ver documento">👁️</a>
-                                        <button type="button" class="excel-btn excel-btn-delete"
+                                           class="inv-action-btn inv-action-edit" title="Ver documento"
+                                           onclick="return verificarDocumento(this, '/uploads/documentos/<%= d.archivo %>')">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="inv-action-btn inv-action-delete"
                                                 onclick="confirmarEliminar('/inventario/documentos/<%= d.id %>/eliminar')"
-                                                title="Eliminar">🗑️</button>
+                                                title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                             <% }) %>
                             <% } else { %>
-                            <tr><td colspan="6" style="text-align:center; padding:40px; color:#a0aec0;">No hay documentos subidos aún</td></tr>
+                            <tr><td colspan="6" >No hay documentos subidos aún</td></tr>
                             <% } %>
                         </tbody>
                     </table>
@@ -785,39 +846,39 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- MODAL SELECCIONAR CATEGORÍA ARCHIVADO                  -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-seleccion-archivado">
-    <div class="modal-content" style="max-width:400px;">
-        <div class="modal-header">
+<div class="inv-modal-overlay" id="modal-seleccion-archivado">
+    <div class="inv-modal" class="inv-modal-sm">
+        <div class="inv-modal-header">
             <h2>Nuevo Archivado</h2>
-            <button class="modal-close" onclick="cerrarModal('modal-seleccion-archivado')">×</button>
+            <button class="inv-modal-close" onclick="cerrarModal('modal-seleccion-archivado')">×</button>
         </div>
-        <div class="modal-body">
+        <div class="inv-modal-body">
             <p style="color:#64748b; margin-bottom:20px;">Selecciona la categoría del equipo que deseas archivar:</p>
             <div style="display:flex; flex-direction:column; gap:10px;">
-                <button type="button" class="btn btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
+                <button type="button" class="inv-btn inv-btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
                         onclick="cerrarModal('modal-seleccion-archivado'); abrirModal('modal-computadora'); preseleccionarArchivado('modal-computadora');">
                     <i class="fas fa-desktop"></i> Computadora
                 </button>
-                <button type="button" class="btn btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
+                <button type="button" class="inv-btn inv-btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
                         onclick="cerrarModal('modal-seleccion-archivado'); abrirModal('modal-periferico'); preseleccionarArchivado('modal-periferico');">
                     <i class="fas fa-keyboard"></i> Periférico
                 </button>
-                <button type="button" class="btn btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
+                <button type="button" class="inv-btn inv-btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
                         onclick="cerrarModal('modal-seleccion-archivado'); abrirModal('modal-camara'); preseleccionarArchivado('modal-camara');">
                     <i class="fas fa-video"></i> Cámara
                 </button>
-                <button type="button" class="btn btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
+                <button type="button" class="inv-btn inv-btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
                         onclick="cerrarModal('modal-seleccion-archivado'); abrirModal('modal-sensor'); preseleccionarArchivado('modal-sensor');">
                     <i class="fas fa-shield-alt"></i> Sensor
                 </button>
-                <button type="button" class="btn btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
+                <button type="button" class="inv-btn inv-btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
                         onclick="cerrarModal('modal-seleccion-archivado'); abrirModal('modal-puntored'); preseleccionarArchivado('modal-puntored');">
                     <i class="fas fa-network-wired"></i> Punto de Red
                 </button>
             </div>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-seleccion-archivado')">Cancelar</button>
+        <div class="inv-modal-footer">
+            <button type="button" class="inv-btn inv-btn-secondary" onclick="cerrarModal('modal-seleccion-archivado')">Cancelar</button>
         </div>
     </div>
 </div>
@@ -825,21 +886,21 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- MODAL RESTAURAR ARCHIVADO                              -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-restaurar">
-    <div class="modal-content" style="max-width:450px;">
-        <div class="modal-header">
+<div class="inv-modal-overlay" id="modal-restaurar">
+    <div class="inv-modal" class="inv-modal-sm">
+        <div class="inv-modal-header">
             <h2>Restaurar Equipo</h2>
-            <button class="modal-close" onclick="cerrarModal('modal-restaurar')">×</button>
+            <button class="inv-modal-close" onclick="cerrarModal('modal-restaurar')">×</button>
         </div>
         <form id="form-restaurar" method="POST">
-            <div class="modal-body">
+            <div class="inv-modal-body">
                 <p style="color:#64748b; margin-bottom:20px;">
                     Estás a punto de restaurar <strong id="restaurar-nombre"></strong> 
                     (<span id="restaurar-tipo"></span>) a su categoría original.
                 </p>
-                <div class="form-group">
-                    <label class="form-label">Nuevo estado</label>
-                    <select name="estado" class="form-control">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Nuevo estado</label>
+                    <select name="estado" class="inv-form-control">
                         <option value="Operativo" selected>Operativo</option>
                         <option value="Deficiente">Deficiente</option>
                         <option value="Averiado">Averiado</option>
@@ -847,14 +908,14 @@
                         <option value="Pendiente revisión">Pendiente revisión</option>
                     </select>
                 </div>
-                <div class="form-group" id="campo-ubicacion-restaurar">
-                    <label class="form-label">Nueva ubicación / Asignación</label>
-                    <input type="text" name="ubicacion" class="form-control" placeholder="Ej: Oficina 2, Caja 3...">
+                <div class="inv-form-group" id="campo-ubicacion-restaurar">
+                    <label class="inv-form-label">Nueva ubicación / Asignación</label>
+                    <input type="text" name="ubicacion" class="inv-form-control" placeholder="Ej: Oficina 2, Caja 3...">
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-restaurar')">Cancelar</button>
-                <button type="submit" class="btn btn-success">Restaurar</button>
+            <div class="inv-modal-footer">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="cerrarModal('modal-restaurar')">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-success">Restaurar</button>
             </div>
         </form>
     </div>
@@ -863,62 +924,62 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- MODAL NUEVA COMPUTADORA                                  -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-computadora">
-    <div class="modal-content">
-        <div class="modal-header">
+<div class="inv-modal-overlay" id="modal-computadora">
+    <div class="inv-modal">
+        <div class="inv-modal-header">
             <h2>Nueva Computadora</h2>
-            <button class="modal-close" onclick="cerrarModal('modal-computadora')">×</button>
+            <button class="inv-modal-close" onclick="cerrarModal('modal-computadora')">×</button>
         </div>
         <form action="/inventario/computadoras" method="POST">
-            <div class="modal-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Nombre / Código *</label>
-                        <input type="text" name="nombre" class="form-control" required placeholder="Ej: PC-CAJA-01">
+            <div class="inv-modal-body">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Nombre / Código *</label>
+                        <input type="text" name="nombre" class="inv-form-control" required placeholder="Ej: PC-CAJA-01">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Fabricante</label>
-                        <input type="text" name="fabricante" class="form-control" placeholder="Ej: HP, Dell, Lenovo">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Modelo</label>
-                        <input type="text" name="modelo" class="form-control" placeholder="Ej: ProDesk 400 G7">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">N° de Serie</label>
-                        <input type="text" name="numeroSerie" class="form-control">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Fabricante</label>
+                        <input type="text" name="fabricante" class="inv-form-control" placeholder="Ej: HP, Dell, Lenovo">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Procesador</label>
-                    <input type="text" name="procesador" class="form-control" placeholder="Ej: Intel Core i5-10400">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Modelo</label>
+                        <input type="text" name="modelo" class="inv-form-control" placeholder="Ej: ProDesk 400 G7">
+                    </div>
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">N° de Serie</label>
+                        <input type="text" name="numeroSerie" class="inv-form-control">
+                    </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">RAM (GB)</label>
-                        <input type="number" name="ramGb" class="form-control" min="1" placeholder="8">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Procesador</label>
+                    <input type="text" name="procesador" class="inv-form-control" placeholder="Ej: Intel Core i5-10400">
+                </div>
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">RAM (GB)</label>
+                        <input type="number" name="ramGb" class="inv-form-control" min="1" placeholder="8">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Disco SSD (GB)</label>
-                        <input type="number" name="discoSsdGb" class="form-control" min="1" placeholder="256">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Disco SSD (GB)</label>
+                        <input type="number" name="discoSsdGb" class="inv-form-control" min="1" placeholder="256">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Estado</label>
-                        <select name="estado" class="form-control">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Estado</label>
+                        <select name="estado" class="inv-form-control">
                             <% estados.forEach(e => { %><option value="<%= e %>"><%= e %></option><% }) %>
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Observaciones</label>
-                    <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Observaciones</label>
+                    <textarea name="observaciones" class="inv-form-control" rows="2"></textarea>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-computadora')">Cancelar</button>
-                <button type="submit" class="btn btn-success">Crear</button>
+            <div class="inv-modal-footer">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="cerrarModal('modal-computadora')">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-success">Crear</button>
             </div>
         </form>
     </div>
@@ -927,29 +988,29 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- MODAL NUEVO PERIFÉRICO                                   -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-periferico">
-    <div class="modal-content">
-        <div class="modal-header">
+<div class="inv-modal-overlay" id="modal-periferico">
+    <div class="inv-modal">
+        <div class="inv-modal-header">
             <h2>Nuevo Periférico</h2>
-            <button class="modal-close" onclick="cerrarModal('modal-periferico')">×</button>
+            <button class="inv-modal-close" onclick="cerrarModal('modal-periferico')">×</button>
         </div>
         <form action="/inventario/perifericos" method="POST">
-            <div class="modal-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Código <span style="color:#8b95a8; font-weight:400;">(opcional)</span></label>
-                        <input type="text" name="codigo" class="form-control"
+            <div class="inv-modal-body">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Código <span style="color:#8b95a8; font-weight:400;">(opcional)</span></label>
+                        <input type="text" name="codigo" class="inv-form-control"
                                placeholder="<%= siguienteCodigoPeriferico %>"
                                style="color:#a0aec0; font-style:italic;"
                                onfocus="this.style.color='#2c3e50'; this.style.fontStyle='normal'; if(this.value==='') this.value='<%= siguienteCodigoPeriferico %>';"
                                onblur="if(this.value==='<%= siguienteCodigoPeriferico %>' || this.value==='') { this.value=''; this.style.color='#a0aec0'; this.style.fontStyle='italic'; }">
-                        <div class="form-hint" style="font-size:0.8rem; color:#8b95a8; margin-top:4px;">
+                        <div class="inv-form-hint" style="font-size:0.8rem; color:#8b95a8; margin-top:4px;">
                             Próximo código disponible: <strong><%= siguienteCodigoPeriferico %></strong>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Categoría *</label>
-                        <select name="categoria" class="form-control" required>
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Categoría *</label>
+                        <select name="categoria" class="inv-form-control" required>
                             <option value="Teclado">Teclado</option>
                             <option value="Mouse">Mouse</option>
                             <option value="Monitor">Monitor</option>
@@ -962,37 +1023,37 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Descripción *</label>
-                    <input type="text" name="descripcion" class="form-control" required placeholder="Ej: Teclado inalámbrico Logitech">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Descripción *</label>
+                    <input type="text" name="descripcion" class="inv-form-control" required placeholder="Ej: Teclado inalámbrico Logitech">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Asignado a</label>
-                        <select name="computadoraAsignada" class="form-control">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Asignado a</label>
+                        <select name="computadoraAsignada" class="inv-form-control">
                             <option value="">-- Sin asignar --</option>
                             <% listaComputadoras.forEach(pc => { %><option value="<%= pc.nombre %>"><%= pc.nombre %></option><% }) %>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Ubicación</label>
-                        <input type="text" name="ubicacion" class="form-control">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Ubicación</label>
+                        <input type="text" name="ubicacion" class="inv-form-control">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Estado</label>
-                    <select name="estado" class="form-control">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Estado</label>
+                    <select name="estado" class="inv-form-control">
                         <% estados.forEach(e => { %><option value="<%= e %>"><%= e %></option><% }) %>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Observaciones</label>
-                    <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Observaciones</label>
+                    <textarea name="observaciones" class="inv-form-control" rows="2"></textarea>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-periferico')">Cancelar</button>
-                <button type="submit" class="btn btn-success">Crear</button>
+            <div class="inv-modal-footer">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="cerrarModal('modal-periferico')">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-success">Crear</button>
             </div>
         </form>
     </div>
@@ -1001,65 +1062,65 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- MODAL NUEVA CÁMARA                                       -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-camara">
-    <div class="modal-content">
-        <div class="modal-header">
+<div class="inv-modal-overlay" id="modal-camara">
+    <div class="inv-modal">
+        <div class="inv-modal-header">
             <h2 id="modal-camara-titulo">Nueva Cámara</h2>
-            <button class="modal-close" onclick="cerrarModal('modal-camara')">×</button>
+            <button class="inv-modal-close" onclick="cerrarModal('modal-camara')">×</button>
         </div>
         <form action="/inventario/camaras" method="POST">
-            <div class="modal-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Código <span style="color:#8b95a8; font-weight:400;">(opcional)</span></label>
-                        <input type="text" name="codigo" id="input-codigo-camara" class="form-control"
+            <div class="inv-modal-body">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Código <span style="color:#8b95a8; font-weight:400;">(opcional)</span></label>
+                        <input type="text" name="codigo" id="input-codigo-camara" class="inv-form-control"
                                placeholder="<%= siguienteCodigoCamara[piso] %>"
                                style="color:#a0aec0; font-style:italic;">
-                        <div class="form-hint" style="font-size:0.8rem; color:#8b95a8; margin-top:4px;">
+                        <div class="inv-form-hint" style="font-size:0.8rem; color:#8b95a8; margin-top:4px;">
                             Próximo código: <strong id="codigo-camara-hint"><%= siguienteCodigoCamara[piso] %></strong>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Marca</label>
-                        <input type="text" name="marca" class="form-control" placeholder="Ej: Hikvision">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Marca</label>
+                        <input type="text" name="marca" class="inv-form-control" placeholder="Ej: Hikvision">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Ubicación</label>
-                    <input type="text" name="ubicacion" class="form-control" placeholder="Ej: Vitrina">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Ubicación</label>
+                    <input type="text" name="ubicacion" class="inv-form-control" placeholder="Ej: Vitrina">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">DVR</label>
-                        <select name="dvr" class="form-control">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">DVR</label>
+                        <select name="dvr" class="inv-form-control">
                             <option value="1">DVR 1</option>
                             <option value="2">DVR 2</option>
                             <option value="3">DVR 3</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Piso</label>
-                        <select name="piso" class="form-control">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Piso</label>
+                        <select name="piso" class="inv-form-control">
                             <option value="1">Piso 1</option>
                             <option value="2">Piso 2</option>
                             <option value="3">Piso 3</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Estado</label>
-                        <select name="estado" class="form-control">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Estado</label>
+                        <select name="estado" class="inv-form-control">
                             <% estados.forEach(e => { %><option value="<%= e %>"><%= e %></option><% }) %>
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Observaciones</label>
-                    <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Observaciones</label>
+                    <textarea name="observaciones" class="inv-form-control" rows="2"></textarea>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-camara')">Cancelar</button>
-                <button type="submit" class="btn btn-success">Crear</button>
+            <div class="inv-modal-footer">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="cerrarModal('modal-camara')">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-success">Crear</button>
             </div>
         </form>
     </div>
@@ -1068,62 +1129,62 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- MODAL NUEVO SENSOR                                       -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-sensor">
-    <div class="modal-content">
-        <div class="modal-header">
+<div class="inv-modal-overlay" id="modal-sensor">
+    <div class="inv-modal">
+        <div class="inv-modal-header">
             <h2>Nuevo Sensor</h2>
-            <button class="modal-close" onclick="cerrarModal('modal-sensor')">×</button>
+            <button class="inv-modal-close" onclick="cerrarModal('modal-sensor')">×</button>
         </div>
         <form action="/inventario/sensores" method="POST">
-            <div class="modal-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Código <span style="color:#8b95a8; font-weight:400;">(opcional)</span></label>
-                        <input type="text" name="codigo" class="form-control"
+            <div class="inv-modal-body">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Código <span style="color:#8b95a8; font-weight:400;">(opcional)</span></label>
+                        <input type="text" name="codigo" class="inv-form-control"
                                placeholder="<%= siguienteCodigoSensor %>"
                                style="color:#a0aec0; font-style:italic;">
-                        <div class="form-hint" style="font-size:0.8rem; color:#8b95a8; margin-top:4px;">
+                        <div class="inv-form-hint" style="font-size:0.8rem; color:#8b95a8; margin-top:4px;">
                             Próximo código: <strong><%= siguienteCodigoSensor %></strong>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Equipo *</label>
-                        <input type="text" name="equipo" class="form-control" required placeholder="Ej: Hs2032, Humo, Infrarrojo">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Equipo *</label>
+                        <input type="text" name="equipo" class="inv-form-control" required placeholder="Ej: Hs2032, Humo, Infrarrojo">
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Nomenclatura</label>
-                        <input type="text" name="nomenclatura" class="form-control" placeholder="Ej: Tarjeta madre, Hum, Infra 1">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Nomenclatura</label>
+                        <input type="text" name="nomenclatura" class="inv-form-control" placeholder="Ej: Tarjeta madre, Hum, Infra 1">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Ubicación *</label>
-                        <input type="text" name="ubicacion" class="form-control" required placeholder="Ej: Bodega 2, Oficina 1">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Ubicación *</label>
+                        <input type="text" name="ubicacion" class="inv-form-control" required placeholder="Ej: Bodega 2, Oficina 1">
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Tecnología</label>
-                        <select name="tecnologia" class="form-control">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Tecnología</label>
+                        <select name="tecnologia" class="inv-form-control">
                             <option value="Cableado">Cableado</option>
                             <option value="Inalámbrico">Inalámbrico</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Estado</label>
-                        <select name="estado" class="form-control">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Estado</label>
+                        <select name="estado" class="inv-form-control">
                             <% estados.forEach(e => { %><option value="<%= e %>"><%= e %></option><% }) %>
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Observaciones</label>
-                    <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Observaciones</label>
+                    <textarea name="observaciones" class="inv-form-control" rows="2"></textarea>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-sensor')">Cancelar</button>
-                <button type="submit" class="btn btn-success">Crear</button>
+            <div class="inv-modal-footer">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="cerrarModal('modal-sensor')">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-success">Crear</button>
             </div>
         </form>
     </div>
@@ -1132,69 +1193,69 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- MODAL NUEVO PUNTO DE RED                                 -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-puntored">
-    <div class="modal-content">
-        <div class="modal-header">
+<div class="inv-modal-overlay" id="modal-puntored">
+    <div class="inv-modal">
+        <div class="inv-modal-header">
             <h2>Nuevo Punto de Red</h2>
-            <button class="modal-close" onclick="cerrarModal('modal-puntored')">×</button>
+            <button class="inv-modal-close" onclick="cerrarModal('modal-puntored')">×</button>
         </div>
         <form action="/inventario/puntosred" method="POST">
-            <div class="modal-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Código <span style="color:#8b95a8; font-weight:400;">(opcional)</span></label>
-                        <input type="text" name="codigo" class="form-control"
+            <div class="inv-modal-body">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Código <span style="color:#8b95a8; font-weight:400;">(opcional)</span></label>
+                        <input type="text" name="codigo" class="inv-form-control"
                                placeholder="<%= siguienteCodigoRed %>"
                                style="color:#a0aec0; font-style:italic;">
-                        <div class="form-hint" style="font-size:0.8rem; color:#8b95a8; margin-top:4px;">
+                        <div class="inv-form-hint" style="font-size:0.8rem; color:#8b95a8; margin-top:4px;">
                             Próximo código: <strong><%= siguienteCodigoRed %></strong>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Ubicación *</label>
-                        <input type="text" name="ubicacion" class="form-control" required placeholder="Ej: Oficina 2 Izq.">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Ubicación *</label>
+                        <input type="text" name="ubicacion" class="inv-form-control" required placeholder="Ej: Oficina 2 Izq.">
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Tipo de cable</label>
-                        <select name="tipoCable" class="form-control">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Tipo de cable</label>
+                        <select name="tipoCable" class="inv-form-control">
                             <option value="Cat 5e">Cat 5e</option>
                             <option value="Cat 6">Cat 6</option>
                             <option value="Cat 6a">Cat 6a</option>
                             <option value="Fibra óptica">Fibra óptica</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Longitud aprox.</label>
-                        <input type="text" name="longitud" class="form-control" placeholder="Ej: 10mtr">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Longitud aprox.</label>
+                        <input type="text" name="longitud" class="inv-form-control" placeholder="Ej: 10mtr">
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Uso</label>
-                        <select name="tipoUso" class="form-control">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Uso</label>
+                        <select name="tipoUso" class="inv-form-control">
                             <option value="Datos">Datos</option>
                             <option value="AP">AP</option>
                             <option value="Cámara">Cámara</option>
                             <option value="Ruta Enlace">Ruta Enlace</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Estado</label>
-                        <select name="estado" class="form-control">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Estado</label>
+                        <select name="estado" class="inv-form-control">
                             <% estados.forEach(e => { %><option value="<%= e %>"><%= e %></option><% }) %>
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Observaciones</label>
-                    <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Observaciones</label>
+                    <textarea name="observaciones" class="inv-form-control" rows="2"></textarea>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-puntored')">Cancelar</button>
-                <button type="submit" class="btn btn-success">Crear</button>
+            <div class="inv-modal-footer">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="cerrarModal('modal-puntored')">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-success">Crear</button>
             </div>
         </form>
     </div>
@@ -1203,26 +1264,26 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- MODAL SUBIR DOCUMENTO                                    -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-documento">
-    <div class="modal-content">
-        <div class="modal-header">
+<div class="inv-modal-overlay" id="modal-documento">
+    <div class="inv-modal">
+        <div class="inv-modal-header">
             <h2>Subir Documento</h2>
-            <button class="modal-close" onclick="cerrarModal('modal-documento')">×</button>
+            <button class="inv-modal-close" onclick="cerrarModal('modal-documento')">×</button>
         </div>
         <form action="/inventario/documentos" method="POST" enctype="multipart/form-data">
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Título *</label>
-                    <input type="text" name="titulo" class="form-control" required placeholder="Ej: Acta de entrega sistema de intrusión">
+            <div class="inv-modal-body">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Título *</label>
+                    <input type="text" name="titulo" class="inv-form-control" required placeholder="Ej: Acta de entrega sistema de intrusión">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Empresa responsable *</label>
-                        <input type="text" name="empresa" class="form-control" required placeholder="Ej: TECNOSEGUR SAS">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Empresa responsable *</label>
+                        <input type="text" name="empresa" class="inv-form-control" required placeholder="Ej: TECNOSEGUR SAS">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Tipo de documento</label>
-                        <select name="tipoDocumento" class="form-control">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Tipo de documento</label>
+                        <select name="tipoDocumento" class="inv-form-control">
                             <option value="Acta">Acta</option>
                             <option value="Certificado">Certificado</option>
                             <option value="Bitácora">Bitácora</option>
@@ -1230,10 +1291,10 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Categoría relacionada</label>
-                        <select name="categoria" class="form-control">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Categoría relacionada</label>
+                        <select name="categoria" class="inv-form-control">
                             <option value="General">General</option>
                             <option value="Camaras">Cámaras</option>
                             <option value="Sensores">Sensores</option>
@@ -1242,27 +1303,28 @@
                             <option value="Perifericos">Periféricos</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Fecha del documento</label>
-                        <input type="date" name="fechaDocumento" class="form-control">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Fecha del documento</label>
+                        <input type="date" name="fechaDocumento" class="inv-form-control">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Archivo (PDF o imagen escaneada) *</label>
-                    <input type="file" name="archivo" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.webp" required>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Archivo (PDF o imagen escaneada) *</label>
+                    <input type="file" name="archivo" class="inv-form-control" accept=".pdf,.jpg,.jpeg,.png,.webp" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Observaciones</label>
-                    <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Observaciones</label>
+                    <textarea name="observaciones" class="inv-form-control" rows="2"></textarea>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modal-documento')">Cancelar</button>
-                <button type="submit" class="btn btn-success">Subir</button>
+            <div class="inv-modal-footer">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="cerrarModal('modal-documento')">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-success">Subir</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Form oculto reutilizado para confirmar eliminaciones -->
+<script src="/js/inventario.js"></script>
 <form id="form-eliminar" method="POST" style="display:none;"></form>

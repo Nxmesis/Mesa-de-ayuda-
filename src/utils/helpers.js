@@ -4,10 +4,40 @@
 
 function formatearFecha(fecha) {
   if (!fecha) return '—'
-  return new Date(fecha).toLocaleDateString('es-CO', {
+  const d = new Date(fecha)
+  // CORRECCIÓN: Ajustar para zona horaria local (evita el desfase de 7pm)
+  const offset = d.getTimezoneOffset()
+  const localDate = new Date(d.getTime() + offset * 60 * 1000)
+  
+  return localDate.toLocaleDateString('es-CO', {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
+    timeZone: 'America/Bogota'
   })
+}
+
+function formatearFechaSolo(fecha) {
+  if (!fecha) return '—'
+  const d = new Date(fecha)
+  // CORRECCIÓN: Ajustar para zona horaria local (evita el desfase de 7pm)
+  const offset = d.getTimezoneOffset()
+  const localDate = new Date(d.getTime() + offset * 60 * 1000)
+
+  return localDate.toLocaleDateString('es-CO', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    timeZone: 'America/Bogota'
+  })
+}
+
+// ── Duración ──────────────────────────────────────────────────────────────────
+
+function formatearDuracion(minutos) {
+  if (minutos === null || minutos === undefined || isNaN(minutos)) return '—'
+  if (minutos <= 0) return '0 min'
+  if (minutos < 60) return `${minutos} min`
+  const horas = Math.floor(minutos / 60)
+  const resto = minutos % 60
+  return resto > 0 ? `${horas}h ${resto}min` : `${horas}h`
 }
 
 // ── Prioridad ─────────────────────────────────────────────────────────────────
@@ -90,6 +120,8 @@ function nombreMes(numero) {
 
 module.exports = {
   formatearFecha,
+  formatearFechaSolo,
+  formatearDuracion,
   nombreMes,
   getPrioridadClass,
   getEstadoClass,

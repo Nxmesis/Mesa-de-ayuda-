@@ -5,29 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= typeof title !== 'undefined' ? title : 'Mesa de Ayuda' %></title>
 
-    <!-- Fuentes y estilos base -->
+    <!-- Fuentes y estilos base (siempre cargados) -->
     <link rel="stylesheet" href="/css/fonts.css">
     <link rel="stylesheet" href="/css/font-awesome.min.css">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/notificaciones-navbar.css">
 
-    <!-- Estilos condicionales -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--  ESTILOS CONDICIONALES POR MÓDULO - NUNCA se solapan          -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- Inventario de Equipos -->
+    <% if (typeof title !== 'undefined' && title === 'Inventario de Equipos') { %>
+    <link rel="stylesheet" href="/css/inventario.css">
+    <script src="/js/inventario.js" defer></script>
+    <% } %>
+
+    <!-- Mantenimientos -->
+    <% if (typeof title !== 'undefined' && title === 'Mantenimientos') { %>
+    <link rel="stylesheet" href="/css/mantenimientos.css">
+    <% } %>
+
+    <!-- Dashboard de Mantenimientos -->
+    <% if (typeof title !== 'undefined' && title === 'Dashboard de Mantenimientos') { %>
+    <link rel="stylesheet" href="/css/mantenimientos.css">
+    <link rel="stylesheet" href="/css/dashboard-mantenimientos.css">
+    <script src="/js/chart.umd.min.js"></script>
+    <% } %>
+
+    <!-- Gestión de Usuarios -->
     <% if (typeof title !== 'undefined' && title === 'Gestion de Usuarios') { %>
     <link rel="stylesheet" href="/css/usuarios.css">
     <% } %>
-    <% if (typeof title !== 'undefined' && title === 'Inventario de Equipos') { %>
-    <link rel="stylesheet" href="/css/inventario.css">
-    <% } %>
+
+    <!-- Órdenes -->
     <% if (typeof title !== 'undefined' && (title === 'Ordenes' || title === 'Nueva Orden')) { %>
     <link rel="stylesheet" href="/css/ordenes.css">
     <% } %>
+
+    <!-- Dashboard principal e Historial -->
     <% if (typeof title !== 'undefined' && (title === 'Dashboard' || (title && title.startsWith('Historial')))) { %>
     <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="/js/chart.umd.min.js"></script>
+    <script src="/js/dashboard.js" defer></script>
+    <script src="/js/dashboard-charts.js" defer></script>
     <% } %>
 
-    <!-- Chart.js solo en dashboard -->
-    <% if (typeof title !== 'undefined' && (title === 'Dashboard' || (title && title.startsWith('Historial')))) { %>
-    <script src="/js/chart.umd.min.js"></script>
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--  SCRIPTS BASE (siempre cargados)                               -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <script src="/js/main.js" defer></script>
+    <script src="/js/notificaciones.js" defer></script>
+    <script src="/js/notificaciones-navbar.js" defer></script>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--  SCRIPTS ESPECÍFICOS DE VISTAS                                 -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <% if (typeof title !== 'undefined' && title === 'Crear Ticket') { %>
+    <script src="/js/crear-ticket.js" defer></script>
+    <% } %>
+
+    <% if (typeof title !== 'undefined' && title.startsWith('Ticket TK-')) { %>
+    <script src="/js/detalle-ticket.js" defer></script>
+    <% } %>
+
+    <% if (typeof title !== 'undefined' && title === 'Mantenimientos') { %>
+    <script src="/js/mantenimientos.js" defer></script>
+    <% } %>
+
+    <!-- Dashboard de Mantenimientos: mantenimientos.js con defer, dashboard SIN defer (se carga inline en la vista) -->
+    <% if (typeof title !== 'undefined' && title === 'Dashboard de Mantenimientos') { %>
+    <script src="/js/mantenimientos.js" defer></script>
     <% } %>
 
     <!-- Pasar datos del usuario al cliente -->
@@ -39,28 +87,5 @@
     </script>
     <% } %>
 
-    <!-- Scripts base -->
-    <script src="/js/main.js" defer></script>
-    <script src="/js/notificaciones.js" defer></script>
-    <script src="/js/notificaciones-navbar.js" defer></script>
-
-    <!-- Script del dashboard -->
-    <% if (typeof title !== 'undefined' && (title === 'Dashboard' || (title && title.startsWith('Historial')))) { %>
-    <script src="/js/dashboard.js" defer></script>
-    <script src="/js/dashboard-charts.js" defer></script>
-    <% } %>
-
-    <% if (typeof title !== 'undefined' && title === 'Inventario de Equipos') { %>
-    <script src="/js/inventario.js" defer></script>
-    <% } %>
-
-    <!-- Scripts específicos de vistas -->
-    <% if (typeof title !== 'undefined' && title === 'Crear Ticket') { %>
-    <script src="/js/crear-ticket.js" defer></script>
-    <% } %>
-
-    <% if (typeof title !== 'undefined' && title.startsWith('Ticket TK-')) { %>
-    <script src="/js/detalle-ticket.js" defer></script>
-    <% } %>
 </head>
 <body>

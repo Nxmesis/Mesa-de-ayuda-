@@ -1,8 +1,14 @@
-'use strict'
+import prisma from '../utils/db.js'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import helpers from '../utils/helpers.js'
 
-const prisma = require('../utils/db')
-const fs   = require('fs')
-const path = require('path')
+// ═══════════════════════════════════════════════════════════════════════════
+//  ES MODULE FIX: __dirname equivalente
+// ═══════════════════════════════════════════════════════════════════════════
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const ITEMS_PER_PAGE = 50
 const PISOS = ['1', '2', '3']
@@ -63,7 +69,6 @@ async function mostrarInventario(req, res) {
       prisma.documentoInventario.findMany({ orderBy: { fechaSubida: 'desc' } }),
     ])
 
-    // Separar archivados
     const computadorasActivas = filtrarArchivados(computadorasTodas)
     const perifericosActivos  = filtrarArchivados(perifericosTodas)
     const camarasActivas      = filtrarArchivados(camarasTodasLista)
@@ -76,7 +81,6 @@ async function mostrarInventario(req, res) {
     const sensoresArchivados     = soloArchivados(sensoresTodas)
     const puntosRedArchivados    = soloArchivados(puntosRedTodas)
 
-    // Construir lista unificada de archivados
     const archivados = []
     computadorasArchivadas.forEach(pc => archivados.push({ tipo: 'computadora', tipoLabel: 'Computadora', icono: 'fa-desktop', id: pc.id, codigo: pc.nombre, nombre: pc.nombre, detalle1: pc.fabricante || '—', detalle2: pc.modelo || '—', detalle3: pc.procesador ? `${pc.procesador} / ${pc.ramGb || '?'}GB` : '—', estado: pc.estado, observaciones: pc.observaciones }))
     perifericosArchivados.forEach(per => archivados.push({ tipo: 'periferico', tipoLabel: 'Periférico', icono: 'fa-keyboard', id: per.id, codigo: per.codigo, nombre: per.descripcion, detalle1: per.categoria, detalle2: per.computadoraAsignada || 'Sin asignar', detalle3: per.ubicacion || '—', estado: per.estado, observaciones: per.observaciones }))
@@ -84,11 +88,9 @@ async function mostrarInventario(req, res) {
     sensoresArchivados.forEach(s => archivados.push({ tipo: 'sensor', tipoLabel: 'Sensor', icono: 'fa-shield-alt', id: s.id, codigo: s.codigo, nombre: s.equipo, detalle1: s.nomenclatura, detalle2: s.ubicacion, detalle3: s.tecnologia, estado: s.estado, observaciones: s.observaciones }))
     puntosRedArchivados.forEach(r => archivados.push({ tipo: 'puntored', tipoLabel: 'Punto de Red', icono: 'fa-network-wired', id: r.id, codigo: r.codigo, nombre: r.ubicacion, detalle1: r.tipoCable, detalle2: r.longitud || '—', detalle3: r.tipoUso, estado: r.estado, observaciones: r.observaciones }))
 
-    // Cámaras por piso (solo activas)
     const camarasPorPisoLista = { '1': [], '2': [], '3': [] }
     camarasActivas.forEach(c => { if (['1','2','3'].includes(c.piso)) camarasPorPisoLista[c.piso].push(c) })
 
-    // Paginación
     let items = [], totalItems = 0
     switch(tab) {
       case 'computadoras': items = computadorasActivas; totalItems = computadorasActivas.length; break
@@ -142,7 +144,7 @@ async function mostrarInventario(req, res) {
       listaComputadoras, siguienteCodigoPeriferico, siguienteCodigoCamara, siguienteCodigoSensor, siguienteCodigoRed,
       pagination: { page, totalPages, hasNext: page < totalPages, hasPrev: page > 1 },
       counts, search,
-      helpers: require('../utils/helpers'),
+      helpers,
     })
 
   } catch (err) {
@@ -240,7 +242,7 @@ async function crearCamara(req, res) {
   if (!codigo?.trim()) {
     const prefijo = `CAM-P${piso}-`
     const ultima = await prisma.camara.findFirst({ where: { codigo: { startsWith: prefijo }, piso }, orderBy: { codigo: 'desc' }, select: { codigo: true } })
-    let n = 1; if (ultima?.codigo) { const m = ultima.codigo.match(new RegExp(`${prefijo.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}(\\d+)`)); if (m) n = parseInt(m[1]) + 1 }
+    let n = 1; if (ultima?.codigo) { const m = ultima.codigo.match(new RegExp(`${prefijo.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}(\d+)`)); if (m) n = parseInt(m[1]) + 1 }
     codigo = `${prefijo}${String(n).padStart(3, '0')}`
   }
   try {
@@ -392,7 +394,507 @@ async function restaurarArchivado(req, res) {
   } catch (err) { console.error(err); req.flash('error', 'Error al restaurar.'); res.redirect('/inventario?tab=archivados') }
 }
 
-module.exports = {
+const FRECUENCIAS = ['15dias', 'Mensual', '3meses', '6meses', 'Anual']
+const TIPOS_MANTENIMIENTO = ['Preventivo', 'Correctivo']
+const ESTADOS_MANTENIMIENTO = ['Pendiente', 'Realizado', 'Vencido']
+
+function calcularProximaFecha(fechaBase, frecuencia) {
+  const fecha = new Date(fechaBase)
+  switch (frecuencia) {
+    case '15dias':    fecha.setDate(fecha.getDate() + 15); break
+    case 'Mensual':   fecha.setMonth(fecha.getMonth() + 1); break
+    case '3meses':    fecha.setMonth(fecha.getMonth() + 3); break
+    case '6meses':    fecha.setMonth(fecha.getMonth() + 6); break
+    case 'Anual':     fecha.setFullYear(fecha.getFullYear() + 1); break
+    default:          fecha.setMonth(fecha.getMonth() + 1)
+  }
+  return fecha
+}
+
+function getInicioMes() {
+  const hoy = new Date()
+  return new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+}
+
+function getFinMes() {
+  const hoy = new Date()
+  return new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59)
+}
+
+// Helper para detectar si una tabla existe en Prisma
+async function tablaExiste(nombreTabla) {
+  try {
+    const result = await prisma.$queryRawUnsafe(`SHOW TABLES LIKE '${nombreTabla}'`)
+    return result && result.length > 0
+  } catch (e) {
+    return false
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  GET /inventario/mantenimientos
+// ═══════════════════════════════════════════════════════════════════
+
+async function mostrarMantenimientos(req, res) {
+  try {
+    const existe = await tablaExiste('mantenimientos')
+    if (!existe) {
+      return res.render('mantenimientos', {
+        title: 'Mantenimientos',
+        user: req.session.usuario,
+        filtro: 'todos',
+        mantenimientos: [],
+        counts: { pendientes: 0, realizados: 0, vencidos: 0, proximos: 0 },
+        pagination: { page: 1, totalPages: 1, hasNext: false, hasPrev: false },
+        search: '',
+        estados: ESTADOS_MANTENIMIENTO,
+        tipos: TIPOS_MANTENIMIENTO,
+        frecuencias: FRECUENCIAS,
+        helpers,
+        tablaPendiente: true,
+      })
+    }
+
+    const filtro = req.query.filtro || 'todos'
+    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const search = (req.query.search || '').trim()
+
+    let where = {}
+    if (search) {
+      where.OR = [
+        { responsable: { contains: search, mode: 'insensitive' } },
+        { descripcion: { contains: search, mode: 'insensitive' } },
+        { observaciones: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+
+    switch (filtro) {
+      case 'pendientes':   where.estado = 'Pendiente'; break
+      case 'realizados':   where.estado = 'Realizado'; break
+      case 'vencidos':
+        where.estado = 'Pendiente'
+        where.fechaProgramada = { lt: new Date() }
+        break
+      case 'preventivos':  where.tipo = 'Preventivo'; break
+      case 'correctivos':  where.tipo = 'Correctivo'; break
+      default: break
+    }
+
+    const [mantenimientos, totalItems] = await Promise.all([
+      prisma.mantenimiento.findMany({
+        where,
+        orderBy: { fechaProgramada: 'asc' },
+        skip: (page - 1) * ITEMS_PER_PAGE,
+        take: ITEMS_PER_PAGE,
+      }),
+      prisma.mantenimiento.count({ where }),
+    ])
+
+    const mantenimientosConEquipo = await Promise.all(
+      mantenimientos.map(async (m) => {
+        let equipoNombre = '—'
+        try {
+          switch (m.equipoTipo) {
+            case 'computadora':
+              const pc = await prisma.computadora.findUnique({ where: { id: m.equipoId }, select: { nombre: true } })
+              equipoNombre = pc?.nombre || '—'
+              break
+            case 'periferico':
+              const per = await prisma.periferico.findUnique({ where: { id: m.equipoId }, select: { codigo: true, descripcion: true } })
+              equipoNombre = per ? `${per.codigo} - ${per.descripcion}` : '—'
+              break
+            case 'camara':
+              const cam = await prisma.camara.findUnique({ where: { id: m.equipoId }, select: { codigo: true, ubicacion: true } })
+              equipoNombre = cam ? `${cam.codigo} (${cam.ubicacion || '—'})` : '—'
+              break
+            case 'sensor':
+              const sen = await prisma.sensor.findUnique({ where: { id: m.equipoId }, select: { codigo: true, equipo: true } })
+              equipoNombre = sen ? `${sen.codigo} - ${sen.equipo}` : '—'
+              break
+            case 'puntored':
+              const red = await prisma.puntoRed.findUnique({ where: { id: m.equipoId }, select: { codigo: true, ubicacion: true } })
+              equipoNombre = red ? `${red.codigo} (${red.ubicacion || '—'})` : '—'
+              break
+          }
+        } catch (e) { equipoNombre = 'Error' }
+        return { ...m, equipoNombre }
+      })
+    )
+
+    const [totalPendientes, totalRealizados, totalVencidos, totalProximos] = await Promise.all([
+      prisma.mantenimiento.count({ where: { estado: 'Pendiente' } }),
+      prisma.mantenimiento.count({ where: { estado: 'Realizado', fechaRealizada: { gte: getInicioMes(), lte: getFinMes() } } }),
+      prisma.mantenimiento.count({ where: { estado: 'Pendiente', fechaProgramada: { lt: new Date() } } }),
+      prisma.mantenimiento.count({
+        where: {
+          estado: 'Pendiente',
+          fechaProgramada: { gte: new Date(), lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }
+        }
+      }),
+    ])
+
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1
+
+    res.render('mantenimientos', {
+      title: 'Mantenimientos',
+      user: req.session.usuario,
+      filtro,
+      mantenimientos: mantenimientosConEquipo,
+      counts: { pendientes: totalPendientes, realizados: totalRealizados, vencidos: totalVencidos, proximos: totalProximos },
+      pagination: { page, totalPages, hasNext: page < totalPages, hasPrev: page > 1 },
+      search,
+      estados: ESTADOS_MANTENIMIENTO,
+      tipos: TIPOS_MANTENIMIENTO,
+      frecuencias: FRECUENCIAS,
+      helpers,
+      tablaPendiente: false,
+    })
+  } catch (err) {
+    console.error('[mantenimientos] mostrarMantenimientos:', err)
+    req.flash('error', 'Error al cargar mantenimientos: ' + err.message)
+    res.redirect('/inventario')
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  GET /inventario/mantenimientos/dashboard
+// ═══════════════════════════════════════════════════════════════════
+
+async function dashboardMantenimientos(req, res) {
+  try {
+    const existe = await tablaExiste('mantenimientos')
+    if (!existe) {
+      return res.render('dashboard-mantenimientos', {
+        title: 'Dashboard de Mantenimientos',
+        user: req.session.usuario,
+        kpis: { pendientes: 0, realizadosMes: 0, vencidos: 0, proximos7: 0 },
+        chartPorMes: [],
+        chartTipo: { preventivos: 0, correctivos: 0 },
+        chartEquipos: [],
+        helpers,
+        tablaPendiente: true,
+      })
+    }
+
+    const hoy = new Date()
+    const inicioMes = getInicioMes()
+    const finMes = getFinMes()
+
+    const [pendientes, realizadosMes, vencidos, proximos7] = await Promise.all([
+      prisma.mantenimiento.count({ where: { estado: 'Pendiente' } }),
+      prisma.mantenimiento.count({ where: { estado: 'Realizado', fechaRealizada: { gte: inicioMes, lte: finMes } } }),
+      prisma.mantenimiento.count({ where: { estado: 'Pendiente', fechaProgramada: { lt: hoy } } }),
+      prisma.mantenimiento.count({
+        where: {
+          estado: 'Pendiente',
+          fechaProgramada: { gte: hoy, lte: new Date(hoy.getTime() + 7 * 24 * 60 * 60 * 1000) }
+        }
+      }),
+    ])
+
+    const porMes = []
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1)
+      const fin = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
+      const count = await prisma.mantenimiento.count({
+        where: { fechaRealizada: { gte: d, lte: fin } }
+      })
+      porMes.push({ mes: d.toLocaleString('es-ES', { month: 'short' }), count })
+    }
+
+    const [preventivos, correctivos] = await Promise.all([
+      prisma.mantenimiento.count({ where: { tipo: 'Preventivo' } }),
+      prisma.mantenimiento.count({ where: { tipo: 'Correctivo' } }),
+    ])
+
+    const equiposTop = await prisma.mantenimiento.groupBy({
+      by: ['equipoId', 'equipoTipo'],
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 10,
+    })
+
+    const equiposTopConNombre = await Promise.all(
+      equiposTop.map(async (e) => {
+        let nombre = '—'
+        try {
+          switch (e.equipoTipo) {
+            case 'computadora':
+              const pc = await prisma.computadora.findUnique({ where: { id: e.equipoId }, select: { nombre: true } })
+              nombre = pc?.nombre || '—'
+              break
+            case 'periferico':
+              const per = await prisma.periferico.findUnique({ where: { id: e.equipoId }, select: { codigo: true } })
+              nombre = per?.codigo || '—'
+              break
+            case 'camara':
+              const cam = await prisma.camara.findUnique({ where: { id: e.equipoId }, select: { codigo: true } })
+              nombre = cam?.codigo || '—'
+              break
+            case 'sensor':
+              const sen = await prisma.sensor.findUnique({ where: { id: e.equipoId }, select: { codigo: true } })
+              nombre = sen?.codigo || '—'
+              break
+            case 'puntored':
+              const red = await prisma.puntoRed.findUnique({ where: { id: e.equipoId }, select: { codigo: true } })
+              nombre = red?.codigo || '—'
+              break
+          }
+        } catch (err) { nombre = 'Error' }
+        return { nombre, count: e._count.id }
+      })
+    )
+
+    res.render('dashboard-mantenimientos', {
+      title: 'Dashboard de Mantenimientos',
+      user: req.session.usuario,
+      counts: {
+        pendientes: pendientes,
+        realizados: realizadosMes,
+        vencidos: vencidos,
+        proximos: proximos7
+      },
+      chartData: {
+        porMes: porMes,
+        tipo: { preventivos, correctivos },
+        equipos: equiposTopConNombre
+      },
+      kpis: { pendientes, realizadosMes, vencidos, proximos7 },
+      chartPorMes: porMes,
+      chartTipo: { preventivos, correctivos },
+      chartEquipos: equiposTopConNombre,
+      helpers,
+      tablaPendiente: false,
+    })
+  } catch (err) {
+    console.error('[mantenimientos] dashboard:', err)
+    req.flash('error', 'Error al cargar el dashboard: ' + err.message)
+    res.redirect('/inventario/mantenimientos')
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  POST /inventario/mantenimientos
+// ═══════════════════════════════════════════════════════════════════
+
+async function crearMantenimiento(req, res) {
+  const { equipoId, equipoTipo, tipo, fechaProgramada, responsable, descripcion, frecuencia } = req.body
+  if (!equipoId || !equipoTipo || !fechaProgramada) {
+    req.flash('error', 'Equipo, tipo y fecha programada son obligatorios.')
+    return res.redirect('/inventario/mantenimientos')
+  }
+  try {
+    await prisma.mantenimiento.create({
+      data: {
+        equipoId: parseInt(equipoId),
+        equipoTipo,
+        tipo: tipo || 'Preventivo',
+        estado: 'Pendiente',
+        responsable: responsable?.trim() || null,
+        fechaProgramada: new Date(fechaProgramada),
+        descripcion: descripcion?.trim() || null,
+        frecuencia: frecuencia || 'Mensual',
+      }
+    })
+    req.flash('success', 'Mantenimiento programado correctamente.')
+    res.redirect('/inventario/mantenimientos')
+  } catch (err) {
+    console.error(err)
+    req.flash('error', 'Error al crear mantenimiento: ' + err.message)
+    res.redirect('/inventario/mantenimientos')
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  POST /inventario/mantenimientos/:id/completar  (ACTUALIZADO)
+// ═══════════════════════════════════════════════════════════════════
+
+async function completarMantenimiento(req, res) {
+  const id = parseInt(req.params.id)
+  const { fechaRealizada, horaInicio, horaFin, repuestos, observaciones } = req.body
+  try {
+    const mant = await prisma.mantenimiento.findUnique({ where: { id } })
+    if (!mant) { req.flash('error', 'Mantenimiento no encontrado.'); return res.redirect('/inventario/mantenimientos') }
+
+    const frecuencia = mant.frecuencia || 'Mensual'
+    
+    // CORRECCIÓN: Construir fecha con componentes locales para evitar desfase de zona horaria
+    let fechaReal
+    if (fechaRealizada && horaInicio) {
+      const [year, month, day] = fechaRealizada.split('-').map(Number)
+      const [hour, minute] = horaInicio.split(':').map(Number)
+      fechaReal = new Date(year, month - 1, day, hour, minute)
+    } else if (fechaRealizada) {
+      const [year, month, day] = fechaRealizada.split('-').map(Number)
+      fechaReal = new Date(year, month - 1, day)
+    } else {
+      fechaReal = new Date()
+    }
+    
+    const proxima = calcularProximaFecha(fechaReal, frecuencia)
+
+    // Calcular tiempo invertido automáticamente en minutos
+    let tiempoInvertido = null
+    if (horaInicio && horaFin) {
+      const [h1, m1] = horaInicio.split(':').map(Number)
+      const [h2, m2] = horaFin.split(':').map(Number)
+      const minutosInicio = h1 * 60 + m1
+      const minutosFin = h2 * 60 + m2
+      tiempoInvertido = minutosFin - minutosInicio
+      if (tiempoInvertido < 0) tiempoInvertido += 24 * 60
+    }
+
+    // Manejar foto de evidencia
+    let fotoEvidencia = null
+    if (req.file) {
+      fotoEvidencia = req.file.filename
+    }
+
+    await prisma.mantenimiento.update({
+      where: { id },
+      data: {
+        estado: 'Realizado',
+        fechaRealizada: fechaReal,
+        proximaFecha: proxima,
+        horaInicio: horaInicio || null,
+        horaFin: horaFin || null,
+        tiempoInvertido: tiempoInvertido,
+        repuestos: repuestos?.trim() || null,
+        observaciones: observaciones?.trim() || null,
+        fotoEvidencia: fotoEvidencia,
+      }
+    })
+
+    await prisma.equipoMantenimiento.upsert({
+      where: { equipoId_equipoTipo: { equipoId: mant.equipoId, equipoTipo: mant.equipoTipo } },
+      update: { ultimoMantenimiento: fechaReal, proximoMantenimiento: proxima },
+      create: {
+        equipoId: mant.equipoId,
+        equipoTipo: mant.equipoTipo,
+        frecuencia,
+        ultimoMantenimiento: fechaReal,
+        proximoMantenimiento: proxima,
+      }
+    })
+
+    req.flash('success', 'Mantenimiento completado. Próxima fecha: ' + proxima.toLocaleDateString('es-ES'))
+    res.redirect('/inventario/mantenimientos')
+  } catch (err) {
+    console.error(err)
+    req.flash('error', 'Error al completar mantenimiento: ' + err.message)
+    res.redirect('/inventario/mantenimientos')
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  POST /inventario/mantenimientos/:id/editar  (BLOQUEA SI COMPLETADO)
+// ═══════════════════════════════════════════════════════════════════
+
+async function editarMantenimiento(req, res) {
+  const id = parseInt(req.params.id)
+  const { tipo, fechaProgramada, responsable, descripcion, frecuencia } = req.body
+  try {
+    // Verificar que no esté completado
+    const mant = await prisma.mantenimiento.findUnique({ where: { id }, select: { estado: true } })
+    if (mant && mant.estado === 'Realizado') {
+      req.flash('error', 'No se puede editar un mantenimiento ya completado.')
+      return res.redirect('/inventario/mantenimientos')
+    }
+
+    await prisma.mantenimiento.update({
+      where: { id },
+      data: {
+        tipo: tipo || undefined,
+        fechaProgramada: fechaProgramada ? new Date(fechaProgramada) : undefined,
+        responsable: responsable?.trim() || null,
+        descripcion: descripcion?.trim() || null,
+        frecuencia: frecuencia || undefined,
+      }
+    })
+    req.flash('success', 'Mantenimiento actualizado.')
+    res.redirect('/inventario/mantenimientos')
+  } catch (err) {
+    console.error(err)
+    req.flash('error', 'Error al actualizar: ' + err.message)
+    res.redirect('/inventario/mantenimientos')
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  POST /inventario/mantenimientos/:id/eliminar
+// ═══════════════════════════════════════════════════════════════════
+
+async function eliminarMantenimiento(req, res) {
+  try {
+    await prisma.mantenimiento.delete({ where: { id: parseInt(req.params.id) } })
+    req.flash('success', 'Mantenimiento eliminado.')
+  } catch (err) {
+    console.error(err)
+    req.flash('error', 'Error al eliminar: ' + err.message)
+  }
+  res.redirect('/inventario/mantenimientos')
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  POST /inventario/equipos/:tipo/:id/frecuencia
+// ═══════════════════════════════════════════════════════════════════
+
+async function configurarFrecuencia(req, res) {
+  const { tipo, id } = req.params
+  const { frecuencia } = req.body
+  const equipoId = parseInt(id)
+  try {
+    await prisma.equipoMantenimiento.upsert({
+      where: { equipoId_equipoTipo: { equipoId, equipoTipo: tipo } },
+      update: { frecuencia: frecuencia || 'Mensual' },
+      create: {
+        equipoId,
+        equipoTipo: tipo,
+        frecuencia: frecuencia || 'Mensual',
+      }
+    })
+    req.flash('success', 'Frecuencia de mantenimiento actualizada.')
+    res.redirect('/inventario/mantenimientos')
+  } catch (err) {
+    console.error(err)
+    req.flash('error', 'Error al configurar frecuencia: ' + err.message)
+    res.redirect('/inventario/mantenimientos')
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  GET /api/inventario/equipos/:tipo
+// ═══════════════════════════════════════════════════════════════════
+
+async function listarEquiposPorTipo(req, res) {
+  const { tipo } = req.params
+  try {
+    let equipos = []
+    switch (tipo) {
+      case 'computadora':
+        equipos = await prisma.computadora.findMany({ where: { estado: { not: 'Archivado' } }, select: { id: true, nombre: true }, orderBy: { nombre: 'asc' } })
+        break
+      case 'periferico':
+        equipos = await prisma.periferico.findMany({ where: { estado: { not: 'Archivado' } }, select: { id: true, codigo: true, descripcion: true }, orderBy: { codigo: 'asc' } })
+        break
+      case 'camara':
+        equipos = await prisma.camara.findMany({ where: { estado: { not: 'Archivado' } }, select: { id: true, codigo: true, ubicacion: true }, orderBy: { codigo: 'asc' } })
+        break
+      case 'sensor':
+        equipos = await prisma.sensor.findMany({ where: { estado: { not: 'Archivado' } }, select: { id: true, codigo: true, equipo: true }, orderBy: { codigo: 'asc' } })
+        break
+      case 'puntored':
+        equipos = await prisma.puntoRed.findMany({ where: { estado: { not: 'Archivado' } }, select: { id: true, codigo: true, ubicacion: true }, orderBy: { codigo: 'asc' } })
+        break
+    }
+    res.json({ success: true, equipos })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ success: false, error: err.message })
+  }
+}
+
+export {
   mostrarInventario,
   crearComputadora,
   editarComputadora, 
@@ -412,4 +914,12 @@ module.exports = {
   subirDocumento,
   eliminarDocumento, 
   restaurarArchivado,
+  mostrarMantenimientos,
+  dashboardMantenimientos,
+  crearMantenimiento,
+  completarMantenimiento,
+  editarMantenimiento,
+  eliminarMantenimiento,
+  configurarFrecuencia,
+  listarEquiposPorTipo,
 }

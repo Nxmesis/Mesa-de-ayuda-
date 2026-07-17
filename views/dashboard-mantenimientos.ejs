@@ -1,0 +1,94 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+    <%- include('partials/navbar') %>
+
+    <div class="container">
+        <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
+            <div class="alert alert-success"><%= success[0] %></div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+            <div class="alert alert-danger"><%= error[0] %></div>
+        <% } %>
+
+        <h1 style="color:#1e293b; margin-bottom:24px; font-size:1.5rem; font-weight:700;">Dashboard de Mantenimientos</h1>
+
+        <!-- KPIs -->
+        <div class="dash-mant-kpi-grid">
+            <div class="dash-mant-kpi-card">
+                <div class="dash-mant-kpi-label">Pendientes</div>
+                <div class="dash-mant-kpi-value"><%= typeof counts !== 'undefined' && counts ? counts.pendientes : 0 %></div>
+            </div>
+            <div class="dash-mant-kpi-card">
+                <div class="dash-mant-kpi-label">Realizados este mes</div>
+                <div class="dash-mant-kpi-value"><%= typeof counts !== 'undefined' && counts ? counts.realizados : 0 %></div>
+            </div>
+            <div class="dash-mant-kpi-card">
+                <div class="dash-mant-kpi-label">Vencidos</div>
+                <div class="dash-mant-kpi-value"><%= typeof counts !== 'undefined' && counts ? counts.vencidos : 0 %></div>
+            </div>
+            <div class="dash-mant-kpi-card">
+                <div class="dash-mant-kpi-label">Próximos 7 días</div>
+                <div class="dash-mant-kpi-value"><%= typeof counts !== 'undefined' && counts ? counts.proximos : 0 %></div>
+            </div>
+        </div>
+
+        <!-- Barra de herramientas -->
+        <div class="dash-mant-toolbar">
+            <div style="margin-left: auto; display: flex; gap: 10px;">
+                <a href="/inventario/mantenimientos" class="dash-mant-btn-volver">
+                    <i class="fas fa-arrow-left"></i> Volver a Mantenimientos
+                </a>
+                <a href="/inventario/mantenimientos?action=nuevo" class="dash-mant-btn-nuevo">
+                    <i class="fas fa-plus"></i> Nuevo Mantenimiento
+                </a>
+            </div>
+        </div>
+
+        <!-- Grid de gráficas -->
+        <div class="dash-mant-grid">
+            <!-- Gráfica: Mantenimientos por mes -->
+            <div class="dash-mant-card">
+                <div class="dash-mant-card-title">
+                    <i class="fas fa-chart-bar"></i> Mantenimientos por mes
+                </div>
+                <div class="dash-mant-chart-container">
+                    <canvas id="chart-por-mes"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfica: Preventivos vs Correctivos -->
+            <div class="dash-mant-card">
+                <div class="dash-mant-card-title">
+                    <i class="fas fa-chart-pie"></i> Preventivos vs Correctivos
+                </div>
+                <div class="dash-mant-chart-container-sm">
+                    <canvas id="chart-tipo"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfica: Top equipos -->
+            <div class="dash-mant-card dash-mant-card-full">
+                <div class="dash-mant-card-title">
+                    <i class="fas fa-wrench"></i> Equipos con más mantenimientos
+                </div>
+                <div class="dash-mant-chart-container">
+                    <canvas id="chart-equipos"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+</div>
+
+<!-- Datos para gráficas - DEFINIR ANTES del script -->
+<script>
+    window.CHART_DATA = <%- JSON.stringify(typeof chartData !== 'undefined' ? chartData : { porMes: [], tipo: { preventivos: 0, correctivos: 0 }, equipos: [] }) %>;
+    console.log('CHART_DATA cargado:', window.CHART_DATA);
+</script>
+
+<!-- Script del dashboard - SIN defer para que ejecute después de CHART_DATA -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/js/dashboard-mantenimientos.js"></script>

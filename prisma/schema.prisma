@@ -212,6 +212,49 @@ model DocumentoInventario {
   @@map("documentos_inventario")
 }
 
+model Mantenimiento {
+  id              Int       @id @default(autoincrement())
+  equipoId        Int       @map("equipo_id")
+  equipoTipo      String    @map("equipo_tipo") @db.VarChar(30)   // computadora | periferico | camara | sensor | puntored
+  tipo            String    @default("Preventivo") @db.VarChar(20) // Preventivo | Correctivo
+  estado          String    @default("Pendiente") @db.VarChar(20)  // Pendiente | Realizado | Vencido
+  responsable     String?   @db.VarChar(100)
+  fechaProgramada DateTime  @map("fecha_programada") @db.Date
+  fechaRealizada  DateTime? @map("fecha_realizada") @db.Date
+  proximaFecha    DateTime? @map("proxima_fecha") @db.Date
+  horaInicio      String?   @map("hora_inicio") @db.VarChar(5)     // HH:MM
+  horaFin         String?   @map("hora_fin") @db.VarChar(5)        // HH:MM
+  tiempoInvertido Int?      @map("tiempo_invertido")               // minutos (calculado a partir de horaInicio/horaFin)
+  descripcion     String?   @db.Text
+  repuestos       String?   @db.Text
+  observaciones   String?   @db.Text
+  evidencias      String?   @db.Text                              // JSON string con array de filenames
+  fotoEvidencia   String?   @map("foto_evidencia") @db.VarChar(255) // nombre del archivo subido (uploads/evidencias)
+  frecuencia      String?   @db.VarChar(20)                        // Mensual | 3meses | 6meses | Anual
+  fechaRegistro   DateTime  @default(now()) @map("fecha_registro")
+
+  @@index([equipoId, equipoTipo])
+  @@index([estado])
+  @@index([fechaProgramada])
+  @@index([proximaFecha])
+  @@map("mantenimientos")
+}
+
+model EquipoMantenimiento {
+  id                  Int       @id @default(autoincrement())
+  equipoId            Int       @map("equipo_id")
+  equipoTipo          String    @map("equipo_tipo") @db.VarChar(30)
+  frecuencia          String    @default("Mensual") @db.VarChar(20)
+  ultimoMantenimiento DateTime? @map("ultimo_mantenimiento") @db.Date
+  proximoMantenimiento DateTime? @map("proximo_mantenimiento") @db.Date
+  activo              Boolean   @default(true)
+  fechaRegistro       DateTime  @default(now()) @map("fecha_registro")
+
+  @@unique([equipoId, equipoTipo])
+  @@index([proximoMantenimiento])
+  @@map("equipos_mantenimiento")
+}
+
 enum tickets_prioridad {
   Baja
   Media

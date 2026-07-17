@@ -1,0 +1,471 @@
+<%- include('partials/head') %>
+<%- include('partials/sidebar') %>
+
+<div class="main-content">
+    <%- include('partials/navbar') %>
+
+    <div class="container">
+        <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
+            <div class="alert alert-success"><%= success[0] %></div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+            <div class="alert alert-danger"><%= error[0] %></div>
+        <% } %>
+
+        <h1 style="color:#1e293b; margin-bottom:24px; font-size:1.5rem; font-weight:700;">Mantenimientos</h1>
+
+        <% if (typeof tablaPendiente !== 'undefined' && tablaPendiente) { %>
+        <div class="mant-alerta-pendiente">
+            <h3>
+                <i class="fas fa-exclamation-triangle"></i>
+                Tablas de mantenimiento no creadas
+            </h3>
+            <p>
+                Debes ejecutar el script SQL en tu base de datos para crear las tablas
+                <code>mantenimientos</code> y <code>equipos_mantenimiento</code>.
+            </p>
+            <a href="/inventario" class="btn btn-secondary">Volver a Inventario</a>
+        </div>
+        <% } else { %>
+
+        <!-- KPIs -->
+        <div class="mant-kpi-grid">
+            <div class="mant-kpi-card">
+                <div class="mant-kpi-label">Pendientes</div>
+                <div class="mant-kpi-value"><%= counts.pendientes %></div>
+            </div>
+            <div class="mant-kpi-card">
+                <div class="mant-kpi-label">Realizados este mes</div>
+                <div class="mant-kpi-value"><%= counts.realizados %></div>
+            </div>
+            <div class="mant-kpi-card">
+                <div class="mant-kpi-label">Vencidos</div>
+                <div class="mant-kpi-value"><%= counts.vencidos %></div>
+            </div>
+            <div class="mant-kpi-card">
+                <div class="mant-kpi-label">Próximos 7 días</div>
+                <div class="mant-kpi-value"><%= counts.proximos %></div>
+            </div>
+        </div>
+
+        <!-- Barra de herramientas -->
+        <div class="mant-toolbar">
+            <!-- Dropdown Filtros -->
+            <div class="mant-dropdown" id="dropdown-filtros">
+                <button type="button" class="mant-dropdown-btn" onclick="toggleDropdown('dropdown-filtros')">
+                    <i class="fas fa-filter"></i> Filtros
+                </button>
+                <div class="mant-dropdown-content">
+                    <% const filtros = [
+                        { key: 'todos', label: 'Todos' },
+                        { key: 'pendientes', label: 'Pendientes' },
+                        { key: 'realizados', label: 'Realizados' },
+                        { key: 'vencidos', label: 'Vencidos' },
+                        { key: 'preventivos', label: 'Preventivos' },
+                        { key: 'correctivos', label: 'Correctivos' }
+                    ] %>
+                    <% filtros.forEach(f => { %>
+                        <a href="/inventario/mantenimientos?filtro=<%= f.key %>"
+                           class="mant-dropdown-item <%= filtro === f.key ? 'activo' : '' %>">
+                            <%= f.label %>
+                        </a>
+                    <% }) %>
+                </div>
+            </div>
+
+            <!-- Dropdown Agrupar por -->
+            <div class="mant-dropdown" id="dropdown-agrupar">
+                <button type="button" class="mant-dropdown-btn" onclick="toggleDropdown('dropdown-agrupar')">
+                    <i class="fas fa-layer-group"></i> <span id="btn-agrupar-label">Agrupar por</span>
+                </button>
+                <div class="mant-dropdown-content">
+                    <a href="#" class="mant-dropdown-item" data-agrupar="">Sin agrupar</a>
+                    <a href="#" class="mant-dropdown-item" data-agrupar="equipo">Equipo</a>
+                    <a href="#" class="mant-dropdown-item" data-agrupar="tipo">Tipo</a>
+                    <a href="#" class="mant-dropdown-item" data-agrupar="estado">Estado</a>
+                    <a href="#" class="mant-dropdown-item" data-agrupar="responsable">Responsable</a>
+                    <a href="#" class="mant-dropdown-item" data-agrupar="fecha">Fecha</a>
+                </div>
+            </div>
+
+            <div class="mant-toolbar-sep"></div>
+
+            <!-- Buscador -->
+            <div class="mant-buscar-wrapper">
+                <input type="text" id="buscar-mantenimientos" placeholder="Buscar mantenimientos..."
+                       value="<%= search || '' %>"
+                       data-filtro="<%= filtro %>">
+            </div>
+
+            <div style="margin-left: auto; display: flex; gap: 10px;">
+                <a href="/inventario/mantenimientos/dashboard" class="mant-btn-dashboard">
+                    <i class="fas fa-chart-bar"></i> Dashboard
+                </a>
+                <button type="button" class="mant-btn-nuevo" id="btn-nuevo-mantenimiento">
+                    <i class="fas fa-plus"></i> Nuevo Mantenimiento
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="card" style="padding:0; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden;">
+            <div class="table-container">
+                <table class="mant-tabla" id="tabla-mantenimientos">
+                    <thead>
+                        <tr>
+                            <th>Equipo</th>
+                            <th>Tipo</th>
+                            <th>Responsable</th>
+                            <th>Fecha Programada</th>
+                            <th>Fecha Realizada</th>
+                            <th>Próxima</th>
+                            <th>Estado</th>
+                            <th>Tiempo</th>
+                            <th style="width:120px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (mantenimientos && mantenimientos.length > 0) { %>
+                        <% mantenimientos.forEach(m => { %>
+                        <tr data-equipo="<%= m.equipoNombre %>"
+                            data-tipo="<%= m.tipo %>"
+                            data-estado="<%= m.estado %>"
+                            data-responsable="<%= m.responsable || 'Sin responsable' %>"
+                            data-fecha="<%= m.fechaProgramada ? helpers.formatearFechaSolo(m.fechaProgramada) : 'Sin fecha' %>">
+                            <td>
+                                <strong style="color:#1e293b;"><%= m.equipoNombre %></strong>
+                                <br><small style="color:#94a3b8; font-size:0.78rem;"><%= m.equipoTipo %></small>
+                            </td>
+                            <td>
+                                <span class="mant-badge <%= m.tipo === 'Preventivo' ? 'mant-badge-info' : 'mant-badge-warning' %>">
+                                    <%= m.tipo %>
+                                </span>
+                            </td>
+                            <td style="color:#475569;"><%= m.responsable || '—' %></td>
+                            <td style="color:#475569;"><%= m.fechaProgramada ? helpers.formatearFechaSolo(m.fechaProgramada) : '—' %></td>
+                            <td style="color:#475569;"><%= m.fechaRealizada ? helpers.formatearFechaSolo(m.fechaRealizada) : '—' %></td>
+                            <td style="color:#475569;"><%= m.proximaFecha ? helpers.formatearFechaSolo(m.proximaFecha) : '—' %></td>
+                            <td>
+                                <span class="mant-badge <%= m.estado === 'Realizado' ? 'mant-badge-success' : m.estado === 'Vencido' ? 'mant-badge-danger' : 'mant-badge-warning' %>">
+                                    <%= m.estado %>
+                                </span>
+                            </td>
+                            <td style="color:#475569; font-size:0.85rem;"><%= helpers.formatearDuracion(m.tiempoInvertido) %></td>
+                            <td>
+                                <div class="mant-acciones">
+                                    <% if (m.estado === 'Pendiente') { %>
+                                        <button type="button" class="mant-accion-btn completar btn-completar-mant"
+                                                data-id="<%= m.id %>" title="Completar">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button type="button" class="mant-accion-btn editar btn-editar-mant"
+                                                data-id="<%= m.id %>"
+                                                data-tipo="<%= m.tipo %>"
+                                                data-fecha="<%= m.fechaProgramada ? new Date(m.fechaProgramada).toISOString().split('T')[0] : '' %>"
+                                                data-responsable="<%= m.responsable || '' %>"
+                                                data-frecuencia="<%= m.frecuencia || '' %>"
+                                                data-descripcion="<%= m.descripcion || '' %>"
+                                                title="Editar">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                    <% } else if (m.estado === 'Realizado') { %>
+                                        <button type="button" class="mant-accion-btn revision btn-revision-mant"
+                                                data-id="<%= m.id %>"
+                                                data-equipo="<%= m.equipoNombre %>"
+                                                data-tipo="<%= m.tipo %>"
+                                                data-fecha-realizada="<%= m.fechaRealizada ? helpers.formatearFechaSolo(m.fechaRealizada) : '' %>"
+                                                data-fecha-programada="<%= m.fechaProgramada ? helpers.formatearFechaSolo(m.fechaProgramada) : '' %>"
+                                                data-proxima="<%= m.proximaFecha ? helpers.formatearFechaSolo(m.proximaFecha) : '' %>"
+                                                data-responsable="<%= m.responsable || '' %>"
+                                                data-hora-inicio="<%= m.horaInicio || '' %>"
+                                                data-hora-fin="<%= m.horaFin || '' %>"
+                                                data-tiempo="<%= helpers.formatearDuracion(m.tiempoInvertido) %>"
+                                                data-repuestos="<%= m.repuestos || '' %>"
+                                                data-observaciones="<%= m.observaciones || '' %>"
+                                                data-descripcion="<%= m.descripcion || '' %>"
+                                                data-foto="<%= m.fotoEvidencia || '' %>"
+                                                title="Ver revisión">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    <% } %>
+                                    <button type="button" class="mant-accion-btn eliminar btn-eliminar-mant"
+                                            data-id="<%= m.id %>" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }) %>
+                        <% } else { %>
+                        <tr>
+                            <td colspan="9" class="mant-estado-vacio">
+                                <i class="fas fa-clipboard-list"></i>
+                                <p>No hay mantenimientos registrados</p>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        <% if (pagination.totalPages > 1) { %>
+        <div class="mant-paginacion">
+            <% if (pagination.hasPrev) { %>
+                <a href="/inventario/mantenimientos?filtro=<%= filtro %>&page=<%= pagination.page - 1 %>&search=<%= search %>" class="mant-paginacion-btn">
+                    <i class="fas fa-chevron-left"></i> Anterior
+                </a>
+            <% } %>
+            <span class="mant-paginacion-info">Página <%= pagination.page %> de <%= pagination.totalPages %></span>
+            <% if (pagination.hasNext) { %>
+                <a href="/inventario/mantenimientos?filtro=<%= filtro %>&page=<%= pagination.page + 1 %>&search=<%= search %>" class="mant-paginacion-btn">
+                    Siguiente <i class="fas fa-chevron-right"></i>
+                </a>
+            <% } %>
+        </div>
+        <% } %>
+
+        <% } %>
+    </div>
+
+    <%- include('partials/footer') %>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- MODALES -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+<!-- Modal Nuevo -->
+<div class="mant-modal-overlay" id="modal-nuevo-mantenimiento">
+    <div class="mant-modal-content">
+        <div class="mant-modal-header">
+            <h2>Nuevo Mantenimiento</h2>
+            <button type="button" class="mant-modal-close" data-cerrar-modal="modal-nuevo-mantenimiento">&times;</button>
+        </div>
+        <form action="/inventario/mantenimientos" method="POST">
+            <div class="mant-modal-body">
+                <div class="mant-form-row">
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Categoría de equipo *</label>
+                        <select name="equipoTipo" id="nuevo-equipo-tipo" class="mant-form-control" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="computadora">Computadora</option>
+                            <option value="periferico">Periférico</option>
+                            <option value="camara">Cámara</option>
+                            <option value="sensor">Sensor</option>
+                            <option value="puntored">Punto de Red</option>
+                        </select>
+                    </div>
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Equipo *</label>
+                        <select name="equipoId" id="select-equipo" class="mant-form-control" required disabled>
+                            <option value="">Primero selecciona categoría</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mant-form-row">
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Tipo *</label>
+                        <select name="tipo" class="mant-form-control" required>
+                            <% tipos.forEach(t => { %><option value="<%= t %>"><%= t %></option><% }) %>
+                        </select>
+                    </div>
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Fecha programada *</label>
+                        <input type="date" name="fechaProgramada" class="mant-form-control" required>
+                    </div>
+                </div>
+                <div class="mant-form-row">
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Responsable</label>
+                        <input type="text" name="responsable" class="mant-form-control" placeholder="Ej: Encargado de sistemas">
+                    </div>
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Frecuencia</label>
+                        <select name="frecuencia" class="mant-form-control">
+                            <% frecuencias.forEach(f => { %><option value="<%= f %>"><%= f %></option><% }) %>
+                        </select>
+                    </div>
+                </div>
+                <div class="mant-form-group">
+                    <label class="mant-form-label">Descripción</label>
+                    <textarea name="descripcion" class="mant-form-control" rows="2" placeholder="Detalle del trabajo a realizar"></textarea>
+                </div>
+            </div>
+            <div class="mant-modal-footer">
+                <button type="button" class="mant-btn mant-btn-secondary" data-cerrar-modal="modal-nuevo-mantenimiento">Cancelar</button>
+                <button type="submit" class="mant-btn mant-btn-success">Programar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Completar -->
+<div class="mant-modal-overlay" id="modal-completar">
+    <div class="mant-modal-content">
+        <div class="mant-modal-header">
+            <h2>Completar Mantenimiento</h2>
+            <button type="button" class="mant-modal-close" data-cerrar-modal="modal-completar">&times;</button>
+        </div>
+        <form id="form-completar" method="POST" enctype="multipart/form-data">
+            <div class="mant-modal-body">
+                <div class="mant-form-group">
+                    <label class="mant-form-label">Fecha realizada *</label>
+                    <input type="date" name="fechaRealizada" class="mant-form-control" required value="<%= new Date().toISOString().split('T')[0] %>">
+                </div>
+                <div class="mant-form-row">
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Hora de inicio *</label>
+                        <input type="time" name="horaInicio" id="completar-hora-inicio" class="mant-form-control" required>
+                    </div>
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Hora de finalización *</label>
+                        <input type="time" name="horaFin" id="completar-hora-fin" class="mant-form-control" required>
+                    </div>
+                </div>
+                <div class="mant-form-group">
+                    <label class="mant-form-label">Tiempo invertido</label>
+                    <div id="completar-tiempo-calculado" class="mant-form-control" style="background:#f8fafc; color:#475569; cursor:default;">—</div>
+                </div>
+                <div class="mant-form-group">
+                    <label class="mant-form-label">Repuestos utilizados</label>
+                    <textarea name="repuestos" class="mant-form-control" rows="2" placeholder="Lista de repuestos"></textarea>
+                </div>
+                <div class="mant-form-group">
+                    <label class="mant-form-label">Observaciones</label>
+                    <textarea name="observaciones" class="mant-form-control" rows="2"></textarea>
+                </div>
+                <div class="mant-form-group">
+                    <label class="mant-form-label">Foto de evidencia</label>
+                    <input type="file" name="fotoEvidencia" id="completar-foto" class="mant-form-control" accept="image/*">
+                </div>
+            </div>
+            <div class="mant-modal-footer">
+                <button type="button" class="mant-btn mant-btn-secondary" data-cerrar-modal="modal-completar">Cancelar</button>
+                <button type="submit" class="mant-btn mant-btn-success">Completar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="mant-modal-overlay" id="modal-editar">
+    <div class="mant-modal-content">
+        <div class="mant-modal-header">
+            <h2>Editar Mantenimiento</h2>
+            <button type="button" class="mant-modal-close" data-cerrar-modal="modal-editar">&times;</button>
+        </div>
+        <form id="form-editar" method="POST">
+            <div class="mant-modal-body">
+                <div class="mant-form-row">
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Tipo *</label>
+                        <select name="tipo" id="editar-tipo" class="mant-form-control" required>
+                            <% tipos.forEach(t => { %><option value="<%= t %>"><%= t %></option><% }) %>
+                        </select>
+                    </div>
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Fecha programada *</label>
+                        <input type="date" name="fechaProgramada" id="editar-fecha" class="mant-form-control" required>
+                    </div>
+                </div>
+                <div class="mant-form-row">
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Responsable</label>
+                        <input type="text" name="responsable" id="editar-responsable" class="mant-form-control">
+                    </div>
+                    <div class="mant-form-group">
+                        <label class="mant-form-label">Frecuencia</label>
+                        <select name="frecuencia" id="editar-frecuencia" class="mant-form-control">
+                            <% frecuencias.forEach(f => { %><option value="<%= f %>"><%= f %></option><% }) %>
+                        </select>
+                    </div>
+                </div>
+                <div class="mant-form-group">
+                    <label class="mant-form-label">Descripción</label>
+                    <textarea name="descripcion" id="editar-descripcion" class="mant-form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="mant-modal-footer">
+                <button type="button" class="mant-btn mant-btn-secondary" data-cerrar-modal="modal-editar">Cancelar</button>
+                <button type="submit" class="mant-btn mant-btn-success">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Revisión -->
+<div class="mant-modal-overlay" id="modal-revision">
+    <div class="mant-modal-content" style="max-width: 700px;">
+        <div class="mant-modal-header">
+            <h2>📋 Revisión de Mantenimiento</h2>
+            <button type="button" class="mant-modal-close" data-cerrar-modal="modal-revision">&times;</button>
+        </div>
+        <div class="mant-modal-body" id="revision-body">
+            <div class="mant-revision-grid">
+                <div class="mant-revision-field">
+                    <span class="mant-revision-label">Equipo</span>
+                    <span class="mant-revision-value" id="rev-equipo">—</span>
+                </div>
+                <div class="mant-revision-field">
+                    <span class="mant-revision-label">Tipo</span>
+                    <span class="mant-revision-value" id="rev-tipo">—</span>
+                </div>
+                <div class="mant-revision-field">
+                    <span class="mant-revision-label">Fecha Programada</span>
+                    <span class="mant-revision-value" id="rev-fecha-programada">—</span>
+                </div>
+                <div class="mant-revision-field">
+                    <span class="mant-revision-label">Fecha Realizada</span>
+                    <span class="mant-revision-value" id="rev-fecha-realizada">—</span>
+                </div>
+                <div class="mant-revision-field">
+                    <span class="mant-revision-label">Próxima Fecha</span>
+                    <span class="mant-revision-value" id="rev-proxima">—</span>
+                </div>
+                <div class="mant-revision-field">
+                    <span class="mant-revision-label">Responsable</span>
+                    <span class="mant-revision-value" id="rev-responsable">—</span>
+                </div>
+                <div class="mant-revision-field">
+                    <span class="mant-revision-label">Hora Inicio</span>
+                    <span class="mant-revision-value" id="rev-hora-inicio">—</span>
+                </div>
+                <div class="mant-revision-field">
+                    <span class="mant-revision-label">Hora Fin</span>
+                    <span class="mant-revision-value" id="rev-hora-fin">—</span>
+                </div>
+                <div class="mant-revision-field">
+                    <span class="mant-revision-label">Tiempo Invertido</span>
+                    <span class="mant-revision-value" id="rev-tiempo">—</span>
+                </div>
+            </div>
+            <div class="mant-revision-section">
+                <span class="mant-revision-label">Descripción del trabajo</span>
+                <div class="mant-revision-box" id="rev-descripcion">—</div>
+            </div>
+            <div class="mant-revision-section">
+                <span class="mant-revision-label">Repuestos Utilizados</span>
+                <div class="mant-revision-box" id="rev-repuestos">—</div>
+            </div>
+            <div class="mant-revision-section">
+                <span class="mant-revision-label">Observaciones</span>
+                <div class="mant-revision-box" id="rev-observaciones">—</div>
+            </div>
+            <div class="mant-revision-section" id="rev-seccion-foto" style="display:none;">
+                <span class="mant-revision-label">📷 Foto de Evidencia</span>
+                <div class="mant-revision-foto-container">
+                    <img id="rev-foto" src="" alt="Foto de evidencia">
+                </div>
+            </div>
+        </div>
+        <div class="mant-modal-footer">
+            <button type="button" class="mant-btn mant-btn-secondary" data-cerrar-modal="modal-revision">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<form id="form-eliminar" method="POST" style="display:none;"></form>
+
+<script src="/js/mantenimientos.js"></script>
