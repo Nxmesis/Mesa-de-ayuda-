@@ -3,18 +3,17 @@
 require("dotenv").config()
 
 const express = require("express")
-// const https   = require("https")  // ← COMENTADO: solo para producción
-const http    = require("http")    // ← NUEVO: para desarrollo
+const https   = require("https")
 const session = require("express-session")
 const flash   = require("connect-flash")
 const path    = require("path")
 const fs      = require("fs")
 
 const app  = express()
-const PORT = process.env.PORT || 5001  // ← CAMBIADO: 5001 para desarrollo
+const PORT = process.env.PORT || 5000
 
 // ── Crear carpetas necesarias al arrancar ────────────────────────────────────
-;["./uploads", "./uploads/perfiles"].forEach((dir) => {
+;["./uploads", "./uploads/perfiles", "./uploads/documentos"].forEach((dir) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 })
 
@@ -37,8 +36,7 @@ app.use(
     resave:            false,
     saveUninitialized: false,
     cookie: {
-      // secure:   true,  // ← COMENTADO: solo para HTTPS en producción
-      secure:   false,   // ← NUEVO: false para HTTP en desarrollo
+      secure:   true,  // HTTPS activo en producción
       httpOnly: true,
       maxAge:   1000 * 60 * 60 * 8,
     },
@@ -71,6 +69,7 @@ app.use("/", require("./src/routes/userRoutes"))
 app.use("/", require("./src/routes/perfilRoutes"))
 app.use("/", require("./src/routes/notificacionesRoutes"))
 app.use('/', require('./src/routes/inventarioRoutes'))
+app.use('/', require('./src/routes/ordenroutes'))
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => {
@@ -94,20 +93,8 @@ app.use((err, req, res, next) => {
 })
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  ARRANQUE SERVIDOR - MODO DESARROLLO (HTTP puerto 5001)
-// ═══════════════════════════════════════════════════════════════════════════
-
-// ── HTTP para desarrollo ───────────────────────────────────────────────────
-http.createServer(app).listen(PORT, "192.168.10.184", () => {
-  console.log(`✅  Servidor HTTP en http://192.168.10.184:${PORT}`)
-  console.log(`    Entorno: ${process.env.NODE_ENV || "development"}`)
-})
-
-// ═══════════════════════════════════════════════════════════════════════════
 //  ARRANQUE SERVIDOR - MODO PRODUCCIÓN (HTTPS puerto 443)
-//  Descomentar estas líneas y comentar las de arriba para producción
 // ═══════════════════════════════════════════════════════════════════════════
-/*
 const certOptions = {
   key:  fs.readFileSync(path.join(__dirname, "certificados", "helpdesk.local+4-key.pem")),
   cert: fs.readFileSync(path.join(__dirname, "certificados", "helpdesk.local+4.pem")),
@@ -115,6 +102,5 @@ const certOptions = {
 
 https.createServer(certOptions, app).listen(443, "0.0.0.0", () => {
   console.log(`✅  Servidor HTTPS en https://helpdesk.local`)
-  console.log(`    Entorno: ${process.env.NODE_ENV || "development"}`)
+  console.log(`    Entorno: ${process.env.NODE_ENV || "Producción"}`)
 })
-*/

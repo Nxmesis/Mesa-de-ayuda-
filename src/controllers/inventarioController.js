@@ -353,12 +353,42 @@ async function eliminarPuntoRed(req, res) {
 
 async function subirDocumento(req, res) {
   const { titulo, empresa, tipoDocumento, categoria, fechaDocumento, observaciones } = req.body
-  if (!titulo?.trim() || !empresa?.trim()) { req.flash('error', 'Título y empresa obligatorios.'); return res.redirect('/inventario?tab=documentos') }
-  if (!req.file) { req.flash('error', 'Adjunta un archivo.'); return res.redirect('/inventario?tab=documentos') }
+  if (!titulo?.trim() || !empresa?.trim()) { 
+    req.flash('error', 'Título y empresa obligatorios.'); 
+    return res.redirect('/inventario?tab=documentos') 
+  }
+  if (!req.file) { 
+    req.flash('error', 'Adjunta un archivo.'); 
+    return res.redirect('/inventario?tab=documentos') 
+  }
+  
   try {
-    await prisma.documentoInventario.create({ data: { titulo: titulo.trim(), empresa: empresa.trim(), tipoDocumento: tipoDocumento || 'Acta', categoria: categoria || 'General', archivo: req.file.filename, fechaDocumento: fechaDocumento ? new Date(fechaDocumento) : null, observaciones: observaciones?.trim() || null } })
-    req.flash('success', 'Documento subido.'); res.redirect('/inventario?tab=documentos')
-  } catch (err) { console.error(err); req.flash('error', 'Error al subir documento.'); res.redirect('/inventario?tab=documentos') }
+    // FIX: Guardar fecha como string YYYY-MM-DD para evitar problemas de zona horaria
+    // El campo en Prisma es @db.Date, pero pasamos un Date object creado en UTC
+    let fechaDoc = null
+    if (fechaDocumento) {
+      const [year, month, day] = fechaDocumento.split('-').map(Number)
+      fechaDoc = new Date(Date.UTC(year, month - 1, day))
+    }
+    
+    await prisma.documentoInventario.create({ 
+      data: { 
+        titulo: titulo.trim(), 
+        empresa: empresa.trim(), 
+        tipoDocumento: tipoDocumento || 'Acta', 
+        categoria: categoria || 'General', 
+        archivo: req.file.filename, 
+        fechaDocumento: fechaDoc, 
+        observaciones: observaciones?.trim() || null 
+      } 
+    })
+    req.flash('success', 'Documento subido.'); 
+    res.redirect('/inventario?tab=documentos')
+  } catch (err) { 
+    console.error(err); 
+    req.flash('error', 'Error al subir documento.'); 
+    res.redirect('/inventario?tab=documentos') 
+  }
 }
 
 async function eliminarDocumento(req, res) {
