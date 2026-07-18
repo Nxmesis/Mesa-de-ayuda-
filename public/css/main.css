@@ -1402,4 +1402,106 @@ canvas {
 }
 
 
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR - ESTILOS PARA SUBMENÚ EXPANDIBLE
+   Agregar al final de main.css
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sidebar-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-group .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+}
+
+/* Botón toggle (chevron) - separado del link */
+.sidebar-toggle {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+
+.sidebar-toggle:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.sidebar-chevron {
+    font-size: 0.65rem;
+    transition: transform 0.25s ease;
+    opacity: 0.6;
+}
+
+.sidebar-chevron.rotated {
+    transform: rotate(180deg);
+}
+
+/* Submenú */
+.sidebar-submenu {
+    display: none;
+    flex-direction: column;
+    padding-left: 20px;
+    margin: 2px 0 4px 0;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sub-enlaces - MISMO ESTILO QUE sidebar-link */
+.sidebar-sublink {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px 8px 16px;
+    border-radius: 8px;
+    color: #8b95a8;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    margin: 1px 8px;
+}
+
+.sidebar-sublink i {
+    font-size: 0.75rem;
+    width: 16px;
+    text-align: center;
+    opacity: 0.7;
+}
+
+.sidebar-sublink:hover {
+    color: #a0aec0;
+    background: rgba(255,255,255,0.04);
+}
+
+.sidebar-sublink.active {
+    color: #2ecc71;
+    background: rgba(46, 204, 113, 0.1);
+}
+
+.sidebar-sublink.active i {
+    opacity: 1;
+}
+
+/* Cuando el grupo está expandido, el chevron resalta */
+.sidebar-group.expanded > .sidebar-link .sidebar-chevron {
+    opacity: 1;
+    color: #2ecc71;
+}
+
 

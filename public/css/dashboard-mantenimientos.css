@@ -1,0 +1,226 @@
+/* ============================================
+   DASHBOARD MANTENIMIENTOS - CSS 100% AISLADO
+   Prefijo .dash-mant- en TODAS las clases
+   No toca: body, html, .main-content, .container, .card, .table, .btn
+   ============================================ */
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/*  KPI CARDS                                                        */
+/* ═══════════════════════════════════════════════════════════════════ */
+.dash-mant-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.dash-mant-kpi-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.dash-mant-kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+.dash-mant-kpi-card:nth-child(1)::before { background: #f59e0b; }
+.dash-mant-kpi-card:nth-child(2)::before { background: #10b981; }
+.dash-mant-kpi-card:nth-child(3)::before { background: #ef4444; }
+.dash-mant-kpi-card:nth-child(4)::before { background: #2563eb; }
+
+.dash-mant-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.dash-mant-kpi-card .dash-mant-kpi-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.dash-mant-kpi-card .dash-mant-kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/*  BARRA DE HERRAMIENTAS                                            */
+/* ═══════════════════════════════════════════════════════════════════ */
+.dash-mant-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.dash-mant-toolbar-sep {
+    width: 1px;
+    height: 28px;
+    background: #e2e8f0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/*  BOTONES                                                          */
+/* ═══════════════════════════════════════════════════════════════════ */
+.dash-mant-btn-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #1e293b;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(30, 41, 59, 0.25);
+}
+
+.dash-mant-btn-volver:hover {
+    background: #0f172a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 41, 59, 0.35);
+}
+
+.dash-mant-btn-nuevo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+.dash-mant-btn-nuevo:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/*  GRID DE GRÁFICAS                                                 */
+/* ═══════════════════════════════════════════════════════════════════ */
+.dash-mant-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.dash-mant-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    transition: all 0.2s ease;
+}
+
+.dash-mant-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.dash-mant-card-full {
+    grid-column: 1 / -1;
+}
+
+.dash-mant-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dash-mant-card-title i {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.dash-mant-chart-container {
+    position: relative;
+    height: 280px;
+    width: 100%;
+}
+
+.dash-mant-chart-container-sm {
+    position: relative;
+    height: 240px;
+    width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/*  ESTADO VACÍO                                                     */
+/* ═══════════════════════════════════════════════════════════════════ */
+.dash-mant-estado-vacio {
+    text-align: center;
+    padding: 48px 20px;
+    color: #94a3b8;
+}
+
+.dash-mant-estado-vacio i {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    opacity: 0.4;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/*  RESPONSIVE                                                       */
+/* ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .dash-mant-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dash-mant-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-mant-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dash-mant-toolbar-sep {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .dash-mant-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
