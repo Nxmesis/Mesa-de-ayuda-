@@ -1,14 +1,9 @@
-import prisma from '../utils/db.js'
-import fs from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import helpers from '../utils/helpers.js'
+'use strict'
 
-// ═══════════════════════════════════════════════════════════════════════════
-//  ES MODULE FIX: __dirname equivalente
-// ═══════════════════════════════════════════════════════════════════════════
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const prisma  = require('../utils/db')
+const fs      = require('fs')
+const path    = require('path')
+const helpers = require('../utils/helpers')
 
 const ITEMS_PER_PAGE = 50
 const PISOS = ['1', '2', '3']
@@ -54,11 +49,11 @@ async function mostrarInventario(req, res) {
     const search = (req.query.search || '').trim()
     const piso   = req.query.piso || '1'
 
-    const wherePC = search ? { OR: [{ nombre: { contains: search, mode: 'insensitive' } }, { fabricante: { contains: search, mode: 'insensitive' } }, { modelo: { contains: search, mode: 'insensitive' } }] } : {}
-    const wherePer = search ? { OR: [{ codigo: { contains: search, mode: 'insensitive' } }, { categoria: { contains: search, mode: 'insensitive' } }, { descripcion: { contains: search, mode: 'insensitive' } }] } : {}
-    const whereCam = search ? { OR: [{ codigo: { contains: search, mode: 'insensitive' } }, { marca: { contains: search, mode: 'insensitive' } }, { ubicacion: { contains: search, mode: 'insensitive' } }] } : {}
-    const whereSensor = search ? { OR: [{ codigo: { contains: search, mode: 'insensitive' } }, { equipo: { contains: search, mode: 'insensitive' } }, { nomenclatura: { contains: search, mode: 'insensitive' } }, { ubicacion: { contains: search, mode: 'insensitive' } }] } : {}
-    const whereRed = search ? { OR: [{ codigo: { contains: search, mode: 'insensitive' } }, { ubicacion: { contains: search, mode: 'insensitive' } }, { tipoCable: { contains: search, mode: 'insensitive' } }] } : {}
+    const wherePC = search ? { OR: [{ nombre: { contains: search } }, { fabricante: { contains: search } }, { modelo: { contains: search } }] } : {}
+    const wherePer = search ? { OR: [{ codigo: { contains: search } }, { categoria: { contains: search } }, { descripcion: { contains: search } }] } : {}
+    const whereCam = search ? { OR: [{ codigo: { contains: search } }, { marca: { contains: search } }, { ubicacion: { contains: search } }] } : {}
+    const whereSensor = search ? { OR: [{ codigo: { contains: search } }, { equipo: { contains: search } }, { nomenclatura: { contains: search } }, { ubicacion: { contains: search } }] } : {}
+    const whereRed = search ? { OR: [{ codigo: { contains: search } }, { ubicacion: { contains: search } }, { tipoCable: { contains: search } }] } : {}
 
     const [computadorasTodas, perifericosTodas, camarasTodasLista, sensoresTodas, puntosRedTodas, documentosTodos] = await Promise.all([
       prisma.computadora.findMany({ where: wherePC, orderBy: { nombre: 'asc' }, select: { id: true, nombre: true, fabricante: true, modelo: true, numeroSerie: true, procesador: true, ramGb: true, discoSsdGb: true, estado: true, observaciones: true } }),
@@ -492,9 +487,9 @@ async function mostrarMantenimientos(req, res) {
     let where = {}
     if (search) {
       where.OR = [
-        { responsable: { contains: search, mode: 'insensitive' } },
-        { descripcion: { contains: search, mode: 'insensitive' } },
-        { observaciones: { contains: search, mode: 'insensitive' } },
+        { responsable: { contains: search } },
+        { descripcion: { contains: search } },
+        { observaciones: { contains: search } },
       ]
     }
 
@@ -924,10 +919,10 @@ async function listarEquiposPorTipo(req, res) {
   }
 }
 
-export {
+module.exports = {
   mostrarInventario,
   crearComputadora,
-  editarComputadora, 
+  editarComputadora,
   eliminarComputadora,
   crearPeriferico,
   editarPeriferico,
@@ -936,13 +931,14 @@ export {
   crearCamara,
   editarCamara,
   eliminarCamara,
-  crearSensor, 
-  editarSensor, eliminarSensor,
+  crearSensor,
+  editarSensor,
+  eliminarSensor,
   crearPuntoRed,
   editarPuntoRed,
   eliminarPuntoRed,
   subirDocumento,
-  eliminarDocumento, 
+  eliminarDocumento,
   restaurarArchivado,
   mostrarMantenimientos,
   dashboardMantenimientos,

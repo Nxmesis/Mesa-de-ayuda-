@@ -1,10 +1,14 @@
 'use strict'
 
-const prisma          = require('../utils/db')
-const helpers         = require('../utils/helpers')
-const notificaciones  = require('../../services/notificacionesService')
+const prisma         = require('../utils/db')
+const helpers        = require('../utils/helpers')
+const notificaciones = require('../../services/notificacionesService')
 
-// ── Helper interno: genera número de ticket ───────────────────────────────────
+// ── Constantes ───────────────────────────────────────────────────────────────
+const PRIORIDADES_VALIDAS = ['Baja', 'Media', 'Alta', 'Critica']
+const ROLES_ADMIN = ['admin', 'tecnico']
+
+// ── Helpers privados ─────────────────────────────────────────────────────────
 
 async function generarNumeroTicket() {
   const hoy       = new Date()
@@ -19,22 +23,23 @@ async function generarNumeroTicket() {
   return `TK-${fecha}-${String(count + 1).padStart(4, '0')}`
 }
 
-// ── Helper interno: obtener IDs de todos los admin/tecnico ───────────────────
-
 async function obtenerIdsAdmins() {
   const admins = await prisma.usuario.findMany({
-    where:  { rol: { in: ['admin', 'tecnico'] }, activo: true },
+    where:  { rol: { in: ROLES_ADMIN }, activo: true },
     select: { id: true },
   })
   return admins.map(a => a.id)
 }
 
-// ── GET /tickets ──────────────────────────────────────────────────────────────
+function esPrioridadValida(prioridad) {
+  return PRIORIDADES_VALIDAS.includes(prioridad)
+}
 
+// ── GET /tickets ─────────────────────────────────────────────────────────────
 async function listarTickets(req, res) {
   try {
     const user    = req.session.usuario
-    const esAdmin = user.rol === 'admin' || user.rol === 'tecnico'
+    const esAdmin = ROLES_ADMIN.includes(user.rol)
     const { estado, prioridad, buscar } = req.query
 
     const where = esAdmin ? {} : { usuarioId: user.id }
@@ -71,8 +76,7 @@ async function listarTickets(req, res) {
   }
 }
 
-// ── GET /tickets/nuevo ────────────────────────────────────────────────────────
-
+// ── GET /tickets/nuevo ───────────────────────────────────────────────────────
 async function mostrarFormulario(req, res) {
   try {
     const categorias = await prisma.categoria.findMany({
@@ -81,8 +85,8 @@ async function mostrarFormulario(req, res) {
     })
 
     res.render('crear-ticket', {
-      title:    'Crear Ticket',
-      user:     req.session.usuario,
+      title: 'Crear Ticket',
+      user:  req.session.usuario,
       categorias, helpers,
     })
 
@@ -93,26 +97,24 @@ async function mostrarFormulario(req, res) {
   }
 }
 
-// ── POST /tickets ─────────────────────────────────────────────────────────────
-
+// ── POST /tickets ────────────────────────────────────────────────────────────
 async function crearTicket(req, res) {
   const { titulo, descripcion, equipo, prioridad, categoriaId, solicitarLlamada } = req.body
   const user = req.session.usuario
-
   const esLlamada = solicitarLlamada === 'on'
 
-  if (!titulo || !prioridad) {
-    req.flash('error', 'El título y la prioridad son obligatorios.')
+  if (!titulo?.trim() || !prioridad) {
+    req.flash('error', 'El t\u00edtulo y la prioridad son obligatorios.')
     return res.redirect('/tickets/nuevo')
   }
 
-  if (!esLlamada && !descripcion) {
-    req.flash('error', 'La descripción es obligatoria a menos que solicites una llamada.')
+  if (!esLlamada && !descripcion?.trim()) {
+    req.flash('error', 'La descripci\u00f3n es obligatoria a menos que solicites una llamada.')
     return res.redirect('/tickets/nuevo')
   }
 
-  if (!helpers.esPrioridadValida(prioridad)) {
-    req.flash('error', 'Prioridad no válida.')
+  if (!esPrioridadValida(prioridad)) {
+    req.flash('error', 'Prioridad no v\u00e1lida.')
     return res.redirect('/tickets/nuevo')
   }
 
@@ -123,8 +125,8 @@ async function crearTicket(req, res) {
       data: {
         numeroTicket,
         titulo:           titulo.trim(),
-        descripcion:      esLlamada ? 'Solicitud de llamada telefónica.' : descripcion.trim(),
-        equipo:           equipo ? equipo.trim() : null,
+        descripcion:      esLlamada ? 'Solicitud de llamada telef\u00f3nica.' : descripcion.trim(),
+        equipo:           equipo?.trim() || null,
         prioridad,
         categoriaId:      categoriaId ? parseInt(categoriaId) : null,
         usuarioId:        user.id,
@@ -133,14 +135,13 @@ async function crearTicket(req, res) {
       },
     })
 
-    // ── Notificar a todos los admin/técnico ──────────────
     const idsAdmins = await obtenerIdsAdmins()
     const destinatarios = idsAdmins.filter(id => id !== user.id)
 
     notificaciones.enviarAMultiples(destinatarios, {
       tipo:     'nuevo_ticket',
       titulo:   esLlamada ? 'Nueva solicitud de llamada' : 'Nueva solicitud recibida',
-      mensaje:  `${user.nombre} creó el ticket ${numeroTicket}: "${titulo.trim()}"${esLlamada ? ' (Solicita llamada)' : ''}`,
+      mensaje:  `${user.nombre} cre\u00f3 el ticket ${numeroTicket}: "${titulo.trim()}"${esLlamada ? ' (Solicita llamada)' : ''}`,
       ticketId: ticket.id,
     })
 
@@ -154,8 +155,7 @@ async function crearTicket(req, res) {
   }
 }
 
-// ── GET /tickets/:id ──────────────────────────────────────────────────────────
-
+// ── GET /tickets/:id ─────────────────────────────────────────────────────────
 async function verTicket(req, res) {
   const user = req.session.usuario
 
@@ -184,9 +184,9 @@ async function verTicket(req, res) {
     }
 
     let tecnicos = []
-    if (user.rol === 'admin' || user.rol === 'tecnico') {
+    if (ROLES_ADMIN.includes(user.rol)) {
       tecnicos = await prisma.usuario.findMany({
-        where:  { rol: { in: ['tecnico', 'admin'] }, activo: true },
+        where:  { rol: { in: ROLES_ADMIN }, activo: true },
         select: { id: true, nombre: true },
       })
     }
@@ -203,10 +203,9 @@ async function verTicket(req, res) {
   }
 }
 
-// ── POST /tickets/:id/estado ──────────────────────────────────────────────────
-
+// ── POST /tickets/:id/estado ─────────────────────────────────────────────────
 async function cambiarEstado(req, res) {
-  const { id }                          = req.params
+  const { id } = req.params
   const { estado, solucion, prioridad, tecnicoId } = req.body
 
   try {
@@ -217,22 +216,21 @@ async function cambiarEstado(req, res) {
 
     const data = { estado }
 
-    if (prioridad && helpers.esPrioridadValida(prioridad)) data.prioridad = prioridad
+    if (prioridad && esPrioridadValida(prioridad)) data.prioridad = prioridad
     if (tecnicoId) data.tecnicoId = parseInt(tecnicoId)
     if (estado === 'Solucionado' || estado === 'Cerrado') {
       data.fechaCierre = new Date()
-      if (solucion) data.solucion = solucion.trim()
+      if (solucion?.trim()) data.solucion = solucion.trim()
     }
 
     await prisma.ticket.update({ where: { id: parseInt(id) }, data })
 
-    // ── Notificaciones ───────────────────────────────────
-
+    // Notificar al creador si no fue \u00e9l quien actualiz\u00f3
     if (ticketAntes.usuarioId !== req.session.usuario.id) {
       notificaciones.enviarAUsuario(ticketAntes.usuarioId, {
         tipo:     'estado',
         titulo:   'Tu solicitud fue actualizada',
-        mensaje:  `El ticket ${ticketAntes.numeroTicket} cambió a estado: ${helpers.textoEstado(estado)}`,
+        mensaje:  `El ticket ${ticketAntes.numeroTicket} cambi\u00f3 a estado: ${helpers.textoEstado(estado)}`,
         ticketId: parseInt(id),
       })
     }
@@ -244,7 +242,7 @@ async function cambiarEstado(req, res) {
       notificaciones.enviarAUsuario(nuevoTecnicoId, {
         tipo:     'asignado',
         titulo:   'Ticket asignado',
-        mensaje:  `Se te asignó el ticket ${ticketAntes.numeroTicket}: "${ticketAntes.titulo}"`,
+        mensaje:  `Se te asign\u00f3 el ticket ${ticketAntes.numeroTicket}: "${ticketAntes.titulo}"`,
         ticketId: parseInt(id),
       })
     }
@@ -259,10 +257,9 @@ async function cambiarEstado(req, res) {
   }
 }
 
-// ── POST /tickets/:id/asignar ─────────────────────────────────────────────────
-
+// ── POST /tickets/:id/asignar ────────────────────────────────────────────────
 async function asignarTecnico(req, res) {
-  const { id }       = req.params
+  const { id } = req.params
   const { tecnicoId } = req.body
 
   try {
@@ -280,7 +277,7 @@ async function asignarTecnico(req, res) {
       notificaciones.enviarAUsuario(parseInt(tecnicoId), {
         tipo:     'asignado',
         titulo:   'Ticket asignado',
-        mensaje:  `Se te asignó el ticket ${ticket.numeroTicket}: "${ticket.titulo}"`,
+        mensaje:  `Se te asign\u00f3 el ticket ${ticket.numeroTicket}: "${ticket.titulo}"`,
         ticketId: parseInt(id),
       })
     }
@@ -288,31 +285,30 @@ async function asignarTecnico(req, res) {
     if (ticket.usuarioId !== req.session.usuario.id) {
       notificaciones.enviarAUsuario(ticket.usuarioId, {
         tipo:     'estado',
-        titulo:   'Tu solicitud está en proceso',
-        mensaje:  `El ticket ${ticket.numeroTicket} fue asignado a un técnico`,
+        titulo:   'Tu solicitud est\u00e1 en proceso',
+        mensaje:  `El ticket ${ticket.numeroTicket} fue asignado a un t\u00e9cnico`,
         ticketId: parseInt(id),
       })
     }
 
-    req.flash('success', 'Técnico asignado.')
+    req.flash('success', 'T\u00e9cnico asignado.')
     res.redirect(`/tickets/${id}`)
 
   } catch (err) {
     console.error('[ticketController] asignarTecnico:', err)
-    req.flash('error', 'Error al asignar técnico.')
+    req.flash('error', 'Error al asignar t\u00e9cnico.')
     res.redirect(`/tickets/${id}`)
   }
 }
 
-// ── POST /tickets/:id/comentario ──────────────────────────────────────────────
-
+// ── POST /tickets/:id/comentario ─────────────────────────────────────────────
 async function agregarComentario(req, res) {
-  const { id }                = req.params
+  const { id } = req.params
   const { contenido, esInterno } = req.body
-  const user                  = req.session.usuario
+  const user   = req.session.usuario
 
-  if ((!contenido || !contenido.trim()) && !req.file) {
-    req.flash('error', 'El comentario no puede estar vacío si no adjuntas un archivo.')
+  if (!contenido?.trim() && !req.file) {
+    req.flash('error', 'El comentario no puede estar vac\u00edo si no adjuntas un archivo.')
     return res.redirect(`/tickets/${id}`)
   }
 
@@ -324,7 +320,7 @@ async function agregarComentario(req, res) {
 
     await prisma.comentario.create({
       data: {
-        contenido:      contenido ? contenido.trim() : 'Archivo adjunto',
+        contenido:      contenido?.trim() || 'Archivo adjunto',
         esInterno:      esInterno === 'on',
         ticketId:       parseInt(id),
         usuarioId:      user.id,
@@ -333,22 +329,20 @@ async function agregarComentario(req, res) {
     })
 
     if (esInterno !== 'on') {
-      if ((user.rol === 'admin' || user.rol === 'tecnico') &&
-           user.id !== ticket.usuarioId) {
+      if (ROLES_ADMIN.includes(user.rol) && user.id !== ticket.usuarioId) {
         notificaciones.enviarAUsuario(ticket.usuarioId, {
           tipo:     'comentario',
           titulo:   'Nuevo comentario en tu solicitud',
-          mensaje:  `El técnico respondió en el ticket ${ticket.numeroTicket}`,
+          mensaje:  `El t\u00e9cnico respondi\u00f3 en el ticket ${ticket.numeroTicket}`,
           ticketId: parseInt(id),
         })
       }
 
-      if (user.rol === 'usuario' && ticket.tecnicoId &&
-          ticket.tecnicoId !== user.id) {
+      if (user.rol === 'usuario' && ticket.tecnicoId && ticket.tecnicoId !== user.id) {
         notificaciones.enviarAUsuario(ticket.tecnicoId, {
           tipo:     'comentario',
           titulo:   'Nuevo comentario de usuario',
-          mensaje:  `El usuario comentó en el ticket ${ticket.numeroTicket}`,
+          mensaje:  `El usuario coment\u00f3 en el ticket ${ticket.numeroTicket}`,
           ticketId: parseInt(id),
         })
       }
@@ -363,14 +357,13 @@ async function agregarComentario(req, res) {
   }
 }
 
-// ── POST /tickets/:id/solucion-media ──────────────────────────────────────────
-
+// ── POST /tickets/:id/solucion-media ─────────────────────────────────────────
 async function subirSolucionMedia(req, res) {
   const { id } = req.params
   const { tipo } = req.body
 
   if (!req.file) {
-    req.flash('error', 'No se seleccionó ningún archivo.')
+    req.flash('error', 'No se seleccion\u00f3 ning\u00fan archivo.')
     return res.redirect(`/tickets/${id}`)
   }
 
@@ -379,12 +372,9 @@ async function subirSolucionMedia(req, res) {
       ? { videoSolucion: req.file.filename }
       : { imagenSolucion: req.file.filename }
 
-    await prisma.ticket.update({
-      where: { id: parseInt(id) },
-      data,
-    })
+    await prisma.ticket.update({ where: { id: parseInt(id) }, data })
 
-    req.flash('success', `${tipo === 'video' ? 'Video' : 'Imagen'} de solución subido correctamente.`)
+    req.flash('success', `${tipo === 'video' ? 'Video' : 'Imagen'} de soluci\u00f3n subido correctamente.`)
     res.redirect(`/tickets/${id}`)
 
   } catch (err) {
@@ -394,6 +384,7 @@ async function subirSolucionMedia(req, res) {
   }
 }
 
+// ── Exports ──────────────────────────────────────────────────────────────────
 module.exports = {
   listarTickets,
   mostrarFormulario,

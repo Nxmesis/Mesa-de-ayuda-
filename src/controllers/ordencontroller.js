@@ -1,14 +1,10 @@
 'use strict'
 
-const prisma          = require('../utils/db')
-const helpers         = require('../utils/helpers')
-const notificaciones  = require('../../services/notificacionesService')
+const prisma         = require('../utils/db')
+const helpers        = require('../utils/helpers')
+const notificaciones = require('../../services/notificacionesService')
 
-// ── GET /ordenes ──────────────────────────────────────────────────────────────
-// Bandeja: muestra las órdenes donde el usuario es remitente o destinatario.
-// La privacidad queda garantizada porque el where siempre filtra por el id
-// del usuario en sesión, nunca por parámetros de URL.
-
+// ── GET /ordenes ─────────────────────────────────────────────────────────────
 async function listarOrdenes(req, res) {
   try {
     const user = req.session.usuario
@@ -28,20 +24,18 @@ async function listarOrdenes(req, res) {
     })
 
     res.render('ordenes', {
-      title: 'Ordenes',
+      title: '\u00d3rdenes',
       user, ordenes, helpers,
     })
 
   } catch (err) {
     console.error('[ordenController] listarOrdenes:', err)
-    req.flash('error', 'Error al cargar las órdenes.')
+    req.flash('error', 'Error al cargar las \u00f3rdenes.')
     res.redirect('/tickets')
   }
 }
 
-// ── GET /ordenes/nueva ─────────────────────────────────────────────────────────
-// Solo admin/tecnico (ya filtrado por requireAdmin en la ruta).
-
+// ── GET /ordenes/nueva ─────────────────────────────────────────────────────
 async function mostrarFormulario(req, res) {
   try {
     const usuarios = await prisma.usuario.findMany({
@@ -63,13 +57,12 @@ async function mostrarFormulario(req, res) {
   }
 }
 
-// ── POST /ordenes ──────────────────────────────────────────────────────────────
-
+// ── POST /ordenes ────────────────────────────────────────────────────────────
 async function crearOrden(req, res) {
   const { destinatarioId, asunto, contenido } = req.body
   const user = req.session.usuario
 
-  if (!destinatarioId || !asunto || !contenido) {
+  if (!destinatarioId || !asunto?.trim() || !contenido?.trim()) {
     req.flash('error', 'Destinatario, asunto y mensaje son obligatorios.')
     return res.redirect('/ordenes/nueva')
   }
@@ -81,7 +74,7 @@ async function crearOrden(req, res) {
     })
 
     if (!destino || !destino.activo) {
-      req.flash('error', 'El usuario destinatario no es válido.')
+      req.flash('error', 'El usuario destinatario no es v\u00e1lido.')
       return res.redirect('/ordenes/nueva')
     }
 
@@ -111,10 +104,7 @@ async function crearOrden(req, res) {
   }
 }
 
-// ── GET /ordenes/:id ───────────────────────────────────────────────────────────
-// Solo el remitente o el destinatario pueden verla. Al abrirla, si el que
-// entra es el destinatario y aún no la había leído, se marca como leída.
-
+// ── GET /ordenes/:id ───────────────────────────────────────────────────────
 async function verOrden(req, res) {
   const id   = parseInt(req.params.id)
   const user = req.session.usuario
@@ -159,6 +149,7 @@ async function verOrden(req, res) {
   }
 }
 
+// ── Exports ──────────────────────────────────────────────────────────────────
 module.exports = {
   listarOrdenes,
   mostrarFormulario,
