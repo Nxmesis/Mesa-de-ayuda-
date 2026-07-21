@@ -6,15 +6,16 @@ const helpers = require('../utils/helpers')
 const path    = require('path')
 const fs      = require('fs')
 
-// ── GET /perfil ───────────────────────────────────────────────────────────────
+const UPLOAD_DIR = './uploads/perfiles'
 
+// ── GET /perfil ──────────────────────────────────────────────────────────────
 async function mostrarPerfil(req, res) {
   try {
     const usuario = await prisma.usuario.findUnique({
       where: { id: req.session.usuario.id },
     })
 
-    // Mantener sesión sincronizada con la BD
+    // Sincronizar sesi\u00f3n con BD
     req.session.usuario = {
       id:         usuario.id,
       nombre:     usuario.nombre,
@@ -25,8 +26,8 @@ async function mostrarPerfil(req, res) {
     }
 
     res.render('perfil', {
-      title:   'Mi Perfil',
-      user:    req.session.usuario,
+      title: 'Mi Perfil',
+      user:  req.session.usuario,
       helpers,
     })
 
@@ -37,20 +38,19 @@ async function mostrarPerfil(req, res) {
   }
 }
 
-// ── POST /perfil/datos ────────────────────────────────────────────────────────
-
+// ── POST /perfil/datos ───────────────────────────────────────────────────────
 async function actualizarDatos(req, res) {
   const { nombre, area } = req.body
 
-  if (!nombre || !nombre.trim()) {
-    req.flash('error', 'El nombre no puede estar vacío.')
+  if (!nombre?.trim()) {
+    req.flash('error', 'El nombre no puede estar vac\u00edo.')
     return res.redirect('/perfil')
   }
 
   try {
     const u = await prisma.usuario.update({
       where: { id: req.session.usuario.id },
-      data:  { nombre: nombre.trim(), area: area ? area.trim() : null },
+      data:  { nombre: nombre.trim(), area: area?.trim() || null },
     })
 
     req.session.usuario.nombre = u.nombre
@@ -66,8 +66,7 @@ async function actualizarDatos(req, res) {
   }
 }
 
-// ── POST /perfil/foto ─────────────────────────────────────────────────────────
-
+// ── POST /perfil/foto ────────────────────────────────────────────────────────
 async function actualizarFoto(req, res) {
   if (!req.file) {
     req.flash('error', 'Selecciona una imagen.')
@@ -75,11 +74,13 @@ async function actualizarFoto(req, res) {
   }
 
   try {
-    const u = await prisma.usuario.findUnique({ where: { id: req.session.usuario.id } })
+    const u = await prisma.usuario.findUnique({
+      where: { id: req.session.usuario.id },
+      select: { fotoPerfil: true },
+    })
 
-    // Eliminar foto anterior si existe
     if (u.fotoPerfil) {
-      const rutaAnterior = path.join('./uploads/perfiles', u.fotoPerfil)
+      const rutaAnterior = path.join(UPLOAD_DIR, u.fotoPerfil)
       if (fs.existsSync(rutaAnterior)) fs.unlinkSync(rutaAnterior)
     }
 
@@ -89,7 +90,6 @@ async function actualizarFoto(req, res) {
     })
 
     req.session.usuario.fotoPerfil = req.file.filename
-
     req.flash('success', 'Foto de perfil actualizada.')
     res.redirect('/perfil')
 
@@ -100,14 +100,16 @@ async function actualizarFoto(req, res) {
   }
 }
 
-// ── POST /perfil/foto/eliminar ────────────────────────────────────────────────
-
+// ── POST /perfil/foto/eliminar ───────────────────────────────────────────────
 async function eliminarFoto(req, res) {
   try {
-    const u = await prisma.usuario.findUnique({ where: { id: req.session.usuario.id } })
+    const u = await prisma.usuario.findUnique({
+      where: { id: req.session.usuario.id },
+      select: { fotoPerfil: true },
+    })
 
     if (u.fotoPerfil) {
-      const rutaFoto = path.join('./uploads/perfiles', u.fotoPerfil)
+      const rutaFoto = path.join(UPLOAD_DIR, u.fotoPerfil)
       if (fs.existsSync(rutaFoto)) fs.unlinkSync(rutaFoto)
     }
 
@@ -117,7 +119,6 @@ async function eliminarFoto(req, res) {
     })
 
     req.session.usuario.fotoPerfil = null
-
     req.flash('success', 'Foto eliminada.')
     res.redirect('/perfil')
 
@@ -128,8 +129,7 @@ async function eliminarFoto(req, res) {
   }
 }
 
-// ── POST /perfil/password ─────────────────────────────────────────────────────
-
+// ── POST /perfil/password ────────────────────────────────────────────────────
 async function cambiarPassword(req, res) {
   const { passwordActual, passwordNueva, passwordConfirm } = req.body
 
@@ -138,20 +138,23 @@ async function cambiarPassword(req, res) {
     return res.redirect('/perfil')
   }
   if (passwordNueva !== passwordConfirm) {
-    req.flash('error', 'Las contraseñas nuevas no coinciden.')
+    req.flash('error', 'Las contrase\u00f1as nuevas no coinciden.')
     return res.redirect('/perfil')
   }
   if (passwordNueva.length < 6) {
-    req.flash('error', 'La nueva contraseña debe tener al menos 6 caracteres.')
+    req.flash('error', 'La nueva contrase\u00f1a debe tener al menos 6 caracteres.')
     return res.redirect('/perfil')
   }
 
   try {
-    const u = await prisma.usuario.findUnique({ where: { id: req.session.usuario.id } })
+    const u = await prisma.usuario.findUnique({
+      where: { id: req.session.usuario.id },
+      select: { password: true },
+    })
 
     const valida = await bcrypt.compare(passwordActual, u.password)
     if (!valida) {
-      req.flash('error', 'La contraseña actual no es correcta.')
+      req.flash('error', 'La contrase\u00f1a actual no es correcta.')
       return res.redirect('/perfil')
     }
 
@@ -160,14 +163,21 @@ async function cambiarPassword(req, res) {
       data:  { password: await bcrypt.hash(passwordNueva, 10) },
     })
 
-    req.flash('success', 'Contraseña cambiada correctamente.')
+    req.flash('success', 'Contrase\u00f1a cambiada correctamente.')
     res.redirect('/perfil')
 
   } catch (err) {
     console.error('[perfilController] cambiarPassword:', err)
-    req.flash('error', 'Error al cambiar la contraseña.')
+    req.flash('error', 'Error al cambiar la contrase\u00f1a.')
     res.redirect('/perfil')
   }
 }
 
-module.exports = { mostrarPerfil, actualizarDatos, actualizarFoto, eliminarFoto, cambiarPassword }
+// ── Exports ──────────────────────────────────────────────────────────────────
+module.exports = {
+  mostrarPerfil,
+  actualizarDatos,
+  actualizarFoto,
+  eliminarFoto,
+  cambiarPassword,
+}
