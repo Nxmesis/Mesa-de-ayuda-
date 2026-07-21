@@ -16,8 +16,8 @@
 
     <%# ===== MODO HISTORIAL: Banner ===== %>
     <% if (typeof modoHistorial !== 'undefined' && modoHistorial) { %>
-    <div class="historial-banner">
-      <div class="historial-info">
+    <div class="dash-historial-banner">
+      <div class="dash-historial-info">
         <i class="fas fa-history"></i>
         <span>Viendo historial: <strong><%= tituloFecha %></strong></span>
       </div>
@@ -28,35 +28,35 @@
     <% } %>
 
     <%# ═══════ HEADER DASHBOARD ═══════ %>
-    <div class="dashboard-header">
-      <div class="dashboard-title-group">
-        <h1 class="dashboard-title">Dashboard</h1>
-        <p class="dashboard-subtitle">Panel de control y análisis de rendimiento del sistema</p>
+    <div class="dash-header">
+      <div class="dash-title-group">
+        <h1 class="dash-title">Dashboard</h1>
+        <p class="dash-subtitle">Panel de control y análisis de rendimiento del sistema</p>
       </div>
-      
-      <div class="dashboard-actions">
+
+      <div class="dash-actions">
         <%# Período %>
-        <div class="periodo-badge">
-          <span class="periodo-label">Período</span>
-          <div class="periodo-valor">
+        <div class="dash-periodo-badge">
+          <span class="dash-periodo-label">Período</span>
+          <div class="dash-periodo-valor">
             <i class="far fa-calendar-alt"></i>
             <%= tituloFecha %>
           </div>
         </div>
-        
+
         <%# Botón Exportar con dropdown %>
-        <div class="exportar-dropdown">
-          <button type="button" class="btn-exportar" id="btn-exportar-toggle">
+        <div class="dash-export-dropdown">
+          <button type="button" class="dash-export-btn" id="btn-exportar-toggle">
             <i class="fas fa-arrow-up"></i>
             <span>Exportar</span>
             <i class="fas fa-chevron-down" style="margin-left:6px; font-size:0.7rem;"></i>
           </button>
-          <div class="exportar-menu" id="exportar-menu">
-            <a href="/estadisticas/reporte" class="exportar-item">
+          <div class="dash-export-menu" id="exportar-menu">
+            <a href="/estadisticas/reporte" class="dash-export-item">
               <i class="fas fa-file-pdf"></i>
               <span>Período actual</span>
             </a>
-            <button type="button" class="exportar-item" onclick="abrirModalExportar()">
+            <button type="button" class="dash-export-item" onclick="abrirModalExportar()">
               <i class="fas fa-calendar-alt"></i>
               <span>Seleccionar período...</span>
             </button>
@@ -65,84 +65,78 @@
       </div>
     </div>
 
-    <%# ═══════ CARDS MEJORADAS ═══════ %>
-    <div class="dashboard-cards">
-      
-      <div class="dash-card card-total">
-        <div class="dash-card-accent"></div>
-        <div class="dash-card-top">
-          <div class="dash-card-icon">
+    <%# ═══════ KPI CARDS ═══════ %>
+    <div class="dash-kpi-grid">
+
+      <div class="dash-kpi-card total">
+        <div class="dash-kpi-top">
+          <div class="dash-kpi-icon">
             <i class="fas fa-ticket-alt"></i>
           </div>
-          <span class="dash-card-badge">+<%= stats.estemes || 0 %> este mes</span>
+          <span class="dash-kpi-badge">+<%= stats.estemes || 0 %> este mes</span>
         </div>
-        <div class="dash-card-number"><%= stats.total || 0 %></div>
-        <div class="dash-card-label">Total Tickets</div>
+        <div class="dash-kpi-number"><%= stats.total || 0 %></div>
+        <div class="dash-kpi-label">Total Tickets</div>
       </div>
 
-      <div class="dash-card card-pendientes">
-        <div class="dash-card-accent"></div>
-        <div class="dash-card-top">
-          <div class="dash-card-icon">
+      <div class="dash-kpi-card pendientes">
+        <div class="dash-kpi-top">
+          <div class="dash-kpi-icon">
             <i class="fas fa-clock"></i>
           </div>
         </div>
-        <div class="dash-card-number"><%= stats.pendientes || 0 %></div>
-        <div class="dash-card-label">Pendientes</div>
+        <div class="dash-kpi-number"><%= stats.pendientes || 0 %></div>
+        <div class="dash-kpi-label">Pendientes</div>
       </div>
 
-      <div class="dash-card card-proceso">
-        <div class="dash-card-accent"></div>
-        <div class="dash-card-top">
-          <div class="dash-card-icon">
+      <div class="dash-kpi-card proceso">
+        <div class="dash-kpi-top">
+          <div class="dash-kpi-icon">
             <i class="fas fa-spinner"></i>
           </div>
         </div>
-        <div class="dash-card-number"><%= stats.enProceso || 0 %></div>
-        <div class="dash-card-label">En Proceso</div>
+        <div class="dash-kpi-number"><%= stats.enProceso || 0 %></div>
+        <div class="dash-kpi-label">En Proceso</div>
       </div>
 
-      <div class="dash-card card-solucionados">
-        <div class="dash-card-accent"></div>
-        <div class="dash-card-top">
-          <div class="dash-card-icon">
+      <div class="dash-kpi-card solucionados">
+        <div class="dash-kpi-top">
+          <div class="dash-kpi-icon">
             <i class="fas fa-check-circle"></i>
           </div>
         </div>
-        <div class="dash-card-number"><%= stats.solucionados || 0 %></div>
-        <div class="dash-card-label">Solucionados</div>
+        <div class="dash-kpi-number"><%= stats.solucionados || 0 %></div>
+        <div class="dash-kpi-label">Solucionados</div>
       </div>
 
-      <div class="dash-card card-cerrados">
-        <div class="dash-card-accent"></div>
-        <div class="dash-card-top">
-          <div class="dash-card-icon">
+      <div class="dash-kpi-card cerrados">
+        <div class="dash-kpi-top">
+          <div class="dash-kpi-icon">
             <i class="fas fa-lock"></i>
           </div>
         </div>
-        <div class="dash-card-number"><%= stats.cerrados || 0 %></div>
-        <div class="dash-card-label">Cerrados</div>
+        <div class="dash-kpi-number"><%= stats.cerrados || 0 %></div>
+        <div class="dash-kpi-label">Cerrados</div>
       </div>
 
-      <div class="dash-card card-tasa">
-        <div class="dash-card-accent"></div>
-        <div class="dash-card-top">
-          <div class="dash-card-icon">
+      <div class="dash-kpi-card tasa">
+        <div class="dash-kpi-top">
+          <div class="dash-kpi-icon">
             <i class="fas fa-percentage"></i>
           </div>
         </div>
-        <div class="dash-card-number tasa-color">
+        <div class="dash-kpi-number">
           <%= stats.total > 0 ? Math.round((stats.solucionados + stats.cerrados) * 100 / stats.total) : 0 %>%
         </div>
-        <div class="dash-card-label">Tasa de Resolución</div>
+        <div class="dash-kpi-label">Tasa de Resolución</div>
       </div>
     </div>
 
     <%# ═══════ TICKETS RECIENTES (SCROLLABLE) ═══════ %>
-    <div class="tickets-section">
-      <div class="section-header">
+    <div class="dash-section">
+      <div class="dash-section-header">
         <div>
-          <h2 class="section-title">
+          <h2 class="dash-section-title">
             <% if (typeof modoHistorial !== 'undefined' && modoHistorial) { %>
               Tickets - <%= tituloFecha %>
             <% } else { %>
@@ -150,7 +144,7 @@
             <% } %>
           </h2>
         </div>
-        <div class="section-actions">
+        <div class="dash-section-actions">
           <% if (typeof modoHistorial === 'undefined' || !modoHistorial) { %>
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="abrirModalHistorial()">
             <i class="fas fa-calendar-alt"></i> Historial
@@ -159,8 +153,8 @@
           <a href="/tickets/nuevo" class="btn btn-success btn-sm">Nuevo Ticket</a>
         </div>
       </div>
-      
-      <div class="tickets-scroll-container">
+
+      <div class="dash-scroll-container">
         <table class="table table-compact">
           <thead>
             <tr>
@@ -194,7 +188,7 @@
             <% }) %>
             <% } else { %>
             <tr>
-              <td colspan="10" class="text-center" style="padding:30px; color:#8b95a8;">
+              <td colspan="10" class="text-center" style="padding:30px; color:#94a3b8;">
                 <%= (typeof modoHistorial !== 'undefined' && modoHistorial) ? 'No hay tickets en este período' : 'No hay tickets registrados este mes' %>
               </td>
             </tr>
@@ -205,15 +199,15 @@
     </div>
 
     <%# ═══════ GRÁFICOS ═══════ %>
-    <div class="charts-grid">
-      
+    <div class="dash-charts-grid">
+
       <%# Tendencia %>
-      <div class="chart-card chart-large">
-        <div class="chart-header">
+      <div class="dash-chart-card">
+        <div class="dash-chart-header">
           <h3><i class="fas fa-chart-area"></i> Tendencia de Tickets</h3>
-          <p class="chart-subtitle">Evolución de tickets en los últimos 7 días</p>
+          <p class="dash-chart-subtitle">Evolución de tickets en los últimos 7 días</p>
         </div>
-        <div class="chart-body">
+        <div class="dash-chart-body">
           <canvas id="tendenciaChart" 
                   data-dias='<%- JSON.stringify(diasLabels || ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"]) %>'
                   data-valores='<%- JSON.stringify(porDia || [0,0,0,0,0,0,0]) %>'></canvas>
@@ -221,50 +215,50 @@
       </div>
 
       <%# Distribución (doughnut) %>
-      <div class="chart-card chart-small">
-        <div class="chart-header">
+      <div class="dash-chart-card dash-chart-small">
+        <div class="dash-chart-header">
           <h3><i class="fas fa-chart-pie"></i> Distribución</h3>
-          <p class="chart-subtitle">Tickets por estado</p>
+          <p class="dash-chart-subtitle">Tickets por estado</p>
         </div>
-        <div class="chart-body">
+        <div class="dash-chart-body">
           <canvas id="estadoChart"
                   data-valores='<%- JSON.stringify([stats.pendientes||0, stats.enProceso||0, stats.solucionados||0, stats.cerrados||0]) %>'></canvas>
         </div>
       </div>
     </div>
 
-    <div class="charts-grid">
-      
+    <div class="dash-charts-grid">
+
       <%# Categoría - colores específicos %>
-      <div class="chart-card">
-        <div class="chart-header">
+      <div class="dash-chart-card">
+        <div class="dash-chart-header">
           <h3><i class="fas fa-tags"></i> Tickets por Categoría</h3>
         </div>
-        <div class="chart-body">
+        <div class="dash-chart-body">
           <canvas id="categoriaChart"
                   data-labels='<%- JSON.stringify((porCategoria||[]).map(c=>c.nombre)) %>'
                   data-valores='<%- JSON.stringify((porCategoria||[]).map(c=>c._count.tickets)) %>'
-                  data-colors='<%- JSON.stringify((porCategoria||[]).map(c => CATEGORIA_COLORS[c.nombre] || '#95a5a6')) %>'></canvas>
+                  data-colors='<%- JSON.stringify((porCategoria||[]).map(c => CATEGORIA_COLORS[c.nombre] || '#94a3b8')) %>'></canvas>
         </div>
       </div>
 
       <%# Prioridad - colores específicos %>
-      <div class="chart-card">
-        <div class="chart-header">
+      <div class="dash-chart-card">
+        <div class="dash-chart-header">
           <h3><i class="fas fa-exclamation-triangle"></i> Tickets por Prioridad</h3>
         </div>
-        <div class="chart-body">
+        <div class="dash-chart-body">
           <canvas id="prioridadChart"
                   data-labels='<%- JSON.stringify((porPrioridad||[]).map(p=>p.prioridad)) %>'
                   data-valores='<%- JSON.stringify((porPrioridad||[]).map(p=>p._count.id)) %>'
-                  data-colors='<%- JSON.stringify((porPrioridad||[]).map(p => PRIORIDAD_COLORS[p.prioridad] || '#95a5a6')) %>'></canvas>
+                  data-colors='<%- JSON.stringify((porPrioridad||[]).map(p => PRIORIDAD_COLORS[p.prioridad] || '#94a3b8')) %>'></canvas>
         </div>
       </div>
     </div>
 
     <% } else { %>
     <%# ===== VISTA USUARIO NORMAL ===== %>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <div class="dash-user-header">
       <h1>Mis Solicitudes</h1>
       <a href="/tickets/nuevo" class="btn btn-success">Crear Nueva Solicitud</a>
     </div>
@@ -304,24 +298,24 @@
   <%- include('partials/footer') %>
 
   <%# ═══════ MODAL HISTORIAL ═══════ %>
-  <div id="modal-historial" class="modal-historial">
-    <div class="modal-content">
-      <div class="modal-header">
+  <div id="modal-historial" class="dash-modal-overlay">
+    <div class="dash-modal-content">
+      <div class="dash-modal-header">
         <h3><i class="fas fa-calendar-alt"></i> Consultar Historial</h3>
-        <button type="button" class="btn-close" onclick="cerrarModalHistorial()">&times;</button>
+        <button type="button" class="dash-modal-close" onclick="cerrarModalHistorial()">&times;</button>
       </div>
-      <div class="modal-body">
-        <div class="filtro-mes">
+      <div class="dash-modal-body">
+        <div class="form-group">
           <label for="select-mes">Seleccionar mes:</label>
           <input type="month" id="select-mes" class="form-control">
         </div>
-        <div class="filtro-dia">
+        <div class="form-group">
           <label for="select-dia">Filtrar por día específico (opcional):</label>
           <input type="date" id="select-dia" class="form-control">
           <small>Dejar vacío para ver todo el mes</small>
         </div>
       </div>
-      <div class="modal-footer">
+      <div class="dash-modal-footer">
         <button type="button" class="btn btn-secondary" onclick="cerrarModalHistorial()">Cancelar</button>
         <button type="button" class="btn btn-primary" onclick="consultarHistorial()">
           <i class="fas fa-search"></i> Consultar
@@ -331,24 +325,24 @@
   </div>
 
   <%# ═══════ MODAL EXPORTAR ═══════ %>
-  <div id="modal-exportar" class="modal-historial">
-    <div class="modal-content">
-      <div class="modal-header">
+  <div id="modal-exportar" class="dash-modal-overlay">
+    <div class="dash-modal-content">
+      <div class="dash-modal-header">
         <h3><i class="fas fa-file-pdf"></i> Exportar Reporte</h3>
-        <button type="button" class="btn-close" onclick="cerrarModalExportar()">&times;</button>
+        <button type="button" class="dash-modal-close" onclick="cerrarModalExportar()">&times;</button>
       </div>
-      <div class="modal-body">
-        <div class="filtro-mes">
+      <div class="dash-modal-body">
+        <div class="form-group">
           <label for="export-mes">Seleccionar mes del reporte:</label>
           <input type="month" id="export-mes" class="form-control">
         </div>
-        <div class="filtro-dia">
+        <div class="form-group">
           <label for="export-dia">O filtrar por día específico (opcional):</label>
           <input type="date" id="export-dia" class="form-control">
           <small>Dejar vacío para exportar todo el mes</small>
         </div>
       </div>
-      <div class="modal-footer">
+      <div class="dash-modal-footer">
         <button type="button" class="btn btn-secondary" onclick="cerrarModalExportar()">Cancelar</button>
         <button type="button" class="btn btn-primary" onclick="exportarReporte()">
           <i class="fas fa-file-pdf"></i> Generar PDF

@@ -79,7 +79,7 @@
         <tbody>
           <% if (usuarios && usuarios.length > 0) { %>
             <% usuarios.forEach(u => { %>
-            <tr class="<%= !u.activo ? 'usr-row-inactive' : '' %>" data-estado="<%= u.activo ? 'activo' : 'inactivo' %>">
+            <tr class="usr-row <%= !u.activo ? 'usr-row-inactive' : '' %>" data-estado="<%= u.activo ? 'activo' : 'inactivo' %>">
               <td class="usr-col-id">
                 <span class="usr-id-tag">#<%= u.id %></span>
               </td>

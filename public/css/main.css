@@ -275,10 +275,9 @@ body {
 }
 
 .nav-brand-text {
-    font-family: 'Montserrat', 'Segoe UI', sans-serif;
-    font-weight: 700;
-    font-size: 1.25rem;
-    letter-spacing: 0.5px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-weight: 600;
+    font-size: 1.38rem;
     color: #f0f2f5;
 }
 
@@ -332,7 +331,7 @@ body {
 
 .nav-user-name {
     font-weight: 600;
-    color: #ffffff;   /* ← CAMBIAR A: #f0f2f5 */
+    color: #f0f2f5;
     font-size: 0.9rem;
 }
 .nav-user-badge {
@@ -1503,5 +1502,4 @@ canvas {
     opacity: 1;
     color: #2ecc71;
 }
-
 
