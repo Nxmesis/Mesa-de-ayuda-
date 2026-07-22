@@ -7,7 +7,6 @@ const htmlPdf = require('html-pdf-node')
 const prisma  = require('../utils/db')
 const helpers = require('../utils/helpers')
 
-// ── Constantes ───────────────────────────────────────────────────────────────
 const ESTADO_MAP = {
   Pendiente:     'PENDIENTE',
   EnProceso:     'EN_PROCESO',
@@ -16,27 +15,25 @@ const ESTADO_MAP = {
   Cerrado:       'CERRADO',
 }
 
+// ── Colores por categoría ──────────────────────────────────────────────────
 const CATEGORIA_COLORS = {
-  Administrativo: '#3498db',
-  'C\u00e1maras':  '#9b59b6',
-  Hardware:       '#e74c3c',
-  Otro:           '#95a5a6',
-  Red:            '#2ecc71',
-  Software:       '#f39c12',
+  'Administrativo': '#3498db',
+  'Cámaras':        '#9b59b6',
+  'Hardware':       '#e74c3c',
+  'Otro':           '#95a5a6',
+  'Red':            '#2ecc71',
+  'Software':       '#f39c12',
 }
 
+// ── Colores por prioridad ──────────────────────────────────────────────────
 const PRIORIDAD_COLORS = {
-  Critica: '#e74c3c',
-  Alta:    '#f39c12',
-  Media:   '#f1c40f',
-  Baja:    '#3498db',
+  'Critica': '#e74c3c',   // rojo
+  'Alta':    '#f39c12',   // naranja
+  'Media':   '#f1c40f',   // amarilla
+  'Baja':    '#3498db',   // azul
 }
 
-const ROL_ADMIN   = 'admin'
-const ROL_TECNICO = 'tecnico'
-
-// ── Helpers privados ─────────────────────────────────────────────────────────
-
+// ── Helpers de fecha ───────────────────────────────────────────────────────
 function getRangoFecha(mes, dia) {
   let whereFecha = {}
   let tituloFecha = ''
@@ -57,6 +54,7 @@ function getRangoFecha(mes, dia) {
     whereFecha   = { fechaCreacion: { gte: inicio, lte: fin } }
     tituloFecha  = `${diaNum} de ${helpers.nombreMes(mesNum)} ${anio}`
   } else {
+    // Período actual (mes en curso)
     const ahora = new Date()
     const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1)
     const finMes    = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0, 23, 59, 59, 999)
@@ -73,25 +71,21 @@ function calcularTasaResolucion(stats) {
     : 0
 }
 
-async function obtenerDatosDashboard(whereFinal) {
+async function obtenerDatosDashboard(whereFinal, esAdmin) {
   const ahora = new Date()
+  const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1)
 
-  // Stats b\u00e1sicos
-  const [total, pendientes, enProceso, solucionados, cerrados] = await Promise.all([
+  // ── Stats básicos ────────────────────────────────────────────────────────
+  const [total, pendientes, enProceso, solucionados, cerrados, estemes] = await Promise.all([
     prisma.ticket.count({ where: whereFinal }),
     prisma.ticket.count({ where: { ...whereFinal, estado: 'Pendiente' } }),
     prisma.ticket.count({ where: { ...whereFinal, estado: 'EnProceso' } }),
     prisma.ticket.count({ where: { ...whereFinal, estado: 'Solucionado' } }),
     prisma.ticket.count({ where: { ...whereFinal, estado: 'Cerrado' } }),
+    prisma.ticket.count({ where: { fechaCreacion: { gte: inicioMes } } }),
   ])
 
-  // Tickets creados este mes (independiente del filtro de fecha del dashboard)
-  const inicioMesActual = new Date(ahora.getFullYear(), ahora.getMonth(), 1)
-  const estemes = await prisma.ticket.count({
-    where: { fechaCreacion: { gte: inicioMesActual } },
-  })
-
-  // Por estado (doughnut)
+  // ── Por estado (para doughnut) ───────────────────────────────────────────
   const porEstado = {
     PENDIENTE: 0, EN_PROCESO: 0,
     ESPERANDO_INFORMACION: 0, SOLUCIONADO: 0, CERRADO: 0,
@@ -106,7 +100,7 @@ async function obtenerDatosDashboard(whereFinal) {
     if (key) porEstado[key] = item._count.id
   }
 
-  // Por categor\u00eda
+  // ── Por categoría ────────────────────────────────────────────────────────
   const porCategoria = await prisma.categoria.findMany({
     where: { tickets: { some: whereFinal } },
     include: { _count: { select: { tickets: { where: whereFinal } } } },
@@ -114,7 +108,7 @@ async function obtenerDatosDashboard(whereFinal) {
     take: 10,
   })
 
-  // Por prioridad
+  // ── Por prioridad ────────────────────────────────────────────────────────
   const porPrioridad = await prisma.ticket.groupBy({
     by: ['prioridad'],
     where: whereFinal,
@@ -122,7 +116,7 @@ async function obtenerDatosDashboard(whereFinal) {
     orderBy: { _count: { id: 'desc' } },
   })
 
-  // Tendencia \u00faltimos 7 d\u00edas
+  // ── Tendencia últimos 7 días ─────────────────────────────────────────────
   const diasLabels = []
   const porDia = [0, 0, 0, 0, 0, 0, 0]
 
@@ -132,7 +126,7 @@ async function obtenerDatosDashboard(whereFinal) {
     diasLabels.push(fecha.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric' }))
 
     const inicioDia = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate())
-    const finDia    = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate() + 1)
+    const finDia = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate() + 1)
 
     porDia[6 - i] = await prisma.ticket.count({
       where: { fechaCreacion: { gte: inicioDia, lt: finDia } }
@@ -149,17 +143,18 @@ async function obtenerDatosDashboard(whereFinal) {
   }
 }
 
-// ── GET /dashboard ───────────────────────────────────────────────────────────
+// ── GET /dashboard ──────────────────────────────────────────────────────────
 async function mostrarDashboard(req, res) {
   try {
     const user    = req.session.usuario
-    const esAdmin = user.rol === ROL_ADMIN || user.rol === ROL_TECNICO
+    const esAdmin = user.rol === 'admin' || user.rol === 'tecnico'
     const where   = esAdmin ? {} : { usuarioId: user.id }
 
     const { mes, dia } = req.query
     const { whereFecha, tituloFecha, modoHistorial } = getRangoFecha(mes, dia)
     const whereFinal = { ...where, ...whereFecha }
 
+    // Tickets recientes (para la tabla)
     const tickets = await prisma.ticket.findMany({
       where: whereFinal,
       orderBy: { fechaCreacion: 'desc' },
@@ -171,17 +166,18 @@ async function mostrarDashboard(req, res) {
       },
     })
 
-    const datosStats = await obtenerDatosDashboard(whereFinal)
+    // Datos para gráficos
+    const datosStats = await obtenerDatosDashboard(whereFinal, esAdmin)
 
     res.render('dashboard', {
       title: modoHistorial ? `Historial - ${tituloFecha}` : 'Dashboard',
       user,
       tickets,
       helpers,
-      stats: {
-        totalTickets: datosStats.stats.total,
-        porEstado: datosStats.porEstado,
-        ticketsMes: datosStats.stats.estemes,
+      stats: { 
+        totalTickets: datosStats.stats.total, 
+        porEstado: datosStats.porEstado, 
+        ticketsMes: datosStats.stats.estemes 
       },
       ...datosStats,
       modoHistorial,
@@ -195,25 +191,46 @@ async function mostrarDashboard(req, res) {
   } catch (err) {
     console.error('[dashboardController] mostrarDashboard:', err)
     res.status(500).render('error', {
-      codigo: 500,
-      titulo: 'Error del servidor',
+      codigo: 500, titulo: 'Error del servidor',
       mensaje: 'No se pudieron cargar los datos del dashboard.',
     })
   }
 }
 
 // ── GET /estadisticas/reporte ────────────────────────────────────────────────
+// Genera el PDF del período solicitado (mes actual por defecto, o mes/dia específico)
 async function generarReportePDF(req, res) {
   try {
     const user    = req.session.usuario
-    const esAdmin = user.rol === ROL_ADMIN || user.rol === ROL_TECNICO
+    const esAdmin = user.rol === 'admin' || user.rol === 'tecnico'
     const where   = esAdmin ? {} : { usuarioId: user.id }
 
     const { mes, dia } = req.query
     const { whereFecha, tituloFecha } = getRangoFecha(mes, dia)
     const whereFinal = { ...where, ...whereFecha }
 
-    const datosStats = await obtenerDatosDashboard(whereFinal)
+    const datosStats = await obtenerDatosDashboard(whereFinal, esAdmin)
+
+    // Listado completo de tickets del período, con su solución.
+    // A propósito NO se incluyen imagenAdjunta, imagenSolucion, videoSolucion
+    // ni comentarios: el reporte es solo información + solución de cada ticket.
+    const tickets = await prisma.ticket.findMany({
+      where: whereFinal,
+      orderBy: { fechaCreacion: 'asc' },
+      select: {
+        numeroTicket: true,
+        titulo: true,
+        descripcion: true,
+        solucion: true,
+        estado: true,
+        prioridad: true,
+        fechaCreacion: true,
+        fechaCierre: true,
+        usuario:   { select: { nombre: true, area: true } },
+        tecnico:   { select: { nombre: true } },
+        categoria: { select: { nombre: true } },
+      },
+    })
 
     const stats = {
       total:          datosStats.stats.total,
@@ -225,18 +242,21 @@ async function generarReportePDF(req, res) {
       tasaResolucion: calcularTasaResolucion(datosStats.stats),
     }
 
-    // Logo embebido en base64
+    // Logo embebido en base64: evita depender de una petición HTTP al propio
+    // servidor mientras se genera el PDF (el servidor ya no expone el puerto
+    // 5000 usado antes por BASE_URL, así que esto es más robusto y funciona
+    // 100% offline).
     let logoBase64 = ''
     try {
       const logoPath = path.join(__dirname, '..', '..', 'public', 'img', 'logo.jpeg')
       const logoBuffer = fs.readFileSync(logoPath)
       logoBase64 = `data:image/jpeg;base64,${logoBuffer.toString('base64')}`
     } catch (e) {
-      console.warn('[dashboardController] Logo no cargado para PDF:', e.message)
+      console.warn('[dashboardController] No se pudo cargar el logo para el PDF:', e.message)
     }
 
-    const cssPath   = path.join(__dirname, '..', '..', 'public', 'css', 'reporte.css')
-    const cssInline = fs.existsSync(cssPath) ? fs.readFileSync(cssPath, 'utf8') : ''
+    const cssPath  = path.join(__dirname, '..', '..', 'public', 'css', 'reporte.css')
+    const cssInline = fs.readFileSync(cssPath, 'utf8')
 
     const viewPath = path.join(__dirname, '..', '..', 'views', 'reporte-pdf.ejs')
     const html = await ejs.renderFile(viewPath, {
@@ -245,6 +265,8 @@ async function generarReportePDF(req, res) {
       periodo: tituloFecha,
       fechaGeneracion: new Date().toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' }),
       stats,
+      tickets,
+      helpers,
       porCategoria: datosStats.porCategoria,
       porPrioridad: datosStats.porPrioridad,
       porDia:       datosStats.porDia,
@@ -276,5 +298,4 @@ async function generarReportePDF(req, res) {
   }
 }
 
-// ── Exports ──────────────────────────────────────────────────────────────────
 module.exports = { mostrarDashboard, generarReportePDF }

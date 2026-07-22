@@ -175,6 +175,64 @@
     </div>
   </div>
 
+  <!-- ═══════ LISTADO DETALLADO DE TICKETS (info + solución) ═══════ -->
+  <div class="report-section">
+    <div class="report-section-title">
+      Detalle de Tickets del Período (<%= tickets.length %>)
+    </div>
+
+    <% if (tickets && tickets.length > 0) { %>
+    <div class="report-tickets-list">
+      <% tickets.forEach(t => { %>
+      <% const colorPrio = PRIORIDAD_COLORS[t.prioridad] || '#95a5a6'; %>
+      <% const pillEstado = {
+           Pendiente: 'pill-pendiente', EnProceso: 'pill-proceso',
+           EsperandoInfo: 'pill-cerrado', Solucionado: 'pill-solucionado',
+           Cerrado: 'pill-cerrado',
+         }[t.estado] || 'pill-cerrado'; %>
+      <div class="report-ticket-item">
+        <div class="report-ticket-head">
+          <div>
+            <span class="report-ticket-numero"><%= t.numeroTicket %></span>
+            <span class="report-ticket-titulo"><%= t.titulo %></span>
+          </div>
+          <div class="report-ticket-meta">
+            <span class="report-badge-pill" style="background:<%= colorPrio %>1a;color:<%= colorPrio %>;"><%= t.prioridad %></span>
+            <span class="report-badge-pill <%= pillEstado %>"><%= helpers.textoEstado(t.estado) %></span>
+          </div>
+        </div>
+
+        <div class="report-ticket-info">
+          <span><strong>Solicitante:</strong> <%= t.usuario ? t.usuario.nombre : '—' %><% if (t.usuario && t.usuario.area) { %> (<%= t.usuario.area %>)<% } %></span>
+          <span><strong>Categoría:</strong> <%= t.categoria ? t.categoria.nombre : 'Sin categoría' %></span>
+          <span><strong>Asignado a:</strong> <%= t.tecnico ? t.tecnico.nombre : 'Sin asignar' %></span>
+          <span><strong>Creado:</strong> <%= helpers.formatearFecha(t.fechaCreacion) %></span>
+          <% if (t.fechaCierre) { %>
+          <span><strong>Cerrado:</strong> <%= helpers.formatearFecha(t.fechaCierre) %></span>
+          <% } %>
+        </div>
+
+        <div class="report-ticket-block">
+          <div class="report-ticket-block-label">Descripción</div>
+          <div class="report-ticket-block-text"><%= t.descripcion || 'Sin descripción' %></div>
+        </div>
+
+        <div class="report-ticket-block">
+          <div class="report-ticket-block-label">Solución</div>
+          <% if (t.solucion) { %>
+          <div class="report-ticket-block-text"><%= t.solucion %></div>
+          <% } else { %>
+          <div class="report-ticket-sin-solucion">Sin solución registrada</div>
+          <% } %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } else { %>
+      <p style="color:#8b95a8;font-size:9pt;padding:10px;">No hay tickets registrados en este período.</p>
+    <% } %>
+  </div>
+
   <!-- ═══════ NOTAS Y PIE ═══════ -->
   <div class="report-footer-note">
     <strong>Mesa de Ayuda Interna — Almacén El Melao</strong><br>

@@ -284,3 +284,71 @@ body {
 /* Evitar salto de página en medio de elementos */
 .report-kpi, .report-section { page-break-inside: avoid; }
 .report-table tr { page-break-inside: avoid; }
+
+/* ── Listado detallado de tickets (info + solución) ── */
+.report-tickets-list {
+  margin-top: 4px;
+}
+.report-ticket-item {
+  border: 1px solid #e8ecf1;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  page-break-inside: avoid;
+}
+.report-ticket-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f2f5;
+}
+.report-ticket-numero {
+  font-weight: 700;
+  font-size: 10pt;
+  color: #1a1f2e;
+}
+.report-ticket-titulo {
+  font-size: 9.5pt;
+  color: #4a5568;
+  margin-left: 8px;
+}
+.report-ticket-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.report-ticket-info {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 8.5pt;
+  color: #8b95a8;
+  margin-bottom: 8px;
+}
+.report-ticket-info strong {
+  color: #5a6275;
+}
+.report-ticket-block {
+  margin-top: 6px;
+}
+.report-ticket-block-label {
+  font-size: 7.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #a0aec0;
+  margin-bottom: 3px;
+}
+.report-ticket-block-text {
+  font-size: 9pt;
+  color: #2c3e50;
+  white-space: pre-wrap;
+}
+.report-ticket-sin-solucion {
+  font-size: 8.5pt;
+  color: #a0aec0;
+  font-style: italic;
+}
