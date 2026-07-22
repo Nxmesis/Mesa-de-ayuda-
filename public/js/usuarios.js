@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const q = this.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         
         // Si hay muchos usuarios, usar búsqueda del servidor
-        const rows = document.querySelectorAll('#tablaUsuarios tbody tr.ind-row')
+        const rows = document.querySelectorAll('#tablaUsuarios tbody tr.usr-row')
         if (rows.length > 100) {
           // Redirigir con parámetro de búsqueda para paginación server-side
           const url = new URL(window.location.href)
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const filtro = this.dataset.filter
       
       // Si hay paginación server-side, redirigir
-      const rows = document.querySelectorAll('#tablaUsuarios tbody tr.ind-row')
+      const rows = document.querySelectorAll('#tablaUsuarios tbody tr.usr-row')
       if (rows.length > 100) {
         const url = new URL(window.location.href)
         url.searchParams.set('filter', filtro)

@@ -45,9 +45,9 @@ body {
     flex-direction: column;
     position: fixed;
     left: 0;
-    top: 0;
+    top: 65px;
     bottom: 0;
-    height: 100vh;
+    height: calc(100vh - 65px);
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 1000;
@@ -232,8 +232,9 @@ body {
    ============================================ */
 .main-content {
     margin-left: 260px;
+    margin-top: 65px;
     flex: 1;
-    min-height: 100vh;
+    min-height: calc(100vh - 65px);
     display: flex;
     flex-direction: column;
     width: calc(100% - 260px);
@@ -245,17 +246,23 @@ body {
    TOPBAR / NAVBAR
    ============================================ */
 .navbar {
-    background: linear-gradient(180deg, #1a1f2e 0%, #242b3d 100%);
+    background: linear-gradient(180deg, #1a1f2e  0%,  #1a1f2e  100%);
     color: #f0f2f5;
     padding: 0 30px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.15);
     flex-shrink: 0;
     border-bottom: 1px solid rgba(255,255,255,0.06);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 65px;
+    z-index: 1100;
 }
 
 
 .nav-container {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
@@ -280,7 +287,6 @@ body {
     font-size: 1.38rem;
     color: #f0f2f5;
 }
-
 .nav-brand-icon {
     width: 36px;
     height: 36px;
@@ -886,6 +892,7 @@ input[type="file"].form-control {
         overflow-y: hidden;
         padding: 10px 0;
         order: -1;
+        top: 0;
     }
 
     .sidebar-header {
@@ -937,11 +944,15 @@ input[type="file"].form-control {
 
     .main-content {
         margin-left: 0;
+        margin-top: 0;
         width: 100%;
     }
 
     .navbar {
         padding: 0 20px;
+        position: relative;
+        height: 55px;
+        justify-content: space-between;
     }
 
     .nav-container {
@@ -1161,6 +1172,7 @@ input[type="file"].form-control {
     object-fit: contain;
     border-radius: 4px;
 }
+
 
 /* Stats cards mejorados */
 .stat-card {
@@ -1502,4 +1514,3 @@ canvas {
     opacity: 1;
     color: #2ecc71;
 }
-

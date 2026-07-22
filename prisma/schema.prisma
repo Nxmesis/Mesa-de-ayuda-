@@ -172,11 +172,11 @@ model Camara {
 
 model Sensor {
   id            Int      @id @default(autoincrement())
-  codigo        String   @unique @db.VarChar(20)   // Ej: SEG-01
-  equipo        String   @db.VarChar(100)          // Ej: Hs2032, Teclado RF, Sirena, Humo, Infrarrojo, Vibro sensor
-  nomenclatura  String   @db.VarChar(100)          // Ej: Tarjeta madre, Teclado, Sirena, Hum, Infra 1
-  ubicacion     String   @db.VarChar(150)          // Ej: Bodega 2, Oficina 1, Rack
-  tecnologia    String   @default("Cableado") @db.VarChar(30) // Cableado / Inalámbrico
+  codigo        String   @unique @db.VarChar(20)   
+  equipo        String   @db.VarChar(100)         
+  nomenclatura  String   @db.VarChar(100)          
+  ubicacion     String   @db.VarChar(150)          
+  tecnologia    String   @default("Cableado") @db.VarChar(30) 
   estado        String   @default("Operativo") @db.VarChar(30)
   observaciones String?  @db.Text
   fechaRegistro DateTime @default(now()) @map("fecha_registro")
@@ -186,11 +186,11 @@ model Sensor {
 
 model PuntoRed {
   id            Int      @id @default(autoincrement())
-  codigo        String   @unique @db.VarChar(20)   // Ej: Red-01-S1
-  ubicacion     String   @db.VarChar(150)          // Ej: Oficina 2 Izq.
+  codigo        String   @unique @db.VarChar(20)  
+  ubicacion     String   @db.VarChar(150)          
   tipoCable     String   @default("Cat 5e") @map("tipo_cable") @db.VarChar(30)
-  longitud      String?  @db.VarChar(30)           // Ej: 10mtr (texto libre, como en el acta)
-  tipoUso       String   @default("Datos") @map("tipo_uso") @db.VarChar(30) // Datos / AP / Cámara / Ruta Enlace
+  longitud      String?  @db.VarChar(30)          
+  tipoUso       String   @default("Datos") @map("tipo_uso") @db.VarChar(30) 
   estado        String   @default("Operativo") @db.VarChar(30)
   observaciones String?  @db.Text
   fechaRegistro DateTime @default(now()) @map("fecha_registro")
@@ -200,11 +200,11 @@ model PuntoRed {
 
 model DocumentoInventario {
   id             Int      @id @default(autoincrement())
-  titulo         String   @db.VarChar(150)          // Ej: Acta de entrega sistema de intrusión
-  empresa        String   @db.VarChar(150)          // Ej: TECNOSEGUR SAS
-  tipoDocumento  String   @default("Acta") @map("tipo_documento") @db.VarChar(30) // Acta / Certificado / Bitácora / Otro
-  categoria      String   @default("General") @db.VarChar(30) // Camaras / Sensores / PuntosRed / General
-  archivo        String   @db.VarChar(255)          // nombre del archivo guardado en /uploads/documentos
+  titulo         String   @db.VarChar(150)         
+  empresa        String   @db.VarChar(150)          
+  tipoDocumento  String   @default("Acta") @map("tipo_documento") @db.VarChar(30) 
+  categoria      String   @default("General") @db.VarChar(30) 
+  archivo        String   @db.VarChar(255)          
   fechaDocumento DateTime? @map("fecha_documento") @db.Date
   observaciones  String?  @db.Text
   fechaSubida    DateTime @default(now()) @map("fecha_subida")
@@ -215,22 +215,22 @@ model DocumentoInventario {
 model Mantenimiento {
   id              Int       @id @default(autoincrement())
   equipoId        Int       @map("equipo_id")
-  equipoTipo      String    @map("equipo_tipo") @db.VarChar(30)   // computadora | periferico | camara | sensor | puntored
-  tipo            String    @default("Preventivo") @db.VarChar(20) // Preventivo | Correctivo
-  estado          String    @default("Pendiente") @db.VarChar(20)  // Pendiente | Realizado | Vencido
+  equipoTipo      String    @map("equipo_tipo") @db.VarChar(30)   
+  tipo            String    @default("Preventivo") @db.VarChar(20) 
+  estado          String    @default("Pendiente") @db.VarChar(20)  
   responsable     String?   @db.VarChar(100)
   fechaProgramada DateTime  @map("fecha_programada") @db.Date
   fechaRealizada  DateTime? @map("fecha_realizada") @db.Date
   proximaFecha    DateTime? @map("proxima_fecha") @db.Date
-  horaInicio      String?   @map("hora_inicio") @db.VarChar(5)     // HH:MM
-  horaFin         String?   @map("hora_fin") @db.VarChar(5)        // HH:MM
-  tiempoInvertido Int?      @map("tiempo_invertido")               // minutos (calculado a partir de horaInicio/horaFin)
+  horaInicio      String?   @map("hora_inicio") @db.VarChar(5)     
+  horaFin         String?   @map("hora_fin") @db.VarChar(5)       
+  tiempoInvertido Int?      @map("tiempo_invertido")               
   descripcion     String?   @db.Text
   repuestos       String?   @db.Text
   observaciones   String?   @db.Text
-  evidencias      String?   @db.Text                              // JSON string con array de filenames
-  fotoEvidencia   String?   @map("foto_evidencia") @db.VarChar(255) // nombre del archivo subido (uploads/evidencias)
-  frecuencia      String?   @db.VarChar(20)                        // Mensual | 3meses | 6meses | Anual
+  evidencias      String?   @db.Text                              
+  fotoEvidencia   String?   @map("foto_evidencia") @db.VarChar(255) 
+  frecuencia      String?   @db.VarChar(20)                        
   fechaRegistro   DateTime  @default(now()) @map("fecha_registro")
 
   @@index([equipoId, equipoTipo])

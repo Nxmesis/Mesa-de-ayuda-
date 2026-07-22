@@ -10,10 +10,10 @@ const path    = require("path")
 const fs      = require("fs")
 
 const app  = express()
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 443
 
 // ── Crear carpetas necesarias al arrancar ────────────────────────────────────
-;["./uploads", "./uploads/perfiles", "./uploads/documentos"].forEach((dir) => {
+;["./uploads", "./uploads/perfiles", "./uploads/documentos", "./uploads/evidencias"].forEach((dir) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 })
 
@@ -24,6 +24,7 @@ app.set("views", path.join(__dirname, "views"))
 // ── Archivos estáticos ───────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, "public")))
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
+app.use("/evidencias", express.static(path.join(__dirname, "uploads", "evidencias")))
 
 // ── Parsers ──────────────────────────────────────────────────────────────────
 app.use(express.urlencoded({ extended: true }))

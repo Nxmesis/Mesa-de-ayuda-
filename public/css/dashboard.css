@@ -1,3 +1,4 @@
+
 /* ============================================
    DASHBOARD - ESTILOS REDISEÑADOS
    Consistente con mantenimientos.css
@@ -12,8 +13,30 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
   flex-wrap: wrap;
   gap: 16px;
+}
+
+.dash-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dash-header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1.3rem;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  flex-shrink: 0;
 }
 
 .dash-title-group {
@@ -23,8 +46,8 @@
 .dash-title {
   color: #1e293b;
   font-weight: 700;
-  font-size: 2rem;
-  margin-bottom: 4px;
+  font-size: 2.1rem;
+  margin-bottom: 2px;
   letter-spacing: -0.3px;
 }
 
@@ -168,7 +191,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   KPI CARDS (estilo mant-kpi-card)
+   KPI CARDS (mismo estilo que mant-kpi-card)
    ═══════════════════════════════════════════════════════════════════ */
 .dash-kpi-grid {
   display: grid;
@@ -181,7 +204,7 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 20px;
+  padding: 20px 24px;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -192,17 +215,17 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 4px;
+  width: 4px;
+  height: 100%;
 }
 
 /* Colores de acento por card */
-.dash-kpi-card.total::before     { background: #10b981; }
-.dash-kpi-card.pendientes::before { background: #f59e0b; }
-.dash-kpi-card.proceso::before    { background: #2563eb; }
-.dash-kpi-card.solucionados::before { background: #10b981; }
-.dash-kpi-card.cerrados::before   { background: #64748b; }
-.dash-kpi-card.tasa::before       { background: #10b981; }
+.dash-kpi-card.total::before       { background: #db0b8c; }
+.dash-kpi-card.pendientes::before  { background: #f59e0b; }
+.dash-kpi-card.proceso::before     { background: #2563eb; }
+.dash-kpi-card.solucionados::before{ background: #10b981; }
+.dash-kpi-card.cerrados::before    { background: #64748b; }
+.dash-kpi-card.tasa::before        { background: #10b981; }
 
 .dash-kpi-card:hover {
   transform: translateY(-2px);
@@ -216,31 +239,40 @@
   margin-bottom: 10px;
 }
 
-.dash-kpi-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+
+.dash-kpi-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 1rem;
+  gap: 8px;
 }
 
-.dash-kpi-card.total     .dash-kpi-icon { background: #ecfdf5; color: #10b981; }
-.dash-kpi-card.pendientes .dash-kpi-icon { background: #fffbeb; color: #f59e0b; }
-.dash-kpi-card.proceso   .dash-kpi-icon { background: #eff6ff; color: #2563eb; }
-.dash-kpi-card.solucionados .dash-kpi-icon { background: #ecfdf5; color: #10b981; }
-.dash-kpi-card.cerrados  .dash-kpi-icon { background: #f8fafc; color: #64748b; }
-.dash-kpi-card.tasa      .dash-kpi-icon { background: #ecfdf5; color: #10b981; }
+.dash-kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.dash-kpi-card.tasa .dash-kpi-value { color: #059669; }
 
 .dash-kpi-badge {
   background: #ecfdf5;
   color: #059669;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 20px;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
 }
+
+
 
 .dash-kpi-number {
   font-size: 1.8rem;
@@ -250,19 +282,11 @@
   line-height: 1.2;
 }
 
-.dash-kpi-card.pendientes .dash-kpi-number { color: #1e293b; }
-.dash-kpi-card.proceso   .dash-kpi-number { color: #1e293b; }
-.dash-kpi-card.solucionados .dash-kpi-number { color: #1e293b; }
-.dash-kpi-card.cerrados  .dash-kpi-number { color: #1e293b; }
+.dash-kpi-card.pendientes .dash-kpi-number { color: #36373b; }
+.dash-kpi-card.proceso   .dash-kpi-number { color: #36373b; }
+.dash-kpi-card.solucionados .dash-kpi-number { color: #36373b; }
+.dash-kpi-card.cerrados  .dash-kpi-number { color: #36373b;}
 .dash-kpi-card.tasa      .dash-kpi-number { color: #059669; }
-
-.dash-kpi-label {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
 
 /* ═══════════════════════════════════════════════════════════════════
    SECCIÓN DE TICKETS (estilo mant-tabla)
@@ -335,6 +359,24 @@
   z-index: 2;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
+
+/* ── Badges muteados (solo dentro de esta tabla) ──────────────────────
+   El resto de la app conserva su estilo de badge; aquí se suaviza para
+   que el listado no se vea "cargado" de color. */
+.dash-section .dash-scroll-container .badge {
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border: none;
+}
+
+.dash-section .dash-scroll-container .badge.badge-success  { background: #ecfdf5; color: #059669; }
+.dash-section .dash-scroll-container .badge.badge-info     { background: #eff6ff; color: #2563eb; }
+.dash-section .dash-scroll-container .badge.badge-warning  { background: #fffbeb; color: #b45309; }
+.dash-section .dash-scroll-container .badge.badge-danger   { background: #fef2f2; color: #dc2626; }
+.dash-section .dash-scroll-container .badge.badge-secondary{ background: #f8fafc; color: #64748b; }
+.dash-section .dash-scroll-container .badge.badge-dark     { background: #f1f5f9; color: #334155; }
 
 /* ═══════════════════════════════════════════════════════════════════
    GRÁFICOS (estilo consistente)
@@ -623,7 +665,7 @@
   .dash-kpi-card {
     padding: 16px 14px;
   }
-  .dash-kpi-number {
+  .dash-kpi-value {
     font-size: 1.5rem;
   }
   .dash-section-header {
@@ -647,7 +689,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
-  .dash-kpi-number {
+  .dash-kpi-value {
     font-size: 1.4rem;
   }
   .dash-kpi-label {
@@ -663,3 +705,4 @@
     width: 100%;
   }
 }
+

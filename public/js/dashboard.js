@@ -1,5 +1,6 @@
 /* ============================================
    DASHBOARD - Historial, Exportar & Modales
+   Estilo consistente con mantenimientos
    ============================================ */
 
 // ── MODAL HISTORIAL ─────────────────────────────────────────────────────
@@ -12,7 +13,7 @@ function abrirModalHistorial() {
     const mesDefault = ahora.toISOString().slice(0, 7)
     const inputMes = document.getElementById('select-mes')
     const inputDia = document.getElementById('select-dia')
-    
+
     if (inputMes) inputMes.value = mesDefault
     if (inputDia) inputDia.value = ''
 
@@ -30,7 +31,7 @@ function cerrarModalHistorial() {
 function consultarHistorial() {
     const inputMes = document.getElementById('select-mes')
     const inputDia = document.getElementById('select-dia')
-    
+
     const mes = inputMes ? inputMes.value : ''
     const dia = inputDia ? inputDia.value : ''
 
@@ -64,7 +65,7 @@ function abrirModalExportar() {
     const mesDefault = ahora.toISOString().slice(0, 7)
     const inputMes = document.getElementById('export-mes')
     const inputDia = document.getElementById('export-dia')
-    
+
     if (inputMes) inputMes.value = mesDefault
     if (inputDia) inputDia.value = ''
 
@@ -82,7 +83,7 @@ function cerrarModalExportar() {
 function exportarReporte() {
     const inputMes = document.getElementById('export-mes')
     const inputDia = document.getElementById('export-dia')
-    
+
     const mes = inputMes ? inputMes.value : ''
     const dia = inputDia ? inputDia.value : ''
 
@@ -107,13 +108,13 @@ function exportarReporte() {
 document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('btn-exportar-toggle')
     const menu = document.getElementById('exportar-menu')
-    
+
     if (toggleBtn && menu) {
         toggleBtn.addEventListener('click', function(e) {
             e.stopPropagation()
             menu.classList.toggle('active')
         })
-        
+
         // Cerrar al hacer clic fuera
         document.addEventListener('click', function(e) {
             if (!toggleBtn.contains(e.target) && !menu.contains(e.target)) {
@@ -128,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('click', function(event) {
     const modalHist = document.getElementById('modal-historial')
     const modalExp = document.getElementById('modal-exportar')
-    
+
     if (modalHist && event.target === modalHist) {
         cerrarModalHistorial()
     }
@@ -143,5 +144,8 @@ document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         cerrarModalHistorial()
         cerrarModalExportar()
+        // También cerrar dropdown
+        const menu = document.getElementById('exportar-menu')
+        if (menu) menu.classList.remove('active')
     }
 })
