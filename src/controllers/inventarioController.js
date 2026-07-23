@@ -234,16 +234,32 @@ async function cambiarEstadoPeriferico(req, res) {
 async function crearCamara(req, res) {
   let { codigo, marca, modelo, numeroSerie, ubicacion, piso, dvr, ip, estado, observaciones } = req.body
   piso = piso || '1'; dvr = dvr || '1'
-  if (!codigo?.trim()) {
-    const prefijo = `CAM-P${piso}-`
-    const ultima = await prisma.camara.findFirst({ where: { codigo: { startsWith: prefijo }, piso }, orderBy: { codigo: 'desc' }, select: { codigo: true } })
-    let n = 1; if (ultima?.codigo) { const m = ultima.codigo.match(new RegExp(`${prefijo.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}(\d+)`)); if (m) n = parseInt(m[1]) + 1 }
-    codigo = `${prefijo}${String(n).padStart(3, '0')}`
+  const codigoManual = !!codigo?.trim()
+  const prefijo = `CAM-P${piso}-`
+
+  if (codigoManual) codigo = codigo.trim()
+  else codigo = await generarSiguienteCodigo(prefijo, 'codigo', prisma.camara)
+
+  // Reintenta si el código autogenerado choca por una condición de carrera
+  // (dos creaciones casi simultáneas calculando el mismo "siguiente" número).
+  // Si el código fue escrito a mano por el usuario, no se reintenta: se
+  // reporta el duplicado tal cual para que lo corrija.
+  const maxIntentos = codigoManual ? 1 : 5
+  for (let intento = 1; intento <= maxIntentos; intento++) {
+    try {
+      await prisma.camara.create({ data: { codigo: codigo.trim(), marca: marca?.trim() || null, modelo: modelo?.trim() || null, numeroSerie: numeroSerie?.trim() || null, ubicacion: ubicacion?.trim() || null, piso, dvr, ip: ip?.trim() || null, estado: estado || 'Operativo', observaciones: observaciones?.trim() || null } })
+      req.flash('success', `Cámara ${codigo} agregada.`); return res.redirect('/inventario?tab=camaras&piso=' + piso)
+    } catch (err) {
+      const esCodigoDuplicado = err.code === 'P2002' && err.meta?.target?.includes('codigo')
+      if (esCodigoDuplicado && !codigoManual && intento < maxIntentos) {
+        codigo = await generarSiguienteCodigo(prefijo, 'codigo', prisma.camara)
+        continue
+      }
+      console.error(err)
+      req.flash('error', esCodigoDuplicado ? `El código ${codigo} ya existe.` : 'Error al crear cámara.')
+      return res.redirect('/inventario?tab=camaras&piso=' + piso)
+    }
   }
-  try {
-    await prisma.camara.create({ data: { codigo: codigo.trim(), marca: marca?.trim() || null, modelo: modelo?.trim() || null, numeroSerie: numeroSerie?.trim() || null, ubicacion: ubicacion?.trim() || null, piso, dvr, ip: ip?.trim() || null, estado: estado || 'Operativo', observaciones: observaciones?.trim() || null } })
-    req.flash('success', `Cámara ${codigo} agregada.`); res.redirect('/inventario?tab=camaras&piso=' + piso)
-  } catch (err) { console.error(err); req.flash('error', 'Error al crear cámara.'); res.redirect('/inventario?tab=camaras&piso=' + piso) }
 }
 
 async function editarCamara(req, res) {

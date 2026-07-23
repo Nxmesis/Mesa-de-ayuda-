@@ -436,6 +436,14 @@
     color: #ffffff;
 }
 
+/* Paneles de cámaras por piso: solo se muestra el que tiene .active */
+.inv-camara-panel {
+    display: none;
+}
+.inv-camara-panel.active {
+    display: block;
+}
+
 /* ═══════════════════════════════════════════════════════════════════ */
 /*  ESTADO VACÍO                                                     */
 /* ═══════════════════════════════════════════════════════════════════ */

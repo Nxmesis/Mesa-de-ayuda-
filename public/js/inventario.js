@@ -264,6 +264,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Evitar doble envío de formularios (doble clic, o reintento antes de
+    // que la página recargue) — deshabilita el botón de submit al enviar.
+    document.querySelectorAll('.inv-modal form, .inv-modal-body form').forEach(form => {
+        form.addEventListener('submit', function() {
+            const btn = form.querySelector('button[type="submit"]')
+            if (btn && !btn.disabled) {
+                btn.disabled = true
+                btn.dataset.textoOriginal = btn.innerHTML
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...'
+            }
+        })
+    })
+
     // Guardar estado inicial de los selects para validación de archivado
     document.querySelectorAll('select[name="estado"]').forEach(select => {
         if (!select.dataset.estadoAnterior) {

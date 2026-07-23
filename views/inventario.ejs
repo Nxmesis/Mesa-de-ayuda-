@@ -327,13 +327,10 @@
                 <% pisos.forEach((p, i) => { %>
                     <button type="button"
                        class="inv-piso-tab <%= piso === p ? 'active' : '' %>" data-piso="<%= p %>"
-                       onclick="mostrarPisoCamara('<%= p %>', this)"
-                       style="display:flex; align-items:center; gap:8px; padding:10px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:600; font-size:0.9rem; font-family:inherit; transition:all 0.2s; <%= piso === p ? 'background:linear-gradient(135deg, #2ecc71, #27ae60); color:white; box-shadow:0 2px 8px rgba(46,204,113,0.3);' : 'background:#f8fafc; color:#64748b;' %>">
-                        <i class="fas fa-building" style="font-size:0.85rem;"></i>
+                       onclick="mostrarPisoCamara('<%= p %>', this)">
+                        <i class="fas fa-building"></i>
                         Piso <%= p %>
-                        <span class="inv-piso-tab-count" style="background:<%= piso === p ? 'rgba(255,255,255,0.25)' : '#e2e8f0' %>; color:<%= piso === p ? 'white' : '#64748b' %>; padding:2px 10px; border-radius:12px; font-size:0.75rem; font-weight:700;">
-                            <%= camarasPorPiso[p] || 0 %>
-                        </span>
+                        <span class="inv-piso-count"><%= camarasPorPiso[p] || 0 %></span>
                     </button>
                 <% }) %>
             </div>
@@ -1100,7 +1097,7 @@
                     </div>
                     <div class="inv-form-group">
                         <label class="inv-form-label">Piso</label>
-                        <select name="piso" class="inv-form-control">
+                        <select name="piso" id="input-piso-camara" class="inv-form-control">
                             <option value="1">Piso 1</option>
                             <option value="2">Piso 2</option>
                             <option value="3">Piso 3</option>

@@ -408,6 +408,15 @@
 /* ═══════════════════════════════════════════════════════════════════ */
 /*  PAGINACIÓN                                                       */
 /* ═══════════════════════════════════════════════════════════════════ */
+.mant-title {
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 2.1rem;
+    margin-bottom:24px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
 .mant-paginacion {
     display: flex;
     justify-content: center;

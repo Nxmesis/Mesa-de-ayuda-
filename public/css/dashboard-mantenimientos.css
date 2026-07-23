@@ -62,6 +62,17 @@
 /* ═══════════════════════════════════════════════════════════════════ */
 /*  BARRA DE HERRAMIENTAS                                            */
 /* ═══════════════════════════════════════════════════════════════════ */
+
+.dahs-mant-title {
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 2.1rem;
+    padding-top: 5px;
+    margin-bottom:24px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
 .dash-mant-toolbar {
     display: flex;
     align-items: center;
