@@ -84,7 +84,7 @@
             <div class="form-group">
               <label class="form-label">Rol</label>
               <input type="text" class="form-control"
-                     value="<%= user.rol %>" disabled>
+                     value="<%= user.rol === 'tecnico' ? 'supervisor' : user.rol %>" disabled>
             </div>
             <button type="submit" class="btn btn-success">
               Guardar Cambios

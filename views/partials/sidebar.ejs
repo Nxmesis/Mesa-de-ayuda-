@@ -12,7 +12,7 @@
       <% } %>
       <div class="sidebar-profile-info">
         <div class="sidebar-user-name"><%= user.nombre %></div>
-        <div class="sidebar-user-role"><%= user.rol %></div>
+        <div class="sidebar-user-role"><%= user.rol === 'tecnico' ? 'supervisor' : user.rol %></div>
       </div>
     </a>
   </div>
