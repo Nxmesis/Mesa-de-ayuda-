@@ -263,7 +263,7 @@
                                             </div>
                                             <div style="display:table-cell; padding:8px 10px; width:10%;">
                                                 <select name="categoria" class="inv-cell-select">
-                                                    <% ['Teclado','Mouse','Monitor','UPS','Scanner','Impresora','Servidor','Red','Otro'].forEach(c => { %>
+                                                    <% ['Teclado','Mouse','Monitor','UPS','Scanner','Impresora','Servidor','Red','Datafono','Otro'].forEach(c => { %>
                                                         <option value="<%= c %>" <%= per.categoria === c ? 'selected' : '' %>><%= c %></option>
                                                     <% }) %>
                                                 </select>
@@ -1016,6 +1016,7 @@
                             <option value="Impresora">Impresora</option>
                             <option value="Servidor">Servidor</option>
                             <option value="Red">Red</option>
+                            <option value="Datafono">Datafono</option>
                             <option value="Otro">Otro</option>
                         </select>
                     </div>

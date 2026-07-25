@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Cerrar al hacer click fuera
-  document.querySelectorAll('.ind-modal-overlay').forEach(function(overlay) {
+  document.querySelectorAll('.usr-modal-overlay').forEach(function(overlay) {
     overlay.addEventListener('click', function(e) {
       if (e.target === overlay) overlay.classList.remove('open')
     })
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Escape
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-      document.querySelectorAll('.ind-modal-overlay.open').forEach(function(m) {
+      document.querySelectorAll('.usr-modal-overlay.open').forEach(function(m) {
         m.classList.remove('open')
       })
     }
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (pwdNueva) {
     pwdNueva.addEventListener('input', function() {
       const val = this.value
-      const fill = document.querySelector('#pwdStrength .ind-strength-fill')
+      const fill = document.querySelector('#pwdStrength .usr-strength-fill')
       if (!fill) return
       let strength = 0
       if (val.length >= 6) strength++
@@ -118,9 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ── Filtros ──
-  document.querySelectorAll('.ind-filter-btn').forEach(function(btn) {
+  document.querySelectorAll('.usr-filter-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      document.querySelectorAll('.ind-filter-btn').forEach(function(b) {
+      document.querySelectorAll('.usr-filter-btn').forEach(function(b) {
         b.classList.remove('active')
       })
       this.classList.add('active')
