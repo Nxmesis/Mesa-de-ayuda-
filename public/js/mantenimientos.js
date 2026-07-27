@@ -199,13 +199,37 @@ function abrirModalRevision(datos) {
     document.getElementById('rev-observaciones').textContent = datos.observaciones || 'Sin observaciones'
 
     const fotoSection = document.getElementById('rev-seccion-foto')
-    const fotoImg = document.getElementById('rev-foto')
+    const mediaContainer = document.getElementById('rev-media-container')
+    const labelEvidencia = document.getElementById('rev-label-evidencia')
+
     if (datos.foto && datos.foto.trim() !== '') {
-        fotoImg.src = '/evidencias/' + datos.foto
+        const ext = datos.foto.split('.').pop().toLowerCase()
+        const videoExts = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv']
+        const isVideo = videoExts.includes(ext)
+
+        mediaContainer.innerHTML = ''
+
+        if (isVideo) {
+            labelEvidencia.textContent = '🎥 Video de Evidencia'
+            const video = document.createElement('video')
+            video.src = '/evidencias/' + datos.foto
+            video.controls = true
+            video.style.maxWidth = '100%'
+            video.style.borderRadius = '8px'
+            mediaContainer.appendChild(video)
+        } else {
+            labelEvidencia.textContent = '📷 Foto de Evidencia'
+            const img = document.createElement('img')
+            img.src = '/evidencias/' + datos.foto
+            img.alt = 'Evidencia'
+            img.style.maxWidth = '100%'
+            img.style.borderRadius = '8px'
+            mediaContainer.appendChild(img)
+        }
         fotoSection.style.display = 'block'
     } else {
         fotoSection.style.display = 'none'
-        fotoImg.src = ''
+        mediaContainer.innerHTML = ''
     }
 
     abrirModal('modal-revision')

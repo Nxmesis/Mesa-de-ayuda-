@@ -35,7 +35,7 @@ const uploadDocs = multer({
   }
 })
 
-// Configuración de multer para fotos de evidencia de mantenimientos
+// Configuración de multer para evidencias de mantenimientos (fotos y videos)
 const storageEvidencias = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, asegurarCarpeta(path.join(__dirname, '..', '..', 'uploads', 'evidencias')))
@@ -48,12 +48,12 @@ const storageEvidencias = multer.diskStorage({
 
 const uploadEvidencias = multer({
   storage: storageEvidencias,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB para soportar videos
   fileFilter: (req, file, cb) => {
-    const allowed = ['.jpg', '.jpeg', '.png', '.webp']
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
     const ext = path.extname(file.originalname).toLowerCase()
     if (allowed.includes(ext)) cb(null, true)
-    else cb(new Error('Solo se permiten imágenes (JPG, PNG, WEBP)'))
+    else cb(new Error('Solo se permiten imágenes (JPG, PNG, WEBP) o videos (MP4, WEBM, MOV, etc.)'))
   }
 })
 

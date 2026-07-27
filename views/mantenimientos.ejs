@@ -337,8 +337,9 @@
                     <textarea name="observaciones" class="mant-form-control" rows="2"></textarea>
                 </div>
                 <div class="mant-form-group">
-                    <label class="mant-form-label">Foto de evidencia</label>
-                    <input type="file" name="fotoEvidencia" id="completar-foto" class="mant-form-control" accept="image/*">
+                    <label class="mant-form-label">Evidencia (foto o video)</label>
+                    <input type="file" name="fotoEvidencia" id="completar-foto" 
+                    class="mant-form-control" accept="image/*,video/*">
                 </div>
             </div>
             <div class="mant-modal-footer">
@@ -454,9 +455,9 @@
                 <div class="mant-revision-box" id="rev-observaciones">—</div>
             </div>
             <div class="mant-revision-section" id="rev-seccion-foto" style="display:none;">
-                <span class="mant-revision-label">📷 Foto de Evidencia</span>
-                <div class="mant-revision-foto-container">
-                    <img id="rev-foto" src="" alt="Foto de evidencia">
+                <div class="mant-revision-section" id="rev-seccion-foto" style="display:none;">
+                    <span class="mant-revision-label" id="rev-label-evidencia">📷 Evidencia</span>
+                    <div class="mant-revision-foto-container" id="rev-media-container"></div>
                 </div>
             </div>
         </div>
@@ -467,5 +468,3 @@
 </div>
 
 <form id="form-eliminar" method="POST" style="display:none;"></form>
-
-<script src="/js/mantenimientos.js"></script>
