@@ -240,10 +240,6 @@ async function crearCamara(req, res) {
   if (codigoManual) codigo = codigo.trim()
   else codigo = await generarSiguienteCodigo(prefijo, 'codigo', prisma.camara)
 
-  // Reintenta si el código autogenerado choca por una condición de carrera
-  // (dos creaciones casi simultáneas calculando el mismo "siguiente" número).
-  // Si el código fue escrito a mano por el usuario, no se reintenta: se
-  // reporta el duplicado tal cual para que lo corrija.
   const maxIntentos = codigoManual ? 1 : 5
   for (let intento = 1; intento <= maxIntentos; intento++) {
     try {
@@ -372,16 +368,14 @@ async function subirDocumento(req, res) {
     req.flash('error', 'Adjunta un archivo.'); 
     return res.redirect('/inventario?tab=documentos') 
   }
-  
+
   try {
-    // FIX: Guardar fecha como string YYYY-MM-DD para evitar problemas de zona horaria
-    // El campo en Prisma es @db.Date, pero pasamos un Date object creado en UTC
     let fechaDoc = null
     if (fechaDocumento) {
       const [year, month, day] = fechaDocumento.split('-').map(Number)
       fechaDoc = new Date(Date.UTC(year, month - 1, day))
     }
-    
+
     await prisma.documentoInventario.create({ 
       data: { 
         titulo: titulo.trim(), 
@@ -439,27 +433,32 @@ const FRECUENCIAS = ['15dias', 'Mensual', '3meses', '6meses', 'Anual']
 const TIPOS_MANTENIMIENTO = ['Preventivo', 'Correctivo']
 const ESTADOS_MANTENIMIENTO = ['Pendiente', 'Realizado', 'Vencido']
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  CORRECCIÓN: Funciones de fecha normalizadas a UTC medianoche
+//  Esto soluciona el bug de los KPIs cuando @db.Date se compara con Date de JS
+// ═══════════════════════════════════════════════════════════════════════════
+
 function calcularProximaFecha(fechaBase, frecuencia) {
   const fecha = new Date(fechaBase)
   switch (frecuencia) {
-    case '15dias':    fecha.setDate(fecha.getDate() + 15); break
-    case 'Mensual':   fecha.setMonth(fecha.getMonth() + 1); break
-    case '3meses':    fecha.setMonth(fecha.getMonth() + 3); break
-    case '6meses':    fecha.setMonth(fecha.getMonth() + 6); break
-    case 'Anual':     fecha.setFullYear(fecha.getFullYear() + 1); break
-    default:          fecha.setMonth(fecha.getMonth() + 1)
+    case '15dias':    fecha.setUTCDate(fecha.getUTCDate() + 15); break
+    case 'Mensual':   fecha.setUTCMonth(fecha.getUTCMonth() + 1); break
+    case '3meses':    fecha.setUTCMonth(fecha.getUTCMonth() + 3); break
+    case '6meses':    fecha.setUTCMonth(fecha.getUTCMonth() + 6); break
+    case 'Anual':     fecha.setUTCFullYear(fecha.getUTCFullYear() + 1); break
+    default:          fecha.setUTCMonth(fecha.getUTCMonth() + 1)
   }
   return fecha
 }
 
 function getInicioMes() {
   const hoy = new Date()
-  return new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+  return new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth(), 1))
 }
 
 function getFinMes() {
   const hoy = new Date()
-  return new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59)
+  return new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59))
 }
 
 // Helper para detectar si una tabla existe en Prisma
@@ -725,6 +724,10 @@ async function crearMantenimiento(req, res) {
     return res.redirect('/inventario/mantenimientos')
   }
   try {
+    // CORRECCIÓN: Normalizar fecha a UTC medianoche para consistencia con @db.Date
+    const [year, month, day] = fechaProgramada.split('-').map(Number)
+    const fechaProgUTC = new Date(Date.UTC(year, month - 1, day))
+
     await prisma.mantenimiento.create({
       data: {
         equipoId: parseInt(equipoId),
@@ -732,7 +735,7 @@ async function crearMantenimiento(req, res) {
         tipo: tipo || 'Preventivo',
         estado: 'Pendiente',
         responsable: responsable?.trim() || null,
-        fechaProgramada: new Date(fechaProgramada),
+        fechaProgramada: fechaProgUTC,
         descripcion: descripcion?.trim() || null,
         frecuencia: frecuencia || 'Mensual',
       }
@@ -747,7 +750,7 @@ async function crearMantenimiento(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  POST /inventario/mantenimientos/:id/completar  (ACTUALIZADO)
+//  POST /inventario/mantenimientos/:id/completar
 // ═══════════════════════════════════════════════════════════════════
 
 async function completarMantenimiento(req, res) {
@@ -758,20 +761,17 @@ async function completarMantenimiento(req, res) {
     if (!mant) { req.flash('error', 'Mantenimiento no encontrado.'); return res.redirect('/inventario/mantenimientos') }
 
     const frecuencia = mant.frecuencia || 'Mensual'
-    
-    // CORRECCIÓN: Construir fecha con componentes locales para evitar desfase de zona horaria
+
+    // CORRECCIÓN: Normalizar fechaRealizada a UTC medianoche para consistencia con @db.Date
     let fechaReal
-    if (fechaRealizada && horaInicio) {
+    if (fechaRealizada) {
       const [year, month, day] = fechaRealizada.split('-').map(Number)
-      const [hour, minute] = horaInicio.split(':').map(Number)
-      fechaReal = new Date(year, month - 1, day, hour, minute)
-    } else if (fechaRealizada) {
-      const [year, month, day] = fechaRealizada.split('-').map(Number)
-      fechaReal = new Date(year, month - 1, day)
+      fechaReal = new Date(Date.UTC(year, month - 1, day))
     } else {
-      fechaReal = new Date()
+      const hoy = new Date()
+      fechaReal = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()))
     }
-    
+
     const proxima = calcularProximaFecha(fechaReal, frecuencia)
 
     // Calcular tiempo invertido automáticamente en minutos
@@ -806,6 +806,7 @@ async function completarMantenimiento(req, res) {
       }
     })
 
+    // CORRECCIÓN: Normalizar fechas para equipoMantenimiento también
     await prisma.equipoMantenimiento.upsert({
       where: { equipoId_equipoTipo: { equipoId: mant.equipoId, equipoTipo: mant.equipoTipo } },
       update: { ultimoMantenimiento: fechaReal, proximoMantenimiento: proxima },
@@ -828,25 +829,31 @@ async function completarMantenimiento(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  POST /inventario/mantenimientos/:id/editar  (BLOQUEA SI COMPLETADO)
+//  POST /inventario/mantenimientos/:id/editar
 // ═══════════════════════════════════════════════════════════════════
 
 async function editarMantenimiento(req, res) {
   const id = parseInt(req.params.id)
   const { tipo, fechaProgramada, responsable, descripcion, frecuencia } = req.body
   try {
-    // Verificar que no esté completado
     const mant = await prisma.mantenimiento.findUnique({ where: { id }, select: { estado: true } })
     if (mant && mant.estado === 'Realizado') {
       req.flash('error', 'No se puede editar un mantenimiento ya completado.')
       return res.redirect('/inventario/mantenimientos')
     }
 
+    // CORRECCIÓN: Normalizar fecha a UTC medianoche
+    let fechaProg = undefined
+    if (fechaProgramada) {
+      const [year, month, day] = fechaProgramada.split('-').map(Number)
+      fechaProg = new Date(Date.UTC(year, month - 1, day))
+    }
+
     await prisma.mantenimiento.update({
       where: { id },
       data: {
         tipo: tipo || undefined,
-        fechaProgramada: fechaProgramada ? new Date(fechaProgramada) : undefined,
+        fechaProgramada: fechaProg,
         responsable: responsable?.trim() || null,
         descripcion: descripcion?.trim() || null,
         frecuencia: frecuencia || undefined,
