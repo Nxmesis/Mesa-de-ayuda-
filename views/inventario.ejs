@@ -29,6 +29,7 @@
         <div class="inv-layout">
 
             <!-- ═══════════════════════════════════════════════ -->
+            <!-- ═══════════════════════════════════════════════ -->
             <!-- MENÚ LATERAL DE CATEGORÍAS                       -->
             <!-- ═══════════════════════════════════════════════ -->
             <div class="inv-nav">
@@ -52,10 +53,11 @@
                     <span>Sensores</span>
                     <span class="inv-nav-count"><%= counts.sensores %></span>
                 </button>
-                <button type="button" class="inv-nav-item <%= tab === 'puntosred' ? 'active' : '' %>" data-tab="puntosred" onclick="mostrarTab('puntosred', this)">
+                <!-- NUEVO: Tab Red unificado -->
+                <button type="button" class="inv-nav-item <%= tab === 'red' ? 'active' : '' %>" data-tab="red" onclick="mostrarTab('red', this)">
                     <i class="fas fa-network-wired"></i>
-                    <span>Puntos de Red</span>
-                    <span class="inv-nav-count"><%= counts.puntosred %></span>
+                    <span>Red</span>
+                    <span class="inv-nav-count"><%= (counts.equiposRed || 0) + (counts.puntosred || 0) %></span>
                 </button>
                 <div class="inv-nav-divider"></div>
                 <button type="button" class="inv-nav-item <%= tab === 'archivados' ? 'active' : '' %>" data-tab="archivados" onclick="mostrarTab('archivados', this)">
@@ -70,7 +72,6 @@
                 </button>
             </div>
 
-            <!-- ═══════════════════════════════════════════════ -->
             <!-- CONTENIDO                                        -->
             <!-- ═══════════════════════════════════════════════ -->
             <div class="inv-content">
@@ -574,128 +575,265 @@
         </div>
 
         <!-- ═══════════════════════════════════════════════════ -->
-        <!-- PANEL PUNTOS DE RED                                  -->
         <!-- ═══════════════════════════════════════════════════ -->
-        <div id="tab-puntosred" class="inv-panel <%= tab === 'puntosred' ? 'active' : '' %>">
-            <div class="inv-toolbar">
-                <div class="inv-search">
-                    <input type="text" id="buscar-puntosred"
-                           placeholder="Buscar puntos de red..."
-                           onkeyup="filtrarTabla('tabla-puntosred', this.value)">
-                </div>
-                <button class="inv-btn inv-btn-success" onclick="abrirModal('modal-puntored')">
-                    + Nuevo Punto de Red
+        <!-- PANEL RED (Equipos de Red + Puntos de Red)          -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <div id="tab-red" class="inv-panel <%= tab === 'red' ? 'active' : '' %>">
+
+            <!-- Sub-tabs -->
+            <div class="inv-piso-tabs" style="display:flex; gap:8px; margin-bottom:20px; padding:0 0 10px 0; border-bottom:2px solid #e2e8f0; flex-wrap:wrap;">
+                <button type="button"
+                   class="inv-piso-tab <%= subtabRed === 'equipos' ? 'active' : '' %>" data-subtab="equipos"
+                   onclick="mostrarSubtabRed('equipos', this)">
+                    <i class="fas fa-server"></i>
+                    Equipos de Red
+                    <span class="inv-piso-count"><%= counts.equiposRed || 0 %></span>
+                </button>
+                <button type="button"
+                   class="inv-piso-tab <%= subtabRed === 'puntos' ? 'active' : '' %>" data-subtab="puntos"
+                   onclick="mostrarSubtabRed('puntos', this)">
+                    <i class="fas fa-ethernet"></i>
+                    Puntos de Red
+                    <span class="inv-piso-count"><%= counts.puntosred || 0 %></span>
                 </button>
             </div>
 
-            <div class="inv-table-wrap">
-                <div style="overflow-x: auto;">
-                    <table class="inv-table" id="tabla-puntosred">
-                        <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Ubicación</th>
-                                <th>Tipo de cable</th>
-                                <th>Longitud</th>
-                                <th>Uso</th>
-                                <th>Estado</th>
-                                <th>Observaciones</th>
-                                <th style="width:90px;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% if (puntosRed && puntosRed.length > 0) { %>
-                            <% puntosRed.forEach(r => { %>
-                            <tr>
-                                <td><strong><%= r.codigo %></strong></td>
-                                <td><%= r.ubicacion %></td>
-                                <td><%= r.tipoCable %></td>
-                                <td><%= r.longitud || '—' %></td>
-                                <td><%= r.tipoUso %></td>
-                                <td>
-                                    <span class="inv-badge <%= r.estado === 'Operativo' ? 'badge-success' : r.estado === 'Averiado' ? 'badge-danger' : r.estado === 'Deficiente' ? 'badge-warning' : r.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
-                                        <%= r.estado %>
-                                    </span>
-                                </td>
-                                <td><%= r.observaciones || '—' %></td>
-                                <td>
-                                    <div class="inv-actions">
-                                        <button type="button" class="inv-action-btn inv-action-edit"
-                                                onclick="editarFila('edit-red-<%= r.id %>')" title="Editar">
-                                            <i class="fas fa-pen"></i>
-                                        </button>
-                                        <button type="button" class="inv-action-btn inv-action-delete"
-                                                onclick="confirmarEliminar('/inventario/puntosred/<%= r.id %>/eliminar')"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr id="edit-red-<%= r.id %>" style="display:none; background:#fffbeb;">
-                                <td colspan="8">
-                                    <form action="/inventario/puntosred/<%= r.id %>/editar" method="POST"
-                                          style="display:table; width:100%;">
-                                        <div style="display:table-row;">
-                                            <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <input type="text" value="<%= r.codigo %>" class="inv-cell-input" readonly>
-                                            </div>
-                                            <div style="display:table-cell; padding:8px 10px; width:16%;">
-                                                <input type="text" name="ubicacion" value="<%= r.ubicacion %>" class="inv-cell-input">
-                                            </div>
-                                            <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <select name="tipoCable" class="inv-cell-select">
-                                                    <% ['Cat 5e','Cat 6','Cat 6a','Fibra óptica'].forEach(c => { %>
-                                                        <option value="<%= c %>" <%= r.tipoCable === c ? 'selected' : '' %>><%= c %></option>
-                                                    <% }) %>
-                                                </select>
-                                            </div>
-                                            <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                <input type="text" name="longitud" value="<%= r.longitud || '' %>" class="inv-cell-input" placeholder="Ej: 10mtr">
-                                            </div>
-                                            <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <select name="tipoUso" class="inv-cell-select">
-                                                    <% ['Datos','AP','Cámara','Ruta Enlace'].forEach(u => { %>
-                                                        <option value="<%= u %>" <%= r.tipoUso === u ? 'selected' : '' %>><%= u %></option>
-                                                    <% }) %>
-                                                </select>
-                                            </div>
-                                            <div style="display:table-cell; padding:8px 10px; width:12%;">
-                                                <select name="estado" class="inv-cell-select" onchange="validarArchivado(this, 'puntored', <%= r.id %>)">
-                                                    <% estados.forEach(e => { %>
-                                                        <option value="<%= e %>" <%= r.estado === e ? 'selected' : '' %>><%= e %></option>
-                                                    <% }) %>
-                                                </select>
-                                            </div>
-                                            <div style="display:table-cell; padding:8px 10px; width:16%;">
-                                                <input type="text" name="observaciones" value="<%= r.observaciones || '' %>" class="inv-cell-input">
-                                            </div>
-                                            <div style="display:table-cell; padding:8px 10px; width:10%;">
-                                                <div class="inv-actions">
-                                                    <button type="submit" class="inv-action-btn inv-action-edit" title="Guardar">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
-                                                    <button type="button" class="inv-action-btn inv-action-delete"
-                                                            onclick="cancelarEdicion('edit-red-<%= r.id %>')" title="Cancelar">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
+            <!-- ═════ SUB-PANEL EQUIPOS DE RED ═════ -->
+            <div id="subtab-equipos" class="inv-red-subpanel <%= subtabRed === 'equipos' ? 'active' : '' %>">
+                <div class="inv-toolbar">
+                    <div class="inv-search">
+                        <input type="text" id="buscar-equiposred"
+                               placeholder="Buscar equipos de red..."
+                               onkeyup="filtrarTabla('tabla-equiposred', this.value)">
+                    </div>
+                    <button class="inv-btn inv-btn-success" onclick="abrirModal('modal-equipored')">
+                        + Nuevo Equipo de Red
+                    </button>
+                </div>
+
+                <div class="inv-table-wrap">
+                    <div style="overflow-x: auto;">
+                        <table class="inv-table" id="tabla-equiposred">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Tipo</th>
+                                    <th>Marca</th>
+                                    <th>Modelo</th>
+                                    <th>Ubicación</th>
+                                    <th>Estado</th>
+                                    <th>Observaciones</th>
+                                    <th style="width:90px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (equiposRed && equiposRed.length > 0) { %>
+                                <% equiposRed.forEach(eq => { %>
+                                <tr>
+                                    <td><strong><%= eq.codigo %></strong></td>
+                                    <td><span class="inv-badge inv-badge-info"><%= eq.tipoEquipo %></span></td>
+                                    <td><%= eq.marca || '—' %></td>
+                                    <td><%= eq.modelo || '—' %></td>
+                                    <td><%= eq.ubicacion || '—' %></td>
+                                    <td>
+                                        <span class="inv-badge <%= eq.estado === 'Operativo' ? 'badge-success' : eq.estado === 'Averiado' ? 'badge-danger' : eq.estado === 'Deficiente' ? 'badge-warning' : eq.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
+                                            <%= eq.estado %>
+                                        </span>
+                                    </td>
+                                    <td><%= eq.observaciones || '—' %></td>
+                                    <td>
+                                        <div class="inv-actions">
+                                            <button type="button" class="inv-action-btn inv-action-edit"
+                                                    onclick="editarFila('edit-eqred-<%= eq.id %>')" title="Editar">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            <button type="button" class="inv-action-btn inv-action-delete"
+                                                    onclick="confirmarEliminar('/inventario/equiposred/<%= eq.id %>/eliminar')"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr id="edit-eqred-<%= eq.id %>" style="display:none; background:#fffbeb;">
+                                    <td colspan="8">
+                                        <form action="/inventario/equiposred/<%= eq.id %>/editar" method="POST"
+                                              style="display:table; width:100%;">
+                                            <div style="display:table-row;">
+                                                <div style="display:table-cell; padding:8px 10px; width:12%;">
+                                                    <input type="text" value="<%= eq.codigo %>" class="inv-cell-input" readonly>
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:14%;">
+                                                    <select name="tipoEquipo" class="inv-cell-select">
+                                                        <% ['Switch','Router','Access Point','Firewall','Patch Panel','Otro'].forEach(t => { %>
+                                                            <option value="<%= t %>" <%= eq.tipoEquipo === t ? 'selected' : '' %>><%= t %></option>
+                                                        <% }) %>
+                                                    </select>
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:12%;">
+                                                    <input type="text" name="marca" value="<%= eq.marca || '' %>" class="inv-cell-input">
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:14%;">
+                                                    <input type="text" name="modelo" value="<%= eq.modelo || '' %>" class="inv-cell-input">
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:16%;">
+                                                    <input type="text" name="ubicacion" value="<%= eq.ubicacion || '' %>" class="inv-cell-input">
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:12%;">
+                                                    <select name="estado" class="inv-cell-select" onchange="validarArchivado(this, 'equipored', <%= eq.id %>)">
+                                                        <% estados.forEach(e => { %>
+                                                            <option value="<%= e %>" <%= eq.estado === e ? 'selected' : '' %>><%= e %></option>
+                                                        <% }) %>
+                                                    </select>
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:14%;">
+                                                    <input type="text" name="observaciones" value="<%= eq.observaciones || '' %>" class="inv-cell-input">
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:10%;">
+                                                    <div class="inv-actions">
+                                                        <button type="submit" class="inv-action-btn inv-action-edit" title="Guardar">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                        <button type="button" class="inv-action-btn inv-action-delete"
+                                                                onclick="cancelarEdicion('edit-eqred-<%= eq.id %>')" title="Cancelar">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                <% } else { %>
+                                <tr><td colspan="8">No hay equipos de red registrados</td></tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═════ SUB-PANEL PUNTOS DE RED ═════ -->
+            <div id="subtab-puntos" class="inv-red-subpanel <%= subtabRed === 'puntos' ? 'active' : '' %>">
+                <div class="inv-toolbar">
+                    <div class="inv-search">
+                        <input type="text" id="buscar-puntosred"
+                               placeholder="Buscar puntos de red..."
+                               onkeyup="filtrarTabla('tabla-puntosred', this.value)">
+                    </div>
+                    <button class="inv-btn inv-btn-success" onclick="abrirModal('modal-puntored')">
+                        + Nuevo Punto de Red
+                    </button>
+                </div>
+
+                <div class="inv-table-wrap">
+                    <div style="overflow-x: auto;">
+                        <table class="inv-table" id="tabla-puntosred">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Ubicación</th>
+                                    <th>Tipo de cable</th>
+                                    <th>Longitud</th>
+                                    <th>Uso</th>
+                                    <th>Estado</th>
+                                    <th>Observaciones</th>
+                                    <th style="width:90px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (puntosRed && puntosRed.length > 0) { %>
+                                <% puntosRed.forEach(r => { %>
+                                <tr>
+                                    <td><strong><%= r.codigo %></strong></td>
+                                    <td><%= r.ubicacion %></td>
+                                    <td><%= r.tipoCable %></td>
+                                    <td><%= r.longitud || '—' %></td>
+                                    <td><%= r.tipoUso %></td>
+                                    <td>
+                                        <span class="inv-badge <%= r.estado === 'Operativo' ? 'badge-success' : r.estado === 'Averiado' ? 'badge-danger' : r.estado === 'Deficiente' ? 'badge-warning' : r.estado === 'Pendiente revisión' ? 'badge-info' : 'badge-secondary' %>">
+                                            <%= r.estado %>
+                                        </span>
+                                    </td>
+                                    <td><%= r.observaciones || '—' %></td>
+                                    <td>
+                                        <div class="inv-actions">
+                                            <button type="button" class="inv-action-btn inv-action-edit"
+                                                    onclick="editarFila('edit-red-<%= r.id %>')" title="Editar">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            <button type="button" class="inv-action-btn inv-action-delete"
+                                                    onclick="confirmarEliminar('/inventario/puntosred/<%= r.id %>/eliminar')"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </div>
-                                    </form>
-                                </td>
-                            </tr>
-                            <% }) %>
-                            <% } else { %>
-                            <tr><td colspan="8" >No hay puntos de red registrados</td></tr>
-                            <% } %>
-                        </tbody>
-                    </table>
+                                    </td>
+                                </tr>
+                                <tr id="edit-red-<%= r.id %>" style="display:none; background:#fffbeb;">
+                                    <td colspan="8">
+                                        <form action="/inventario/puntosred/<%= r.id %>/editar" method="POST"
+                                              style="display:table; width:100%;">
+                                            <div style="display:table-row;">
+                                                <div style="display:table-cell; padding:8px 10px; width:12%;">
+                                                    <input type="text" value="<%= r.codigo %>" class="inv-cell-input" readonly>
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:16%;">
+                                                    <input type="text" name="ubicacion" value="<%= r.ubicacion %>" class="inv-cell-input">
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:12%;">
+                                                    <select name="tipoCable" class="inv-cell-select">
+                                                        <% ['Cat 5e','Cat 6','Cat 6a','Fibra óptica'].forEach(c => { %>
+                                                            <option value="<%= c %>" <%= r.tipoCable === c ? 'selected' : '' %>><%= c %></option>
+                                                        <% }) %>
+                                                    </select>
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:10%;">
+                                                    <input type="text" name="longitud" value="<%= r.longitud || '' %>" class="inv-cell-input" placeholder="Ej: 10mtr">
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:12%;">
+                                                    <select name="tipoUso" class="inv-cell-select">
+                                                        <% ['Datos','AP','Cámara','Ruta Enlace'].forEach(u => { %>
+                                                            <option value="<%= u %>" <%= r.tipoUso === u ? 'selected' : '' %>><%= u %></option>
+                                                        <% }) %>
+                                                    </select>
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:12%;">
+                                                    <select name="estado" class="inv-cell-select" onchange="validarArchivado(this, 'puntored', <%= r.id %>)">
+                                                        <% estados.forEach(e => { %>
+                                                            <option value="<%= e %>" <%= r.estado === e ? 'selected' : '' %>><%= e %></option>
+                                                        <% }) %>
+                                                    </select>
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:16%;">
+                                                    <input type="text" name="observaciones" value="<%= r.observaciones || '' %>" class="inv-cell-input">
+                                                </div>
+                                                <div style="display:table-cell; padding:8px 10px; width:10%;">
+                                                    <div class="inv-actions">
+                                                        <button type="submit" class="inv-action-btn inv-action-edit" title="Guardar">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                        <button type="button" class="inv-action-btn inv-action-delete"
+                                                                onclick="cancelarEdicion('edit-red-<%= r.id %>')" title="Cancelar">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                <% } else { %>
+                                <tr><td colspan="8">No hay puntos de red registrados</td></tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- ═══════════════════════════════════════════════════ -->
         <!-- PANEL ARCHIVADOS                                    -->
         <!-- ═══════════════════════════════════════════════════ -->
         <div id="tab-archivados" class="inv-panel <%= tab === 'archivados' ? 'active' : '' %>">
@@ -841,6 +979,7 @@
 </div><!-- /.main-content -->
 
 <!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════ -->
 <!-- MODAL SELECCIONAR CATEGORÍA ARCHIVADO                  -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <div class="inv-modal-overlay" id="modal-seleccion-archivado">
@@ -869,8 +1008,12 @@
                     <i class="fas fa-shield-alt"></i> Sensor
                 </button>
                 <button type="button" class="inv-btn inv-btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
+                        onclick="cerrarModal('modal-seleccion-archivado'); abrirModal('modal-equipored'); preseleccionarArchivado('modal-equipored');">
+                    <i class="fas fa-server"></i> Equipo de Red
+                </button>
+                <button type="button" class="inv-btn inv-btn-secondary" style="justify-content:flex-start; gap:12px; padding:14px 18px; font-size:1rem;"
                         onclick="cerrarModal('modal-seleccion-archivado'); abrirModal('modal-puntored'); preseleccionarArchivado('modal-puntored');">
-                    <i class="fas fa-network-wired"></i> Punto de Red
+                    <i class="fas fa-ethernet"></i> Punto de Red
                 </button>
             </div>
         </div>
@@ -879,8 +1022,6 @@
         </div>
     </div>
 </div>
-
-<!-- ═══════════════════════════════════════════════════════ -->
 <!-- MODAL RESTAURAR ARCHIVADO                              -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <div class="inv-modal-overlay" id="modal-restaurar">
@@ -1189,6 +1330,74 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- MODAL NUEVO EQUIPO DE RED                              -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="inv-modal-overlay" id="modal-equipored">
+    <div class="inv-modal">
+        <div class="inv-modal-header">
+            <h2>Nuevo Equipo de Red</h2>
+            <button class="inv-modal-close" onclick="cerrarModal('modal-equipored')">×</button>
+        </div>
+        <form action="/inventario/equiposred" method="POST">
+            <div class="inv-modal-body">
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Código <span style="color:#8b95a8; font-weight:400;">(opcional)</span></label>
+                        <input type="text" name="codigo" class="inv-form-control"
+                               placeholder="<%= siguienteCodigoEquipoRed %>"
+                               style="color:#a0aec0; font-style:italic;">
+                        <div class="inv-form-hint" style="font-size:0.8rem; color:#8b95a8; margin-top:4px;">
+                            Próximo código: <strong><%= siguienteCodigoEquipoRed %></strong>
+                        </div>
+                    </div>
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Tipo de Equipo *</label>
+                        <select name="tipoEquipo" class="inv-form-control" required>
+                            <option value="Switch">Switch</option>
+                            <option value="Router">Router</option>
+                            <option value="Access Point">Access Point</option>
+                            <option value="Firewall">Firewall</option>
+                            <option value="Patch Panel">Patch Panel</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Marca</label>
+                        <input type="text" name="marca" class="inv-form-control" placeholder="Ej: TP-Link, Cisco, Ubiquiti">
+                    </div>
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Modelo</label>
+                        <input type="text" name="modelo" class="inv-form-control" placeholder="Ej: TL-SG1024DE">
+                    </div>
+                </div>
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Ubicación</label>
+                        <input type="text" name="ubicacion" class="inv-form-control" placeholder="Ej: Rack principal, Sala de servidores">
+                    </div>
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Estado</label>
+                        <select name="estado" class="inv-form-control">
+                            <% estados.forEach(e => { %><option value="<%= e %>"><%= e %></option><% }) %>
+                        </select>
+                    </div>
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Observaciones</label>
+                    <textarea name="observaciones" class="inv-form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="inv-modal-footer">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="cerrarModal('modal-equipored')">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-success">Crear</button>
+            </div>
+        </form>
+    </div>
+</div>
 <!-- MODAL NUEVO PUNTO DE RED                                 -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <div class="inv-modal-overlay" id="modal-puntored">

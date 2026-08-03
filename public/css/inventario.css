@@ -668,3 +668,11 @@ select.inv-form-control {
     .inv-search { max-width: 100%; }
     .inv-modal { margin: 10px; }
 }
+
+/* Sub-panels de Red */
+.inv-red-subpanel {
+    display: none;
+}
+.inv-red-subpanel.active {
+    display: block;
+}

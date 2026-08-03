@@ -58,7 +58,7 @@ model Ticket {
   @@index([usuarioId], map: "tickets_usuario_id_fkey")
   @@map("tickets")
 }
-
+ 
 model Categoria {
   id          Int     @id @default(autoincrement())
   nombre      String  @unique @db.VarChar(100)
@@ -196,6 +196,22 @@ model PuntoRed {
   fechaRegistro DateTime @default(now()) @map("fecha_registro")
 
   @@map("puntos_red")
+}
+
+model EquipoRed {
+  id            Int      @id @default(autoincrement())
+  codigo        String   @unique @db.VarChar(20)
+  tipoEquipo    String   @map("tipo_equipo") @db.VarChar(30)
+  marca         String?  @db.VarChar(100)
+  modelo        String?  @db.VarChar(100)
+  numeroSerie   String?  @map("numero_serie") @db.VarChar(100)
+  ubicacion     String?  @db.VarChar(100)
+  ip            String?  @db.VarChar(50)
+  estado        String   @default("Operativo") @db.VarChar(30)
+  observaciones String?  @db.Text
+  fechaRegistro DateTime @default(now()) @map("fecha_registro") @db.Date
+
+  @@map("equipos_red")
 }
 
 model DocumentoInventario {

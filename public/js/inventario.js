@@ -298,3 +298,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// ── Sub-tabs de Red ──────────────────────────────────────────────────────
+function mostrarSubtabRed(subtab, btn) {
+    document.querySelectorAll('.inv-red-subpanel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('[data-subtab]').forEach(b => b.classList.remove('active'));
+
+    const panel = document.getElementById('subtab-' + subtab);
+    if (panel) panel.classList.add('active');
+    if (btn) btn.classList.add('active');
+
+    // Actualizar URL sin recargar
+    const url = new URL(window.location);
+    url.searchParams.set('subtabRed', subtab);
+    window.history.pushState({}, '', url);
+}
+
+// ── Inicializar sub-tabs de Red según URL ──────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    // ... código existente ...
+
+    // Inicializar sub-tabs de Red si estamos en el tab red
+    const urlParams = new URLSearchParams(window.location.search);
+    const subtabRed = urlParams.get('subtabRed');
+    if (subtabRed && document.getElementById('tab-red')?.classList.contains('active')) {
+        const btn = document.querySelector('[data-subtab="' + subtabRed + '"]');
+        if (btn) {
+            document.querySelectorAll('.inv-red-subpanel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('[data-subtab]').forEach(b => b.classList.remove('active'));
+            const panel = document.getElementById('subtab-' + subtabRed);
+            if (panel) panel.classList.add('active');
+            btn.classList.add('active');
+        }
+    }
+});
