@@ -111,6 +111,13 @@ router.post('/inventario/puntosred', requireAuth, requireAdminOnly, withCtrl('cr
 router.post('/inventario/puntosred/:id/editar', requireAuth, requireAdminOnly, withCtrl('editarPuntoRed'))
 router.post('/inventario/puntosred/:id/eliminar', requireAuth, requireAdminOnly, withCtrl('eliminarPuntoRed'))
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  EQUIPOS DE RED
+// ═══════════════════════════════════════════════════════════════════════════
+router.post('/inventario/equiposred', requireAuth, requireAdminOnly, withCtrl('crearEquipoRed'))
+router.post('/inventario/equiposred/:id/editar', requireAuth, requireAdminOnly, withCtrl('editarEquipoRed'))
+router.post('/inventario/equiposred/:id/eliminar', requireAuth, requireAdminOnly, withCtrl('eliminarEquipoRed'))
+
 // DOCUMENTOS
 router.post('/inventario/documentos', requireAuth, requireAdminOnly, uploadDocs.single('archivo'), withCtrl('subirDocumento'))
 router.post('/inventario/documentos/:id/eliminar', requireAuth, requireAdminOnly, withCtrl('eliminarDocumento'))
